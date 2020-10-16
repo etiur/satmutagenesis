@@ -1,6 +1,4 @@
-#### BAD IMPORT####
-#from pmx import Model, ..., ...
-from pmx import *
+from pmx import Model
 from pmx.rotamer import mutate
 from pmx.rotamer import load_bbdep
 import argparse
