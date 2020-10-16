@@ -13,7 +13,7 @@ def parse_args():
     parser.add_argument("--input", required=True, help="Include PDB file's path")
     parser.add_argument("--position", required=True, help="Include a chain ID and a position starting from 0")
     #arguments = vars(parser.parse_args())
-    args = parser.pase_args()
+    args = parser.parse_args()
     return args.input, args.position
 
 
@@ -21,10 +21,9 @@ class SaturatedMutagenesis():
 
     def __init__(self, model, position):
         """
-            model 
-            position
+            model (str) path to the PDB file
+            position (str) chain ID:position of the residue, for example A:132
         """
-        
         self.model = Model(model)
         self.chain_id = position.split(":")[0]
         self.position = int(position.split(":")[1])
@@ -35,7 +34,7 @@ class SaturatedMutagenesis():
 
     def check_chain(self):
         """
-            check if chain is ,..
+            check if the chain provided is in fact in the protein
         """
         for chain_ in self.model.chains:
             if chain_.id == self.chain_id:
@@ -47,18 +46,20 @@ class SaturatedMutagenesis():
 
     def generate_pdb(self):
         """
-        
+        Generate all the other 19 mutations
         """
+        aa_name = self.chain.residues[self.position].resname
         for aa in self.residues:
-            if aa != self.chain.residues[self.position].resname:
+            if aa != aa_name:
+                print aa_name
                 mutate(self.chain.residues[self.position], aa, self.rotamers)
                 self.model.write("{}_{}.pdb".format(aa, self.position))
 
 
 def generate_mutations(input, position):
     """
-        input: (typo de python variable) (description de que significa)
         input (str) - Input pdb to be used to generate the mutations
+        position (str) - chain ID:position of teh residue, for example A:139
     """
     run = SaturatedMutagenesis(input, position)
     run.check_chain()
@@ -66,7 +67,7 @@ def generate_mutations(input, position):
     
 def main():
     input, position = parse_args()
-    generate_mutation(input, position)
+    generate_mutations(input, position)
 
 if __name__ == "__main__": 
     #Run this if this file is executed from command line but not if is imported as API
