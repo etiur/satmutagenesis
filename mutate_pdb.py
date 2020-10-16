@@ -51,7 +51,6 @@ class SaturatedMutagenesis():
         aa_name = self.chain.residues[self.position].resname
         for aa in self.residues:
             if aa != aa_name:
-                print aa_name
                 mutate(self.chain.residues[self.position], aa, self.rotamers)
                 self.model.write("{}_{}.pdb".format(aa, self.position))
 
