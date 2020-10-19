@@ -5,7 +5,7 @@ import glob
 def parse_args():
     parser = argparse.ArgumentParser(description="Make predictions")
     # main required arguments
-    parser.add_argument("--folder", required=True, help="Include the folder where the pdb files are")
+    parser.add_argument("--folder", required=True, help="Include the folder where the pdb files are located")
     parser.add_argument("--chain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--resname", required=True, help="The ligand residue name")
     parser.add_argument("--atom1", required=True,
