@@ -2,6 +2,7 @@ from pmx import Model
 from pmx.rotamer import mutate
 from pmx.rotamer import load_bbdep
 import argparse
+import os
 
 # Argument parsers
 
@@ -46,15 +47,20 @@ class SaturatedMutagenesis():
         """
         Generate all the other 19 mutations
         """
-        aa_name = self.chain.residues[self.position].resname
+        os.mkdir("pdb_files")
         final_pdbs = []
+        self.model.write("pdb_files/original.pdb")
+        final_pdbs.append("original.pdb")
+
+        aa_name = self.chain.residues[self.position].resname
         for aa in self.residues:
             if aa != aa_name:
                 mutate(self.chain.residues[self.position], aa, self.rotamers)
                 output = "{}_{}.pdb".format(aa, self.position)
-                self.model.write(output)
+                self.model.write("pdb_files/{}".format(output))
                 final_pdbs.append(output)
-        return output
+
+        return final_pdbs
                 
 
 
@@ -70,8 +76,8 @@ def generate_mutations(input, position):
 def main():
     input, position = parse_args()
     output = generate_mutations(input, position)
-    all_pdbs = output + input
-    return all_pdbs
+
+    return output
 
 if __name__ == "__main__": 
     #Run this if this file is executed from command line but not if is imported as API
