@@ -47,7 +47,8 @@ class SaturatedMutagenesis():
         """
         Generate all the other 19 mutations
         """
-        os.mkdir("pdb_files")
+        if not os.path.exists("pdb_files"):
+            os.mkdir("pdb_files")
         final_pdbs = []
         self.model.write("pdb_files/original.pdb")
         final_pdbs.append("original.pdb")

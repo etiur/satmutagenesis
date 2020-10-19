@@ -36,9 +36,10 @@ class CreateLaunchFiles():
 
     def input_creation(self, yaml_name):
         """ create the .yaml input files for PELE"""
-        os.mkdir("input_files")
-        self.yaml = "{}.yaml".format(yaml_name)
-        with open("input_files/{}".format(self.yaml), "w") as inp:
+        if not os.path.exists("yaml_files"):
+            os.mkdir("yaml_files")
+        self.yaml = "input_files/{}.yaml".format(yaml_name)
+        with open(self.yaml, "w") as inp:
             inp.write("system: '{}'".format(self.input))
             inp.write("chain: '{}'".format(self.chain))
             inp.write("resname: '{}'".format(self.resname))
@@ -51,9 +52,10 @@ class CreateLaunchFiles():
 
     def slurm_creation(self, slurm_name, yaml_file):
         """Creates the slurm runing files for PELE"""
-        os.mkdir("slurm_files")
-        self.slurm = "{}.sh".format(slurm_name)
-        with open("slurm_files/{}".format(self.slurm), "w") as slurm:
+        if not os.path.exists("slurm_files"):
+            os.mkdir("slurm_files")
+        self.slurm = "slurm_files/{}.sh".format(slurm_name)
+        with open(self.slurm, "w") as slurm:
             slurm.write("#!/bin/bash")
             slurm.write("#SBATCH -J PELE")
             slurm.write("#SBATCH --output=mpi_%j.out")
