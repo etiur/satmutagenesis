@@ -71,7 +71,16 @@ class CreateLaunchFiles():
 
 
 def create_20sbatch(chain, resname, atom1, atom2, cpus=24):
-    """ creates for each of the mutants the yaml and slurm files"""
+    """
+    creates for each of the mutants the yaml and slurm files
+
+        chain: (str) the chain ID where the ligand is located
+        resname: (str) the residue name of the ligand in the PDB
+        atom1: (str) atom of the residue to follow in this format --> chain ID:position:atom name
+        atom2: (str) atom of the ligand to follow in this format --> chain ID:position:atom name
+        cpus: (str or int) how many cpus do you want to use
+        
+    """
     if not os.path.exists("pdb_files"):
         raise IOError("No directory named pdb_files, run mutate_pdb.py first")
 
