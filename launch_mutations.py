@@ -48,10 +48,11 @@ class CreateLaunchFiles():
             inp.write("induced_fit_exhaustive: true\n")
             inp.write("seed: 12345\n")
             inp.write("cpus: {}\n".format(self.cpus))
-            inp.write("atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2))
-            inp.write("skip_preprocess: true\n")
             if self.test:
                 inp.write("test: true\n")
+            inp.write("atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2))
+            inp.write("skip_preprocess: true\n")
+
 
     def slurm_creation(self, slurm_name):
         """Creates the slurm runing files for PELE"""
@@ -66,7 +67,8 @@ class CreateLaunchFiles():
             slurm.write("#SBATCH --ntasks={}\n".format(self.cpus))
             if self.test:
                 slurm.write("#SBATCH --qos=debug\n\n")
-            slurm.write('module purgeexport PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n')
+            slurm.write('module purge"\n')
+            slurm.write('export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n')
             slurm.write('export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n')
             slurm.write('export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n')
             slurm.write('module load impi\n')
