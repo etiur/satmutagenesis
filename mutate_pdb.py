@@ -47,10 +47,15 @@ class SaturatedMutagenesis():
         Generate all the other 19 mutations
         """
         aa_name = self.chain.residues[self.position].resname
+        final_pdbs = []
         for aa in self.residues:
             if aa != aa_name:
                 mutate(self.chain.residues[self.position], aa, self.rotamers)
-                self.model.write("{}_{}.pdb".format(aa, self.position))
+                output = "{}_{}.pdb".format(aa, self.position)
+                self.model.write(output)
+                final_pdbs.append(output)
+        return output
+                
 
 
 def generate_mutations(input, position):
@@ -64,8 +69,10 @@ def generate_mutations(input, position):
     
 def main():
     input, position = parse_args()
-    generate_mutations(input, position)
+    output = generate_mutations(input, position)
+    all_pdbs = output + input
+    return all_pdbs
 
 if __name__ == "__main__": 
     #Run this if this file is executed from command line but not if is imported as API
-    main()
+    all_pdbs = main()
