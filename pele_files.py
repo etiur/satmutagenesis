@@ -13,9 +13,10 @@ def parse_args():
                         help="atom of the residue to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--atom2", required=True,
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
-
+    parser.add_argument("--cpus", required=False, default=24, type=int,
+                        help="Include the number of cpus desired")
     args = parser.parse_args()
-    return args.folder, args.chain, args.resname, args.atom1, args.atom2
+    return args.folder, args.chain, args.resname, args.atom1, args.atom2, args.cpus
 
 class CreateLaunchFiles():
     def __init__(self, input_, chain, resname, atom1, atom2, cpus=24, test=False):
@@ -90,7 +91,7 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
 
     """
     if not os.path.exists(folder):
-        raise IOError("No directory named {}, run mutate_pdb.py first".format(folder))
+        raise IOError("No directory named {}".format(folder))
 
     yaml_files = []
     slurm_files = []
@@ -106,8 +107,8 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
     return yaml_files, slurm_files
 
 def main():
-    folder, chain, resname, atom1, atom2 = parse_args()
-    yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder=folder)
+    folder, chain, resname, atom1, atom2, cpus = parse_args()
+    yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, folder=folder)
 
     return yaml_files, slurm_files
 

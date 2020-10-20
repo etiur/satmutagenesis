@@ -13,14 +13,15 @@ def parse_args():
                         help="atom of the residue to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--atom2", required=True,
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
-
+    parser.add_argument("--cpus", required=False, default=24, type=int,
+                       help="Include the number of cpus desired")
     args = parser.parse_args()
-    return args.input, args.position, args.chain, args.resname, args.atom1, args.atom2
+    return args.input, args.position, args.chain, args.resname, args.atom1, args.atom2, args.cpus
 
 def main():
-    input, position, chain, resname, atom1, atom2 = parse_args()
+    input, position, chain, resname, atom1, atom2, cpus = parse_args()
     pdb_names = generate_mutations(input, position)
-    yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2)
+    yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus)
 
 if __name__ == "__main__":
     #Run this if this file is executed from command line but not if is imported as API
