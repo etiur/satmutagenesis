@@ -6,7 +6,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
     parser.add_argument("--folder", required=False, default="pdb_files",
-                        help="Include the folder where the pdb files are located without the /")
+                        help="Include the folder where the pdb files are located")
     parser.add_argument("--chain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--resname", required=True, help="The ligand residue name")
     parser.add_argument("--atom1", required=True,
@@ -97,6 +97,7 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
     slurm_files = []
     for file in glob.glob("{}/*.pdb".format(folder)):
         name = file.replace("{}/".format(folder), "")
+        name = name.replace("{}".format(folder), "")
         name = name.replace(".pdb", "")
         run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test)
         run.input_creation(name)
