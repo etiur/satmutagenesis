@@ -7,7 +7,7 @@ import os
 # Argument parsers
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Make predictions")
+    parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
     parser.add_argument("--position", required=True, help="Include a chain ID and a position starting from 0")

@@ -3,16 +3,16 @@ import os
 import glob
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Make predictions")
+    parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
-    parser.add_argument("--folder", required=True, help="Include the folder where the pdb files are located")
+    parser.add_argument("--folder", required=True, help="Include the folder where the pdb files are located without the /")
     parser.add_argument("--chain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--resname", required=True, help="The ligand residue name")
     parser.add_argument("--atom1", required=True,
                         help="atom of the residue to follow in this format: chain ID:position:atom name")
     parser.add_argument("--atom2", required=True,
                         help="atom of the ligand to follow in this format: chain ID:position:atom name")
-    #arguments = vars(parser.parse_args())
+
     args = parser.parse_args()
     return args.folder, args.chain, args.resname, args.atom1, args.atom2
 
@@ -67,14 +67,14 @@ class CreateLaunchFiles():
             slurm.write("#SBATCH --ntasks={}\n".format(self.cpus))
             if self.test:
                 slurm.write("#SBATCH --qos=debug\n\n")
-            slurm.write('module purge"\n')
+            slurm.write('module purge\n')
             slurm.write('export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n')
             slurm.write('export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n')
             slurm.write('export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n')
             slurm.write('module load impi\n')
             slurm.write('module load intel mkl impi gcc # 2> /dev/null\n')
             slurm.write('module load boost/1.64.0\n')
-            slurm.write('/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(self.yaml))
+            slurm.write('/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main ../{}\n'.format(self.yaml))
 
 def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False):
     """
