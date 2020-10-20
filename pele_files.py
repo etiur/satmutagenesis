@@ -53,7 +53,8 @@ class CreateLaunchFiles():
                 inp.write("test: true\n")
             inp.write("atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2))
             inp.write("skip_preprocess: true\n")
-
+            inp.write("pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n")
+            inp.write("pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n")
 
     def slurm_creation(self, slurm_name):
         """Creates the slurm runing files for PELE"""

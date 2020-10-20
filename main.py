@@ -21,7 +21,7 @@ def main():
     input, position, chain, resname, atom1, atom2 = parse_args()
     pdb_names = generate_mutations(input, position)
     yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2)
-    
+
 if __name__ == "__main__":
     #Run this if this file is executed from command line but not if is imported as API
     main()
