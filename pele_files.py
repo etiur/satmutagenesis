@@ -44,7 +44,7 @@ class CreateLaunchFiles():
             os.mkdir("yaml_files")
         self.yaml = "yaml_files/{}.yaml".format(yaml_name)
         with open(self.yaml, "w") as inp:
-            inp.write("system: '{}'\n".format(self.input))
+            inp.write("system: '../{}'\n".format(self.input))
             inp.write("chain: '{}'\n".format(self.chain))
             inp.write("resname: '{}'\n".format(self.resname))
             inp.write("induced_fit_exhaustive: true\n")
