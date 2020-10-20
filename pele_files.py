@@ -5,13 +5,14 @@ import glob
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
-    parser.add_argument("--folder", required=True, help="Include the folder where the pdb files are located without the /")
+    parser.add_argument("--folder", required=False, default="pdb_files",
+                        help="Include the folder where the pdb files are located without the /")
     parser.add_argument("--chain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--resname", required=True, help="The ligand residue name")
     parser.add_argument("--atom1", required=True,
-                        help="atom of the residue to follow in this format: chain ID:position:atom name")
+                        help="atom of the residue to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--atom2", required=True,
-                        help="atom of the ligand to follow in this format: chain ID:position:atom name")
+                        help="atom of the ligand to follow in this format -> chain ID:position:atom name")
 
     args = parser.parse_args()
     return args.folder, args.chain, args.resname, args.atom1, args.atom2

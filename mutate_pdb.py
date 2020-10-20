@@ -72,7 +72,9 @@ def generate_mutations(input, position):
     """
     run = SaturatedMutagenesis(input, position)
     run.check_chain()
-    run.generate_pdb()
+    final_pdbs = run.generate_pdb()
+
+    return final_pdbs
     
 def main():
     input, position = parse_args()
