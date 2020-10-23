@@ -6,7 +6,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
-    parser.add_argument("--position", required=True, help="Include a chain ID and a position starting from 0 -> Chain ID:position")
+    parser.add_argument("--position", required=True, help="Include a chain ID and a position -> Chain ID:position")
     parser.add_argument("--chain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--resname", required=True, help="The ligand residue name")
     parser.add_argument("--atom1", required=True,
