@@ -10,7 +10,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
-    parser.add_argument("--position", required=True, help="Include a chain ID and a position starting from 0")
+    parser.add_argument("--position", required=True, help="Include a chain ID and a position")
     #arguments = vars(parser.parse_args())
     args = parser.parse_args()
     return args.input, args.position
@@ -25,7 +25,7 @@ class SaturatedMutagenesis():
         """
         self.model = Model(model)
         self.chain_id = position.split(":")[0]
-        self.position = int(position.split(":")[1])
+        self.position = int(position.split(":")[1]) - 1
         self.rotamers = load_bbdep()
         self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN', 'PRO', 'SER',
                 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
