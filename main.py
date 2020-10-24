@@ -22,6 +22,7 @@ def parse_args():
     return args.input, args.position, args.chain, args.resname, args.atom1, args.atom2, args.cpus
 
 def submit(slurm_folder):
+    """Given a folder submits the job to the supercomputer"""
     for file in glob.glob("{}/*".format(slurm_folder)):
         call(["sbatch", "{}".format(file)])
 
