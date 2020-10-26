@@ -67,8 +67,8 @@ class CreateLaunchFiles():
         with open(self.slurm, "w") as slurm:
             slurm.write("#!/bin/bash\n")
             slurm.write("#SBATCH -J PELE\n")
-            slurm.write("#SBATCH --output=mpi_%j.out\n")
-            slurm.write("#SBATCH --error=mpi_%j.err\n")
+            slurm.write("#SBATCH --output={}.out\n".format(slurm_name))
+            slurm.write("#SBATCH --error={}.err\n".format(slurm_name))
             if self.test:
                 slurm.write("#SBATCH --qos=debug\n")
                 self.cpus = 5
