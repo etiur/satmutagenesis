@@ -28,7 +28,6 @@ def submit(slurm_folder):
     for file in glob.glob("{}/*".format(slurm_folder)):
         call(["sbatch", "{}".format(file)])
 
-
 def main():
     input, position, chain, resname, atom1, atom2, cpus, test = parse_args()
     pdb_names = generate_mutations(input, position)
