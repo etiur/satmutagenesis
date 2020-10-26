@@ -5,7 +5,6 @@ import argparse
 import os
 
 # Argument parsers
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
     # main required arguments
@@ -14,7 +13,6 @@ def parse_args():
     #arguments = vars(parser.parse_args())
     args = parser.parse_args()
     return args.input, args.position
-
 
 class SaturatedMutagenesis():
 
@@ -62,8 +60,6 @@ class SaturatedMutagenesis():
                 final_pdbs.append(output)
 
         return final_pdbs
-                
-
 
 def generate_mutations(input, position):
     """

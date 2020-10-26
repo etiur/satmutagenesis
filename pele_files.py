@@ -45,7 +45,7 @@ class CreateLaunchFiles():
             os.mkdir("yaml_files")
         self.yaml = "yaml_files/{}.yaml".format(yaml_name)
         with open(self.yaml, "w") as inp:
-            inp.write("system: '../{}'\n".format(self.input))
+            inp.write("system: '{}'\n".format(self.input))
             inp.write("chain: '{}'\n".format(self.chain))
             inp.write("resname: '{}'\n".format(self.resname))
             inp.write("induced_fit_exhaustive: true\n")
@@ -80,7 +80,7 @@ class CreateLaunchFiles():
             slurm.write('module load impi\n')
             slurm.write('module load intel mkl impi gcc # 2> /dev/null\n')
             slurm.write('module load boost/1.64.0\n')
-            slurm.write('/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main ../{}\n'.format(self.yaml))
+            slurm.write('/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(self.yaml))
 
 def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False):
     """
@@ -91,8 +91,8 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
         atom1: (str) atom of the residue to follow  --> chain ID:position:atom name
         atom2: (str) atom of the ligand to follow  --> chain ID:position:atom name
         cpus: (str or int) how many cpus do you want to use
-
     """
+
     if not os.path.exists(folder):
         raise IOError("No directory named {}".format(folder))
 
