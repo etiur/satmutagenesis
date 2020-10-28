@@ -10,7 +10,7 @@ def parse_args():
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
     parser.add_argument("--position", required=True, help="Include a chain ID and a position")
-    parser.add_argument("--start", required=True, type=int, default=1,
+    parser.add_argument("--start", required=False, type=int, default=1,
                         help="The first residue's position in the PDB file")
     #arguments = vars(parser.parse_args())
     args = parser.parse_args()
