@@ -21,12 +21,12 @@ class SaturatedMutagenesis():
             model (str) path to the PDB file
             position (str) chain ID:position of the residue, for example A:132
         """
-        self.model = Model(model, renumber_residues=False, renumber_atoms=False)
+        self.model = Model(model)
         self.chain_id = position.split(":")[0]
         self.position = int(position.split(":")[1]) - 1
         self.rotamers = load_bbdep()
-        self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN', 'PRO', 'SER',
-                'ARG', 'THR', 'TRP', 'VAL', 'TYR']
+        self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
+                         'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
         self.chain = None
 
     def check_chain(self):
