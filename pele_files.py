@@ -1,6 +1,7 @@
 import argparse
 import os
 import glob
+from helper import map_atom_string
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
@@ -20,7 +21,7 @@ def parse_args():
     return args.folder, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test
 
 class CreateLaunchFiles():
-    def __init__(self, input_, chain, resname, atom1, atom2, cpus=24, test=False):
+    def __init__(self, input_, chain, resname, atom1, atom2, cpus=24, test=False, initial=None):
         """
         input_: (str) PDB files path
         chain: (str) the chain ID where the ligand is located
@@ -38,6 +39,15 @@ class CreateLaunchFiles():
         self.test = test
         self.yaml = None
         self.slurm = None
+        self.initial = initial
+
+    def match_dist(self):
+        """ match the user coordinates to pmx PDB coordinates"""
+        if self.initial:
+            self.atom1 = map_atom_string(self.atom1, self.initial, self.input)
+            self.atom2 = map_atom_string(self.atom2, self.initial, self.input)
+        else:
+            pass
 
     def input_creation(self, yaml_name):
         """ create the .yaml input files for PELE"""
@@ -55,7 +65,6 @@ class CreateLaunchFiles():
                 self.cpus = 5
             inp.write("cpus: {}\n".format(self.cpus))
             inp.write("atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2))
-            inp.write("skip_preprocess: true\n")
             inp.write("pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n")
             inp.write("pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n")
 
@@ -82,7 +91,7 @@ class CreateLaunchFiles():
             slurm.write('module load boost/1.64.0\n')
             slurm.write('/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(self.yaml))
 
-def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False):
+def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -102,7 +111,8 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
         name = file.replace("{}/".format(folder), "")
         name = name.replace("{}".format(folder), "")
         name = name.replace(".pdb", "")
-        run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test)
+        run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial)
+        run.match_dist()
         run.input_creation(name)
         run.slurm_creation(name)
         yaml_files.append(run.yaml)
