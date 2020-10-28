@@ -10,20 +10,22 @@ def parse_args():
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
     parser.add_argument("--position", required=True, help="Include a chain ID and a position")
+    parser.add_argument("--start", required=True, type=int, default=1,
+                        help="The first residue's position in the PDB file")
     #arguments = vars(parser.parse_args())
     args = parser.parse_args()
-    return args.input, args.position
+    return args.input, args.position, args.start
 
 class SaturatedMutagenesis():
 
-    def __init__(self, model, position):
+    def __init__(self, model, position, start):
         """
             model (str) path to the PDB file
             position (str) chain ID:position of the residue, for example A:132
         """
         self.model = Model(model)
         self.chain_id = position.split(":")[0]
-        self.position = int(position.split(":")[1]) - 1
+        self.position = int(position.split(":")[1]) - start
         self.rotamers = load_bbdep()
         self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
                          'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
@@ -61,20 +63,21 @@ class SaturatedMutagenesis():
 
         return final_pdbs
 
-def generate_mutations(input, position):
+def generate_mutations(input, position, start):
     """
         input (str) - Input pdb to be used to generate the mutations
         position (str) - chain ID:position of teh residue, for example A:139
+        start (int) - The position of the first residue in the PDB file
     """
-    run = SaturatedMutagenesis(input, position)
+    run = SaturatedMutagenesis(input, position, start)
     run.check_chain()
     final_pdbs = run.generate_pdb()
 
     return final_pdbs
     
 def main():
-    input, position = parse_args()
-    output = generate_mutations(input, position)
+    input, position, start = parse_args()
+    output = generate_mutations(input, position, start)
 
     return output
 

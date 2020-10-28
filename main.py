@@ -15,13 +15,15 @@ def parse_args():
                         help="atom of the residue to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--atom2", required=True,
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
+    parser.add_argument("--start", required=True, type=int, default=1,
+                        help="The first residue's position in the PDB file")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                        help="Include the number of cpus desired")
-
     parser.add_argument("--test", required=False, action="store_true")
 
     args = parser.parse_args()
-    return args.input, args.position, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test
+    
+    return args.input, args.position, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test, args.start
 
 def submit(slurm_folder):
     """Given a folder submits the job to the supercomputer"""
@@ -29,8 +31,8 @@ def submit(slurm_folder):
         call(["sbatch", "{}".format(file)])
 
 def main():
-    input, position, chain, resname, atom1, atom2, cpus, test = parse_args()
-    pdb_names = generate_mutations(input, position)
+    input, position, chain, resname, atom1, atom2, cpus, test, start = parse_args()
+    pdb_names = generate_mutations(input, position, start)
     yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, test=test)
     submit("slurm_files")
 
