@@ -34,14 +34,13 @@ class SaturatedMutagenesis():
         self.chain_id = None
         self.position = None
 
-    def check_chain(self):
-        """
-            check if the chain provided is in fact in the protein and match the user coordinates to pmx PDB coordinates
-        """
+    def check_coords(self):
+        """map the user coordinates with pmx coordinates"""
         if not os.path.exists("pdb_files"):
             os.mkdir("pdb_files")
         self.model.write("pdb_files/original.pdb")
         self.final_pdbs.append("original.pdb")
+
         after = map_atom_string(self.coords, self.input, "pdb_files/original.pdb")
         self.chain_id = after.split(":")[0]
         self.position = int(after.split(":")[1]) - 1
@@ -49,10 +48,6 @@ class SaturatedMutagenesis():
         for chain_ in self.model.chains:
             if chain_.id == self.chain_id:
                 self.chain = chain_
-        try:
-            id(self.chain)
-        except NameError:
-            raise NameError("no {} in the Model".format(self.chain_id))
 
     def generate_pdb(self):
         """
@@ -75,7 +70,7 @@ def generate_mutations(input, position):
         start (int) - The position of the first residue in the PDB file
     """
     run = SaturatedMutagenesis(input, position)
-    run.check_chain()
+    run.check_coords()
     final_pdbs = run.generate_pdb()
 
     return final_pdbs
