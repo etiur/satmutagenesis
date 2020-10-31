@@ -1,4 +1,3 @@
-
 def map_atom_string(atom_string, initial_pdb, prep_pdb):
     # read in user input
     with open(initial_pdb, "r") as initial:
@@ -24,8 +23,9 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
                         new_atom_name = p[12:16].strip()
                         new_resnum = p[22:26].strip()
                         new_chain = p[21].strip()
-
-        after = "{}:{}:{}".format(new_chain, new_resnum, new_atom_name)
+                        after = "{}:{}:{}".format(new_chain, new_resnum, new_atom_name)
+                        break
+                break
 
     else:
         chain, resnum = atom_string.split(":")
@@ -39,10 +39,11 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
                     if p[30:54].split() == coords:
                         new_resnum = p[22:26].strip()
                         new_chain = p[21].strip()
+
+                        after = "{}:{}".format(new_chain, new_resnum)
+
+                        break
                 break
-
-        after = "{}:{}".format(new_chain, new_resnum)
-
 
     return after
 
