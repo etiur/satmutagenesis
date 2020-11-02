@@ -30,7 +30,7 @@ def submit(slurm_folder):
 
 def main():
     input, position, chain, resname, atom1, atom2, cpus, test = parse_args()
-    pdb_names = generate_mutations(input, position)
+    pdb_names = generate_mutations(input, position, hydrogens=True)
     yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, test=test, initial=input)
     submit("slurm_files")
 
