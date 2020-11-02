@@ -1,10 +1,10 @@
 from pmx import Model
-from pmx.rotamer import mutate
 from pmx.rotamer import load_bbdep
 import argparse
 import os
 from helper import map_atom_string
-
+from pmx.library import _aacids_dic
+from pmx.rotamer import get_rotamers, select_best_rotamer
 # Argument parsers
 def parse_args():
     parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
@@ -15,6 +15,16 @@ def parse_args():
     #arguments = vars(parser.parse_args())
     args = parser.parse_args()
     return args.input, args.position
+
+def mutate(residue, new_aa, bbdep, hydrogens):
+    if len(new_aa ) == 1:
+        new_aa = _aacids_dic[new_aa]
+    phi = residue.get_phi()
+    psi = residue.get_psi()
+    m = residue.model
+    rotamers = get_rotamers(bbdep, new_aa, phi, psi, residue=residue, full=True, hydrogens=hydrogens)
+    new_r = select_best_rotamer(m, rotamers)
+    m.replace_residue(residue, new_r)
 
 class SaturatedMutagenesis():
 
@@ -49,15 +59,15 @@ class SaturatedMutagenesis():
             if chain_.id == self.chain_id:
                 self.chain = chain_
 
-    def generate_pdb(self):
+    def generate_pdb(self, hydrogens):
         """
         Generate all the other 19 mutations
         """
         aa_name = self.chain.residues[self.position].resname
         for aa in self.residues:
             if aa != aa_name:
-                mutate(self.chain.residues[self.position], aa, self.rotamers)
-                output = "{}_{}.pdb".format(aa, self.coords.split(":")[1])
+                mutate(self.chain.residues[self.position], aa, self.rotamers, hydrogens=hydrogens)
+                output = "{}_{}.pdb".format(aa, self.position+1)
                 self.model.write("pdb_files/{}".format(output))
                 self.final_pdbs.append("pdb_files/{}".format(output))
 
@@ -87,13 +97,18 @@ class SaturatedMutagenesis():
                     21].strip() == self.chain_id.strip() and line[
                                                      22:26].strip() == str(self.position + 1):
                     atom_name = line[12:16].strip()
-                    atom_type = "           {}  \n".format(atom_name[0])
+                    if atom_name[0].isalpha():
+                        atom_type = "           {}  \n".format(atom_name[0])
+                    else:
+                        atom_type = "           {}  \n".format(atom_name[1])
+
                     prep_lines[ind] = line.strip("\n") + atom_type
 
             with open(prep_pdb, "w") as prep:
                 prep.writelines(prep_lines)
 
-def generate_mutations(input, position):
+
+def generate_mutations(input, position, hydrogens=True):
     """
         input (str) - Input pdb to be used to generate the mutations
         position (str) - chain ID:position of teh residue, for example A:139
@@ -101,7 +116,7 @@ def generate_mutations(input, position):
     """
     run = SaturatedMutagenesis(input, position)
     run.check_coords()
-    final_pdbs = run.generate_pdb()
+    final_pdbs = run.generate_pdb(hydrogens=hydrogens)
     run.insert_atomtype()
 
     return final_pdbs
