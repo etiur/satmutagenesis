@@ -91,7 +91,7 @@ class CreateLaunchFiles():
             slurm.write('module load boost/1.64.0\n')
             slurm.write('/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(self.yaml))
 
-def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None):
+def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None, file_list=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -101,24 +101,31 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
         atom2: (str) atom of the ligand to follow  --> chain ID:position:atom name
         cpus: (str or int) how many cpus do you want to use
     """
-
     if not os.path.exists(folder):
         raise IOError("No directory named {}".format(folder))
 
-    yaml_files = []
     slurm_files = []
-    for file in glob.glob("{}/*.pdb".format(folder)):
-        name = file.replace("{}/".format(folder), "")
-        name = name.replace("{}".format(folder), "")
-        name = name.replace(".pdb", "")
-        run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial)
-        run.match_dist()
-        run.input_creation(name)
-        run.slurm_creation(name)
-        yaml_files.append(run.yaml)
-        slurm_files.append(run.slurm)
+    if not file_list:
+        for file in glob.glob("{}/*.pdb".format(folder)):
+            name = file.replace("{}/".format(folder), "")
+            name = name.replace("{}".format(folder), "")
+            name = name.replace(".pdb", "")
+            run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial)
+            run.match_dist()
+            run.input_creation(name)
+            run.slurm_creation(name)
+            slurm_files.append(run.slurm)
+    else:
+        for file in file_list:
+            name = file.replace("{}/".format(file.split("/")[0]), "")
+            name = name.replace(".pdb", "")
+            run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial)
+            run.match_dist()
+            run.input_creation(name)
+            run.slurm_creation(name)
+            slurm_files.append(run.slurm)
 
-    return yaml_files, slurm_files
+    return slurm_files
 
 def main():
     folder, chain, resname, atom1, atom2, cpus, test = parse_args()
