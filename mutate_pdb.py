@@ -16,16 +16,6 @@ def parse_args():
     args = parser.parse_args()
     return args.input, args.position
 
-def mutate(residue, new_aa, bbdep, hydrogens):
-    if len(new_aa ) == 1:
-        new_aa = _aacids_dic[new_aa]
-    phi = residue.get_phi()
-    psi = residue.get_psi()
-    m = residue.model
-    rotamers = get_rotamers(bbdep, new_aa, phi, psi, residue=residue, full=True, hydrogens=hydrogens)
-    new_r = select_best_rotamer(m, rotamers)
-    m.replace_residue(residue, new_r)
-
 class SaturatedMutagenesis():
 
     def __init__(self, model, position):
@@ -43,6 +33,16 @@ class SaturatedMutagenesis():
         self.chain = None
         self.chain_id = None
         self.position = None
+
+    def mutate(self, residue, new_aa, bbdep, hydrogens):
+        if len(new_aa) == 1:
+            new_aa = _aacids_dic[new_aa]
+        phi = residue.get_phi()
+        psi = residue.get_psi()
+        m = residue.model
+        rotamers = get_rotamers(bbdep, new_aa, phi, psi, residue=residue, full=True, hydrogens=hydrogens)
+        new_r = select_best_rotamer(m, rotamers)
+        m.replace_residue(residue, new_r)
 
     def check_coords(self):
         """map the user coordinates with pmx coordinates"""
@@ -66,7 +66,7 @@ class SaturatedMutagenesis():
         aa_name = self.chain.residues[self.position].resname
         for aa in self.residues:
             if aa != aa_name:
-                mutate(self.chain.residues[self.position], aa, self.rotamers, hydrogens=hydrogens)
+                self.mutate(self.chain.residues[self.position], aa, self.rotamers, hydrogens=hydrogens)
                 output = "{}_{}.pdb".format(aa, self.position+1)
                 self.model.write("pdb_files/{}".format(output))
                 self.final_pdbs.append("pdb_files/{}".format(output))
