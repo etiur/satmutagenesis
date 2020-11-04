@@ -39,9 +39,7 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
                     if p[30:54].split() == coords:
                         new_resnum = p[22:26].strip()
                         new_chain = p[21].strip()
-
                         after = "{}:{}".format(new_chain, new_resnum)
-
                         break
                 break
 
