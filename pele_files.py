@@ -124,7 +124,7 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
         for file in file_list:
             name = file.replace("{}/".format(file.split("/")[0]), "")
             name = name.replace(".pdb", "")
-            run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial)
+            run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
             run.match_dist()
             run.input_creation(name)
             run.slurm_creation(name)
