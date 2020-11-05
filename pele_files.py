@@ -16,12 +16,13 @@ def parse_args():
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
+    parser.add_argument("--cu", required=False, action="store_true")
     parser.add_argument("--test", required=False, action="store_true")
     args = parser.parse_args()
-    return args.folder, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test
+    return args.folder, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test, args.cu
 
 class CreateLaunchFiles():
-    def __init__(self, input_, chain, resname, atom1, atom2, cpus=24, test=False, initial=None):
+    def __init__(self, input_, chain, resname, atom1, atom2, cpus=24, test=False, initial=None, cu=False):
         """
         input_: (str) PDB files path
         chain: (str) the chain ID where the ligand is located
@@ -40,6 +41,7 @@ class CreateLaunchFiles():
         self.yaml = None
         self.slurm = None
         self.initial = initial
+        self.cu = cu
 
     def match_dist(self):
         """ match the user coordinates to pmx PDB coordinates"""
@@ -65,6 +67,9 @@ class CreateLaunchFiles():
                 self.cpus = 5
             inp.write("cpus: {}\n".format(self.cpus))
             inp.write("atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2))
+            if self.cu:
+                path = "/gpfs/projects/bsc72/ruite/examples/cuz"
+                inp.write("templates:\n- '{}'\n".format(path))
             inp.write("pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n")
             inp.write("pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n")
 
@@ -91,7 +96,7 @@ class CreateLaunchFiles():
             slurm.write('module load boost/1.64.0\n')
             slurm.write('/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(self.yaml))
 
-def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None, file_list=None):
+def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None, file_list=None, cu=False):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -110,7 +115,7 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
             name = file.replace("{}/".format(folder), "")
             name = name.replace("{}".format(folder), "")
             name = name.replace(".pdb", "")
-            run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial)
+            run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
             run.match_dist()
             run.input_creation(name)
             run.slurm_creation(name)
@@ -128,8 +133,8 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
     return slurm_files
 
 def main():
-    folder, chain, resname, atom1, atom2, cpus, test = parse_args()
-    yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, folder=folder, test=test)
+    folder, chain, resname, atom1, atom2, cpus, test, cu = parse_args()
+    yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, folder=folder, test=test, cu=cu)
 
     return yaml_files, slurm_files
 
