@@ -118,7 +118,7 @@ class SaturatedMutagenesis():
 
 def generate_multiple_mutations(input, position, hydrogens=True):
     """
-        To generate a combination of
+        To generate a combination of mutations
         input (str) - Input pdb to be used to generate the mutations
         position (list) - [chain ID:position] of the residue, for example [A:139,..]
     """
@@ -147,15 +147,16 @@ def generate_multiple_mutations(input, position, hydrogens=True):
 
     return all_pdbs
 
-def generate_mutations(input, position, hydrogens=True):
+def generate_mutations(input_, position, hydrogens=True):
     """
+        To generate single point mutations
         input (str) - Input pdb to be used to generate the mutations
         position (list) - [chain ID:position] of the residue, for example [A:139,..]
     """
     count = 0
     all_pdbs = []
     for mutation in position:
-        run = SaturatedMutagenesis(input, mutation)
+        run = SaturatedMutagenesis(input_, mutation)
         if not count:
             run.check_coords()
         else:
