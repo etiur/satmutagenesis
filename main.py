@@ -2,13 +2,14 @@ import argparse
 from mutate_pdb import generate_mutations
 from pele_files import create_20sbatch
 from subprocess import call
-import glob
+from os.path import abspath
+import os
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
-    parser.add_argument("--position", required=True, help="Include a chain ID and a position -> Chain ID:position")
+    parser.add_argument("--position", required=True, nargs="+", help="Include a chain ID and a position -> Chain ID:position")
     parser.add_argument("--chain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--resname", required=True, help="The ligand residue name")
     parser.add_argument("--atom1", required=True,
@@ -30,11 +31,15 @@ def submit(slurm_folder):
         call(["sbatch", "{}".format(file)])
 
 def main():
-    input, position, chain, resname, atom1, atom2, cpus, test, cu = parse_args()
-    pdb_names = generate_mutations(input, position, hydrogens=True)
-    slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, test=test, initial=input, file_list=pdb_names, cu=cu)
+    input_, position, chain, resname, atom1, atom2, cpus, test, cu = parse_args()
+    input_ = abspath(input_)
+    if not os.path.exists("mutations"):
+        os.mkdir("mutations")
+    os.chdir("mutations")
+    pdb_names = generate_mutations(input_, position, hydrogens=True)
+    slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, test=test, initial=input_, file_list=pdb_names, cu=cu)
     submit(slurm_files)
-
+    os.chdir("../")
 if __name__ == "__main__":
     #Run this if this file is executed from command line but not if is imported as API
     main()

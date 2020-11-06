@@ -62,6 +62,7 @@ class CreateLaunchFiles():
             inp.write("resname: '{}'\n".format(self.resname))
             inp.write("induced_fit_exhaustive: true\n")
             inp.write("seed: 12345\n")
+            inp.write("working_folder: PELE_{}\n".format(yaml_name))
             if self.test:
                 inp.write("test: true\n")
                 self.cpus = 5
@@ -134,9 +135,9 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
 
 def main():
     folder, chain, resname, atom1, atom2, cpus, test, cu = parse_args()
-    yaml_files, slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, folder=folder, test=test, cu=cu)
+    slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, folder=folder, test=test, cu=cu)
 
-    return yaml_files, slurm_files
+    return slurm_files
 
 if __name__ == "__main__":
     #Run this if this file is executed from command line but not if is imported as API

@@ -5,12 +5,14 @@ import os
 from helper import map_atom_string
 from pmx.library import _aacids_dic
 from pmx.rotamer import get_rotamers, select_best_rotamer
+from os.path import abspath
+
 # Argument parsers
 def parse_args():
     parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
-    parser.add_argument("--position", required=True, help="Include a chain ID and a position")
+    parser.add_argument("--position", required=True, nargs="+",help="Include a chain ID and a position")
 
     #arguments = vars(parser.parse_args())
     args = parser.parse_args()
@@ -44,12 +46,13 @@ class SaturatedMutagenesis():
         new_r = select_best_rotamer(m, rotamers)
         m.replace_residue(residue, new_r)
 
-    def check_coords(self):
+    def check_coords(self, mode=0):
         """map the user coordinates with pmx coordinates"""
         if not os.path.exists("pdb_files"):
             os.mkdir("pdb_files")
-        self.model.write("pdb_files/original.pdb")
-        self.final_pdbs.append("pdb_files/original.pdb")
+        if not mode:
+            self.model.write("pdb_files/original.pdb")
+            self.final_pdbs.append("pdb_files/original.pdb")
 
         after = map_atom_string(self.coords, self.input, "pdb_files/original.pdb")
         self.chain_id = after.split(":")[0]
@@ -59,15 +62,21 @@ class SaturatedMutagenesis():
             if chain_.id == self.chain_id:
                 self.chain = chain_
 
-    def generate_pdb(self, hydrogens):
+    def generate_pdb(self, hydrogens=True, mode=0, name=None):
         """
         Generate all the other 19 mutations
         """
         aa_name = self.chain.residues[self.position].resname
+        invert_aa = {v: k for k, v in _aacids_dic.items()}
+        aa_ = invert_aa[aa_name]
         for aa in self.residues:
             if aa != aa_name:
                 self.mutate(self.chain.residues[self.position], aa, self.rotamers, hydrogens=hydrogens)
-                output = "{}_{}.pdb".format(aa, self.position+1)
+                if not mode:
+                    output = "{}{}{}.pdb".format(aa_, self.position+1, invert_aa[aa])
+                else:
+                    output = "{}_{}{}{}.pdb".format(name, aa_, self.position + 1, invert_aa[aa])
+
                 self.model.write("pdb_files/{}".format(output))
                 self.final_pdbs.append("pdb_files/{}".format(output))
 
@@ -111,19 +120,36 @@ class SaturatedMutagenesis():
 def generate_mutations(input, position, hydrogens=True):
     """
         input (str) - Input pdb to be used to generate the mutations
-        position (str) - chain ID:position of teh residue, for example A:139
-        start (int) - The position of the first residue in the PDB file
+        position (list) - [chain ID:position] of the residue, for example [A:139,..]
     """
-    run = SaturatedMutagenesis(input, position)
-    run.check_coords()
-    final_pdbs = run.generate_pdb(hydrogens=hydrogens)
-    run.insert_atomtype()
+    count = 0
+    all_pdbs = []
+    for mutation in position:
+        run = SaturatedMutagenesis(input, mutation)
+        if not count:
+            run.check_coords()
+        else:
+            run.check_coords(mode=1)
+        final_pdbs = run.generate_pdb(hydrogens=hydrogens)
+        all_pdbs.extend(final_pdbs)
+        run.insert_atomtype()
+        if not count and len(position) == 2:
+            for files in final_pdbs:
+                name = files.replace("{}/".format(files.split("/")[0]), "")
+                name = name.replace(".pdb", "")
+                run_ = SaturatedMutagenesis(files, position[2])
+                run_.check_coords(mode=1)
+                final_pdbs_2 = run_.generate_pdb(hydrogens=hydrogens, mode=1, name=name)
+                all_pdbs.extend(final_pdbs_2)
+                run_.insert_atomtype()
+            count += 1
 
-    return final_pdbs
+    return all_pdbs
     
 def main():
-    input, position = parse_args()
-    output = generate_mutations(input, position)
+    input_, position = parse_args()
+    input_ = abspath(input_)
+    output = generate_mutations(input_, position)
 
     return output
 
