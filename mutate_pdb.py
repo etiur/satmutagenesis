@@ -13,10 +13,11 @@ def parse_args():
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
     parser.add_argument("--position", required=True, nargs="+",help="Include a chain ID and a position")
+    parser.add_argument("--multiple", required=False, action="store_true")
 
     #arguments = vars(parser.parse_args())
     args = parser.parse_args()
-    return args.input, args.position
+    return args.input, args.position, args.multiple
 
 class SaturatedMutagenesis():
 
@@ -116,9 +117,9 @@ class SaturatedMutagenesis():
             with open(prep_pdb, "w") as prep:
                 prep.writelines(prep_lines)
 
-
-def generate_mutations(input, position, hydrogens=True):
+def generate_multiple_mutations(input, position, hydrogens=True):
     """
+        To generate a combination of
         input (str) - Input pdb to be used to generate the mutations
         position (list) - [chain ID:position] of the residue, for example [A:139,..]
     """
@@ -136,20 +137,44 @@ def generate_mutations(input, position, hydrogens=True):
         if not count and len(position) == 2:
             for files in final_pdbs:
                 name = files.replace("{}/".format(files.split("/")[0]), "")
-                name = name.replace(".pdb", "")
-                run_ = SaturatedMutagenesis(files, position[2])
-                run_.check_coords(mode=1)
-                final_pdbs_2 = run_.generate_pdb(hydrogens=hydrogens, mode=1, name=name)
-                all_pdbs.extend(final_pdbs_2)
-                run_.insert_atomtype()
+                if name != "original.pdb":
+                    name = name.replace(".pdb", "")
+                    run_ = SaturatedMutagenesis(files, position[1])
+                    run_.check_coords(mode=1)
+                    final_pdbs_2 = run_.generate_pdb(hydrogens=hydrogens, mode=1, name=name)
+                    all_pdbs.extend(final_pdbs_2)
+                    run_.insert_atomtype()
             count += 1
+
+    return all_pdbs
+
+def generate_mutations(input, position, hydrogens=True):
+    """
+        input (str) - Input pdb to be used to generate the mutations
+        position (list) - [chain ID:position] of the residue, for example [A:139,..]
+    """
+    count = 0
+    all_pdbs = []
+    for mutation in position:
+        run = SaturatedMutagenesis(input, mutation)
+        if not count:
+            run.check_coords()
+        else:
+            run.check_coords(mode=1)
+        final_pdbs = run.generate_pdb(hydrogens=hydrogens)
+        all_pdbs.extend(final_pdbs)
+        run.insert_atomtype()
+        count += 1
 
     return all_pdbs
     
 def main():
-    input_, position = parse_args()
+    input_, position, multiple = parse_args()
     input_ = abspath(input_)
-    output = generate_mutations(input_, position)
+    if multiple:
+        output = generate_multiple_mutations(input_, position)
+    else:
+        output = generate_mutations(input_, position)
 
     return output
 

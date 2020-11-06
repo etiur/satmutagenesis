@@ -1,8 +1,8 @@
 import argparse
-from mutate_pdb import generate_mutations
+from mutate_pdb import generate_mutations, generate_multiple_mutations
 from pele_files import create_20sbatch
 from subprocess import call
-from os.path import abspath
+from os.path import abspath, basename
 import os
 
 def parse_args():
@@ -20,10 +20,11 @@ def parse_args():
                        help="Include the number of cpus desired")
     parser.add_argument("--test", required=False, action="store_true")
     parser.add_argument("--cu", required=False, action="store_true")
+    parser.add_argument("--multiple", required=False, action="store_true")
 
     args = parser.parse_args()
 
-    return args.input, args.position, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test, args.cu
+    return args.input, args.position, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test, args.cu, args.multiple
 
 def submit(slurm_folder):
     """Given a folder submits the job to the supercomputer"""
@@ -31,15 +32,22 @@ def submit(slurm_folder):
         call(["sbatch", "{}".format(file)])
 
 def main():
-    input_, position, chain, resname, atom1, atom2, cpus, test, cu = parse_args()
+    input_, position, chain, resname, atom1, atom2, cpus, test, cu, multiple = parse_args()
     input_ = abspath(input_)
-    if not os.path.exists("mutations"):
-        os.mkdir("mutations")
-    os.chdir("mutations")
-    pdb_names = generate_mutations(input_, position, hydrogens=True)
+    base = basename(input_)
+    base = base.replace(".pdb", "")
+    if not os.path.exists("mutations_{}".format(base)):
+        os.mkdir("mutations_{}".format(base))
+    os.chdir("mutations_{}".format(base))
+    if multiple:
+        pdb_names = generate_multiple_mutations(input_, position, hydrogens=True)
+    else:
+        pdb_names = generate_mutations(input_, position, hydrogens=True)
+
     slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, test=test, initial=input_, file_list=pdb_names, cu=cu)
-    submit(slurm_files)
+    #submit(slurm_files)
     os.chdir("../")
+
 if __name__ == "__main__":
     #Run this if this file is executed from command line but not if is imported as API
     main()
