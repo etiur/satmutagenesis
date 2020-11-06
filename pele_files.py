@@ -19,6 +19,7 @@ def parse_args():
     parser.add_argument("--cu", required=False, action="store_true")
     parser.add_argument("--test", required=False, action="store_true")
     args = parser.parse_args()
+
     return args.folder, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test, args.cu
 
 class CreateLaunchFiles():

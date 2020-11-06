@@ -5,7 +5,6 @@ import os
 from helper import map_atom_string
 from pmx.library import _aacids_dic
 from pmx.rotamer import get_rotamers, select_best_rotamer
-from os.path import abspath
 
 # Argument parsers
 def parse_args():
@@ -170,7 +169,6 @@ def generate_mutations(input, position, hydrogens=True):
     
 def main():
     input_, position, multiple = parse_args()
-    input_ = abspath(input_)
     if multiple:
         output = generate_multiple_mutations(input_, position)
     else:
