@@ -102,7 +102,8 @@ class SaturatedMutagenesis():
                     for linex in initial_lines:
                         if linex[30:54].split() == coords:
                             prep_lines[ind] = line.strip("\n") + linex[66:81]
-
+                            break
+                            
                 elif (line.startswith("HETATM") or line.startswith("ATOM")) and line[
                     21].strip() == self.chain_id.strip() and line[
                                                      22:26].strip() == str(self.position + 1):
