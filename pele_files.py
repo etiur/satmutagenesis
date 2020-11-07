@@ -1,6 +1,6 @@
 import argparse
 import os
-import glob
+from glob import glob
 from helper import map_atom_string
 from os.path import basename
 
@@ -114,7 +114,7 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
 
     slurm_files = []
     if not file_list:
-        for file in glob.glob("{}/*.pdb".format(folder)):
+        for file in glob("{}/*.pdb".format(folder)):
             name = basename(file)
             name = name.replace(".pdb", "")
             run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
