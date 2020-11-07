@@ -32,22 +32,28 @@ def submit(slurm_folder):
     for file in slurm_folder:
         call(["sbatch", "{}".format(file)])
 
-def main():
-    input_, position, chain, resname, atom1, atom2, cpus, test, cu, multiple = parse_args()
+def side_function(input_):
+    """Put all the necessary steps here"""
     input_ = abspath(input_)
     base = basename(input_)
     base = base.replace(".pdb", "")
     if not os.path.exists("mutations_{}".format(base)):
         os.mkdir("mutations_{}".format(base))
     os.chdir("mutations_{}".format(base))
+
+    return input_
+
+def main():
+    input_, position, chain, resname, atom1, atom2, cpus, test, cu, multiple = parse_args()
+    input_ = side_function(input_)
     if multiple:
         pdb_names = generate_multiple_mutations(input_, position, hydrogens=True)
     else:
         pdb_names = generate_mutations(input_, position, hydrogens=True)
 
     slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, test=test, initial=input_, file_list=pdb_names, cu=cu)
-    #submit(slurm_files)
-    os.chdir("../")
+    submit(slurm_files)
+
 
 if __name__ == "__main__":
     #Run this if this file is executed from command line but not if is imported as API

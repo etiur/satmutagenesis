@@ -5,6 +5,7 @@ import os
 from helper import map_atom_string
 from pmx.library import _aacids_dic
 from pmx.rotamer import get_rotamers, select_best_rotamer
+from os.path import basename
 
 # Argument parsers
 def parse_args():
@@ -135,7 +136,7 @@ def generate_multiple_mutations(input, position, hydrogens=True):
         run.insert_atomtype()
         if not count and len(position) == 2:
             for files in final_pdbs:
-                name = files.replace("{}/".format(files.split("/")[0]), "")
+                name = basename(files)
                 if name != "original.pdb":
                     name = name.replace(".pdb", "")
                     run_ = SaturatedMutagenesis(files, position[1])

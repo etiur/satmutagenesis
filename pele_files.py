@@ -2,6 +2,7 @@ import argparse
 import os
 import glob
 from helper import map_atom_string
+from os.path import basename
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
@@ -114,8 +115,7 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
     slurm_files = []
     if not file_list:
         for file in glob.glob("{}/*.pdb".format(folder)):
-            name = file.replace("{}/".format(folder), "")
-            name = name.replace("{}".format(folder), "")
+            name = basename(file)
             name = name.replace(".pdb", "")
             run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
             run.match_dist()
@@ -124,7 +124,7 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
             slurm_files.append(run.slurm)
     else:
         for file in file_list:
-            name = file.replace("{}/".format(file.split("/")[0]), "")
+            name = basename(file)
             name = name.replace(".pdb", "")
             run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
             run.match_dist()
