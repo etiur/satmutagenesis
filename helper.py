@@ -46,4 +46,3 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
     return after
 
 
-

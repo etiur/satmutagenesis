@@ -7,19 +7,21 @@ from pmx.library import _aacids_dic
 from pmx.rotamer import get_rotamers, select_best_rotamer
 from os.path import basename
 
+
 # Argument parsers
 def parse_args():
     parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
-    parser.add_argument("--position", required=True, nargs="+",help="Include a chain ID and a position")
+    parser.add_argument("--position", required=True, nargs="+", help="Include a chain ID and a position")
     parser.add_argument("--multiple", required=False, action="store_true")
 
-    #arguments = vars(parser.parse_args())
+    # arguments = vars(parser.parse_args())
     args = parser.parse_args()
     return args.input, args.position, args.multiple
 
-class SaturatedMutagenesis():
+
+class SaturatedMutagenesis:
 
     def __init__(self, model, position):
         """
@@ -74,7 +76,7 @@ class SaturatedMutagenesis():
             if aa != aa_name:
                 self.mutate(self.chain.residues[self.position], aa, self.rotamers, hydrogens=hydrogens)
                 if not mode:
-                    output = "{}{}{}.pdb".format(aa_, self.position+1, invert_aa[aa])
+                    output = "{}{}{}.pdb".format(aa_, self.position + 1, invert_aa[aa])
                 else:
                     output = "{}_{}{}{}.pdb".format(name, aa_, self.position + 1, invert_aa[aa])
 
@@ -96,8 +98,8 @@ class SaturatedMutagenesis():
 
             for ind, line in enumerate(prep_lines):
                 if (line.startswith("HETATM") or line.startswith("ATOM")) and (
-                    line[21].strip() != self.chain_id.strip() or line[
-                                                             22:26].strip() != str(self.position + 1)):
+                        line[21].strip() != self.chain_id.strip() or line[
+                                                                     22:26].strip() != str(self.position + 1)):
                     coords = line[30:54].split()
                     for linex in initial_lines:
                         if linex[30:54].split() == coords:
@@ -106,7 +108,7 @@ class SaturatedMutagenesis():
 
                 elif (line.startswith("HETATM") or line.startswith("ATOM")) and line[
                     21].strip() == self.chain_id.strip() and line[
-                                                     22:26].strip() == str(self.position + 1):
+                                                             22:26].strip() == str(self.position + 1):
                     atom_name = line[12:16].strip()
                     if atom_name[0].isalpha():
                         atom_type = "           {}  \n".format(atom_name[0])
@@ -118,7 +120,8 @@ class SaturatedMutagenesis():
             with open(prep_pdb, "w") as prep:
                 prep.writelines(prep_lines)
 
-def generate_multiple_mutations(input, position, hydrogens=True):
+
+def generate_multiple_mutations(input_, position, hydrogens=True):
     """
         To generate a combination of mutations
         input (str) - Input pdb to be used to generate the mutations
@@ -127,7 +130,7 @@ def generate_multiple_mutations(input, position, hydrogens=True):
     count = 0
     all_pdbs = []
     for mutation in position:
-        run = SaturatedMutagenesis(input, mutation)
+        run = SaturatedMutagenesis(input_, mutation)
         if not count:
             run.check_coords()
         else:
@@ -149,6 +152,7 @@ def generate_multiple_mutations(input, position, hydrogens=True):
 
     return all_pdbs
 
+
 def generate_mutations(input_, position, hydrogens=True):
     """
         To generate single point mutations
@@ -169,7 +173,8 @@ def generate_mutations(input_, position, hydrogens=True):
         count += 1
 
     return all_pdbs
-    
+
+
 def main():
     input_, position, multiple = parse_args()
     if multiple:
@@ -179,6 +184,7 @@ def main():
 
     return output
 
-if __name__ == "__main__": 
-    #Run this if this file is executed from command line but not if is imported as API
+
+if __name__ == "__main__":
+    # Run this if this file is executed from command line but not if is imported as API
     all_pdbs = main()

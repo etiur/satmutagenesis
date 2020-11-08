@@ -4,6 +4,7 @@ from glob import glob
 from helper import map_atom_string
 from os.path import basename
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
@@ -23,7 +24,8 @@ def parse_args():
 
     return args.folder, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test, args.cu
 
-class CreateLaunchFiles():
+
+class CreateLaunchFiles:
     def __init__(self, input_, chain, resname, atom1, atom2, cpus=24, test=False, initial=None, cu=False):
         """
         input_: (str) PDB files path
@@ -97,9 +99,13 @@ class CreateLaunchFiles():
             slurm.write('module load impi\n')
             slurm.write('module load intel mkl impi gcc # 2> /dev/null\n')
             slurm.write('module load boost/1.64.0\n')
-            slurm.write('/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(self.yaml))
+            slurm.write(
+                '/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(
+                    self.yaml))
 
-def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None, file_list=None, cu=False):
+
+def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None, file_list=None,
+                    cu=False):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -114,25 +120,26 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
 
     slurm_files = []
     if not file_list:
-        for file in glob("{}/*.pdb".format(folder)):
-            name = basename(file)
+        for files in glob("{}/*.pdb".format(folder)):
+            name = basename(files)
             name = name.replace(".pdb", "")
-            run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
+            run = CreateLaunchFiles(files, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
             run.match_dist()
             run.input_creation(name)
             run.slurm_creation(name)
             slurm_files.append(run.slurm)
     else:
-        for file in file_list:
-            name = basename(file)
+        for files in file_list:
+            name = basename(files)
             name = name.replace(".pdb", "")
-            run = CreateLaunchFiles(file, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
+            run = CreateLaunchFiles(files, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
             run.match_dist()
             run.input_creation(name)
             run.slurm_creation(name)
             slurm_files.append(run.slurm)
 
     return slurm_files
+
 
 def main():
     folder, chain, resname, atom1, atom2, cpus, test, cu = parse_args()
@@ -140,6 +147,7 @@ def main():
 
     return slurm_files
 
+
 if __name__ == "__main__":
-    #Run this if this file is executed from command line but not if is imported as API
+    # Run this if this file is executed from command line but not if is imported as API
     yaml_files, slurm_files = main()
