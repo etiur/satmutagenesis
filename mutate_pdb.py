@@ -39,7 +39,8 @@ class SaturatedMutagenesis:
         self.chain_id = None
         self.position = None
 
-    def mutate(self, residue, new_aa, bbdep, hydrogens):
+    @staticmethod
+    def mutate(residue, new_aa, bbdep, hydrogens):
         if len(new_aa) == 1:
             new_aa = _aacids_dic[new_aa]
         phi = residue.get_phi()
