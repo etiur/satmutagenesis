@@ -41,16 +41,14 @@ class SaturatedMutagenesis:
         self.chain_id = None
         self.position = None
 
-    @staticmethod
-    def mutate(residue, new_aa, bbdep, hydrogens):
+    def mutate(self, residue, new_aa, bbdep, hydrogens):
         if len(new_aa) == 1:
             new_aa = _aacids_dic[new_aa]
         phi = residue.get_phi()
         psi = residue.get_psi()
-        m = residue.model
         rotamers = get_rotamers(bbdep, new_aa, phi, psi, residue=residue, full=True, hydrogens=hydrogens)
-        new_r = select_best_rotamer(m, rotamers)
-        m.replace_residue(residue, new_r)
+        new_r = select_best_rotamer(self.model, rotamers)
+        self.model.replace_residue(residue, new_r)
 
     def check_coords(self, mode=0):
         """map the user coordinates with pmx coordinates"""
@@ -173,7 +171,7 @@ def generate_mutations(input_, position, hydrogens=True):
         position (list) - [chain ID:position] of the residue, for example [A:139,..]
     """
     count = 0
-    all_pdbs = []
+    pdbs = []
     for mutation in position:
         run = SaturatedMutagenesis(input_, mutation)
         if not count:
@@ -181,11 +179,11 @@ def generate_mutations(input_, position, hydrogens=True):
         else:
             run.check_coords(mode=1)
         final_pdbs = run.generate_pdb(hydrogens=hydrogens)
-        all_pdbs.extend(final_pdbs)
+        pdbs.extend(final_pdbs)
         run.accelerated_insert()
         count += 1
 
-    return all_pdbs
+    return pdbs
 
 
 def main():
