@@ -10,8 +10,8 @@ def parse_args():
     # main required arguments
     parser.add_argument("--folder", required=False, default="pdb_files",
                         help="Include the folder where the pdb files are located")
-    parser.add_argument("--chain", required=True, help="Include the chain ID of the ligand")
-    parser.add_argument("--resname", required=True, help="The ligand residue name")
+    parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
+    parser.add_argument("--ligname", required=True, help="The ligand residue name")
     parser.add_argument("--atom1", required=True,
                         help="atom of the residue to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--atom2", required=True,
@@ -22,22 +22,22 @@ def parse_args():
     parser.add_argument("--test", required=False, action="store_true")
     args = parser.parse_args()
 
-    return args.folder, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test, args.cu
+    return args.folder, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.cu
 
 
 class CreateLaunchFiles:
-    def __init__(self, input_, chain, resname, atom1, atom2, cpus=24, test=False, initial=None, cu=False):
+    def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24, test=False, initial=None, cu=False):
         """
         input_: (str) PDB files path
         chain: (str) the chain ID where the ligand is located
-        resname: (str) the residue name of the ligand in the PDB
+        ligname: (str) the residue name of the ligand in the PDB
         atom1: (str) atom of the residue to follow in this format --> chain ID:position:atom name
         atom2: (str) atom of the ligand to follow in this format --> chain ID:position:atom name
         cpus: (str or int) how many cpus do you want to use
         """
         self.input = input_
-        self.chain = chain
-        self.resname = resname
+        self.ligchain = ligchain
+        self.ligname = ligname
         self.atom1 = atom1
         self.atom2 = atom2
         self.cpus = cpus
@@ -62,8 +62,8 @@ class CreateLaunchFiles:
         self.yaml = "yaml_files/{}.yaml".format(yaml_name)
         with open(self.yaml, "w") as inp:
             inp.write("system: '{}'\n".format(self.input))
-            inp.write("chain: '{}'\n".format(self.chain))
-            inp.write("resname: '{}'\n".format(self.resname))
+            inp.write("chain: '{}'\n".format(self.ligchain))
+            inp.write("resname: '{}'\n".format(self.ligname))
             inp.write("induced_fit_exhaustive: true\n")
             inp.write("seed: 12345\n")
             inp.write("working_folder: PELE_{}\n".format(yaml_name))
@@ -104,8 +104,8 @@ class CreateLaunchFiles:
                     self.yaml))
 
 
-def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None, file_list=None,
-                    cu=False):
+def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None,
+                    file_list=None, cu=False):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -123,7 +123,7 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
         for files in glob("{}/*.pdb".format(folder)):
             name = basename(files)
             name = name.replace(".pdb", "")
-            run = CreateLaunchFiles(files, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
+            run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
             run.match_dist()
             run.input_creation(name)
             run.slurm_creation(name)
@@ -132,7 +132,7 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
         for files in file_list:
             name = basename(files)
             name = name.replace(".pdb", "")
-            run = CreateLaunchFiles(files, chain, resname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
+            run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test, initial=initial, cu=cu)
             run.match_dist()
             run.input_creation(name)
             run.slurm_creation(name)
@@ -142,8 +142,8 @@ def create_20sbatch(chain, resname, atom1, atom2, cpus=24, folder="pdb_files", t
 
 
 def main():
-    folder, chain, resname, atom1, atom2, cpus, test, cu = parse_args()
-    slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, folder=folder, test=test, cu=cu)
+    folder, ligchain, ligname, atom1, atom2, cpus, test, cu = parse_args()
+    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, folder=folder, test=test, cu=cu)
 
     return slurm_files
 

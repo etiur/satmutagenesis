@@ -6,6 +6,7 @@ from helper import map_atom_string
 from pmx.library import _aacids_dic
 from pmx.rotamer import get_rotamers, select_best_rotamer
 from os.path import basename
+from multiprocessing import Process
 
 
 # Argument parsers
@@ -13,7 +14,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
-    parser.add_argument("--position", required=True, nargs="+", help="Include a chain ID and a position")
+    parser.add_argument("--position", required=True, nargs="+",
+                        help="Include one or more chain IDs and positions --> ID:position")
     parser.add_argument("--multiple", required=False, action="store_true")
 
     # arguments = vars(parser.parse_args())
@@ -86,40 +88,49 @@ class SaturatedMutagenesis:
 
         return self.final_pdbs
 
-    def insert_atomtype(self):
+    def insert_atom(self, prep_pdb):
         """modifies the pmx PDB files to include the atom type"""
         # read in user input
         with open(self.input, "r") as initial:
             initial_lines = initial.readlines()
 
         # read in preprocessed input
+        with open(prep_pdb, "r") as prep:
+            prep_lines = prep.readlines()
+
+        for ind, line in enumerate(prep_lines):
+            if (line.startswith("HETATM") or line.startswith("ATOM")) and (
+                    line[21].strip() != self.chain_id.strip() or line[
+                                                                 22:26].strip() != str(self.position + 1)):
+                coords = line[30:54].split()
+                for linex in initial_lines:
+                    if linex[30:54].split() == coords:
+                        prep_lines[ind] = line.strip("\n") + linex[66:81]
+                        break
+
+            elif (line.startswith("HETATM") or line.startswith("ATOM")) and line[
+                21].strip() == self.chain_id.strip() and line[
+                                                         22:26].strip() == str(self.position + 1):
+
+                atom_name = line[12:16].strip()
+                if atom_name[0].isalpha():
+                    atom_type = "           {}  \n".format(atom_name[0])
+                else:
+                    atom_type = "           {}  \n".format(atom_name[1])
+
+                prep_lines[ind] = line.strip("\n") + atom_type
+
+        with open(prep_pdb, "w") as prep:
+            prep.writelines(prep_lines)
+
+    def accelerated_insert(self):
+        pros = []
         for prep_pdb in self.final_pdbs:
-            with open(prep_pdb, "r") as prep:
-                prep_lines = prep.readlines()
-
-            for ind, line in enumerate(prep_lines):
-                if (line.startswith("HETATM") or line.startswith("ATOM")) and (
-                        line[21].strip() != self.chain_id.strip() or line[
-                                                                     22:26].strip() != str(self.position + 1)):
-                    coords = line[30:54].split()
-                    for linex in initial_lines:
-                        if linex[30:54].split() == coords:
-                            prep_lines[ind] = line.strip("\n") + linex[66:81]
-                            break
-
-                elif (line.startswith("HETATM") or line.startswith("ATOM")) and line[
-                    21].strip() == self.chain_id.strip() and line[
-                                                             22:26].strip() == str(self.position + 1):
-                    atom_name = line[12:16].strip()
-                    if atom_name[0].isalpha():
-                        atom_type = "           {}  \n".format(atom_name[0])
-                    else:
-                        atom_type = "           {}  \n".format(atom_name[1])
-
-                    prep_lines[ind] = line.strip("\n") + atom_type
-
-            with open(prep_pdb, "w") as prep:
-                prep.writelines(prep_lines)
+            p = Process(target=self.insert_atom, args=(prep_pdb,))
+            p.start()
+            pros.append(p)
+        for p in pros:
+            p.join()
 
 
 def generate_multiple_mutations(input_, position, hydrogens=True):
@@ -129,7 +140,7 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
         position (list) - [chain ID:position] of the residue, for example [A:139,..]
     """
     count = 0
-    all_pdbs = []
+    pdbs = []
     for mutation in position:
         run = SaturatedMutagenesis(input_, mutation)
         if not count:
@@ -137,8 +148,8 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
         else:
             run.check_coords(mode=1)
         final_pdbs = run.generate_pdb(hydrogens=hydrogens)
-        all_pdbs.extend(final_pdbs)
-        run.insert_atomtype()
+        pdbs.extend(final_pdbs)
+        run.accelerated_insert()
         if not count and len(position) == 2:
             for files in final_pdbs:
                 name = basename(files)
@@ -147,11 +158,12 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
                     run_ = SaturatedMutagenesis(files, position[1])
                     run_.check_coords(mode=1)
                     final_pdbs_2 = run_.generate_pdb(hydrogens=hydrogens, mode=1, name=name)
-                    all_pdbs.extend(final_pdbs_2)
-                    run_.insert_atomtype()
+                    pdbs.extend(final_pdbs_2)
+                    run_.accelerated_insert()
+
             count += 1
 
-    return all_pdbs
+    return pdbs
 
 
 def generate_mutations(input_, position, hydrogens=True):
@@ -170,7 +182,7 @@ def generate_mutations(input_, position, hydrogens=True):
             run.check_coords(mode=1)
         final_pdbs = run.generate_pdb(hydrogens=hydrogens)
         all_pdbs.extend(final_pdbs)
-        run.insert_atomtype()
+        run.accelerated_insert()
         count += 1
 
     return all_pdbs

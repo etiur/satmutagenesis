@@ -11,9 +11,9 @@ def parse_args():
     # main required arguments
     parser.add_argument("--input", required=True, help="Include PDB file's path")
     parser.add_argument("--position", required=True, nargs="+",
-                        help="Include a chain ID and a position -> Chain ID:position")
-    parser.add_argument("--chain", required=True, help="Include the chain ID of the ligand")
-    parser.add_argument("--resname", required=True, help="The ligand residue name")
+                        help="Include one or more chain IDs and positions -> Chain ID:position")
+    parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
+    parser.add_argument("--ligname", required=True, help="The ligand residue name")
     parser.add_argument("--atom1", required=True,
                         help="atom of the residue to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--atom2", required=True,
@@ -26,7 +26,7 @@ def parse_args():
 
     args = parser.parse_args()
 
-    return args.input, args.position, args.chain, args.resname, args.atom1, args.atom2, args.cpus, args.test, args.cu, \
+    return args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.cu, \
            args.multiple
 
 
@@ -49,14 +49,14 @@ def side_function(input_):
 
 
 def main():
-    input_, position, chain, resname, atom1, atom2, cpus, test, cu, multiple = parse_args()
+    input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple = parse_args()
     input_ = side_function(input_)
     if multiple:
         pdb_names = generate_multiple_mutations(input_, position, hydrogens=True)
     else:
         pdb_names = generate_mutations(input_, position, hydrogens=True)
 
-    slurm_files = create_20sbatch(chain, resname, atom1, atom2, cpus=cpus, test=test, initial=input_,
+    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                   file_list=pdb_names, cu=cu)
     submit(slurm_files)
 
