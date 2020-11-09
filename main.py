@@ -26,8 +26,8 @@ def parse_args():
 
     args = parser.parse_args()
 
-    return args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.cu, \
-           args.multiple
+    return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
+            args.cu, args.multiple]
 
 
 def submit(slurm_folder):

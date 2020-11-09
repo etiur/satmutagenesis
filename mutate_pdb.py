@@ -88,7 +88,7 @@ class SaturatedMutagenesis:
 
         return self.final_pdbs
 
-    def insert_atom(self, prep_pdb):
+    def insert_atomtype(self, prep_pdb):
         """modifies the pmx PDB files to include the atom type"""
         # read in user input
         with open(self.input, "r") as initial:
@@ -126,7 +126,7 @@ class SaturatedMutagenesis:
     def accelerated_insert(self):
         pros = []
         for prep_pdb in self.final_pdbs:
-            p = Process(target=self.insert_atom, args=(prep_pdb,))
+            p = Process(target=self.insert_atomtype, args=(prep_pdb,))
             p.start()
             pros.append(p)
         for p in pros:
