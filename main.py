@@ -54,7 +54,7 @@ def side_function(input_):
 
 def pele_folders(file_list):
     """
-    file_list: (list) list of pdb files created during the saturated mutagenesis
+    file_list (list): list of pdb files created during the saturated mutagenesis
     """
     count = 0
     if os.path.exists("folder_names.txt"):

@@ -20,7 +20,7 @@ class SimulationData:
 
     def __init__(self, folder):
         """
-        folder: (str) path to the simulation folder
+        folder (str):  path to the simulation folder
         """
         self.folder = folder
         self.dataframe = None
@@ -32,7 +32,6 @@ class SimulationData:
         Constructs a dataframe from all the reports in a PELE simulation folder with the best 20% binding energies
         and a Series with the 100 best ligand distances
         """
-
         reports = []
         for files in glob("{}/output/0/report_*".format(self.folder)):
             reports.append(pd.read_csv(files, sep="    ", engine="python"))
@@ -60,8 +59,9 @@ class SimulationData:
 
 def analyse_all(folders="."):
     """
-    folders: (str) path to the different PELE simulation folders to be analyzed
+    folders (str): path to the different PELE simulation folders to be analyzed
     """
+    # create a SimulationData object for each pele simulation
     data_dict = {}
     original = SimulationData("PELE_original")
     original.filtering()
@@ -73,11 +73,11 @@ def analyse_all(folders="."):
         data.set_distribution()
         data_dict[name[5:]] = data
 
+    # create a dataframe with only the distance differences
     plot_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
             plot_dict[key] = value.distribution
-
     plot_dataframe = pd.DataFrame(plot_dict)
 
     return data_dict, plot_dataframe
@@ -101,9 +101,8 @@ def box_plot(dataframe, name):
 
 def consecutive_analysis(file_name):
     """
-    file_name: (str) A file that contains the names of the different folders where the PELE simulation folders are in
+    file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
     """
-
     with open("{}".format(file_name), "r") as pele:
         pele_folders = pele.readlines()
     for folders in pele_folders:

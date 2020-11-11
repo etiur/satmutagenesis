@@ -122,6 +122,7 @@ class SaturatedMutagenesis:
 
                 prep_lines[ind] = line.strip("\n") + atom_type
 
+        # rewrittes the files now with the atom type
         with open(prep_pdb, "w") as prep:
             prep.writelines(prep_lines)
 
@@ -138,11 +139,12 @@ class SaturatedMutagenesis:
 def generate_multiple_mutations(input_, position, hydrogens=True):
     """
         To generate a combination of mutations
-        input (str) - Input pdb to be used to generate the mutations
-        position (list) - [chain ID:position] of the residue, for example [A:139,..]
+        input (str): Input pdb to be used to generate the mutations
+        position (list): [chain ID:position] of the residue, for example [A:139,..]
     """
     count = 0
     pdbs = []
+    # Perform single saturated mutations
     for mutation in position:
         run = SaturatedMutagenesis(input_, mutation)
         if not count:
@@ -152,6 +154,7 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
         final_pdbs = run.generate_pdb(hydrogens=hydrogens)
         pdbs.extend(final_pdbs)
         run.accelerated_insert()
+        # Mutate in a second position for each of the single mutations
         if not count and len(position) == 2:
             for files in final_pdbs:
                 name = basename(files)
@@ -171,8 +174,8 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
 def generate_mutations(input_, position, hydrogens=True):
     """
         To generate single point mutations
-        input (str) - Input pdb to be used to generate the mutations
-        position (list) - [chain ID:position] of the residue, for example [A:139,..]
+        input (str): Input pdb to be used to generate the mutations
+        position (list): [chain ID:position] of the residue, for example [A:139,..]
     """
     count = 0
     pdbs = []
