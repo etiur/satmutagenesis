@@ -72,11 +72,16 @@ def analyse_all(folders="."):
 
 def box_plot(dataframe):
     """dataframe (tabular data): Any tabular structure that corresponds to the wide-form data accepted by seaborn"""
-    sns.set(font_scale=0.7)
+    sns.set(font_scale=1.8)
     sns.set_style("white")
-    ax = sns.catplot(data=dataframe, kind="box", palette="Set2")
-    ax.set(xlabel="Mutations", ylabel="Distance", title="Distance variantion with respect to original")
-    ax.savefig("distance.png", dpi=2500)
+    sns.set_context("paper")
+    ax = sns.catplot(data=dataframe, kind="box", palette="Set2", height=4.5, aspect=2.3)
+    ax.set(title="Distance variantion with respect to original")
+    ax.set_ylabels("Distance", fontsize=8)
+    ax.set_xlabels("Mutations", fontsize=8)
+    ax.set_xticklabels(fontsize=6)
+    ax.set_yticklabels(fontsize=6)
+    ax.savefig("distance.png", dpi=200)
 
     return ax
 
