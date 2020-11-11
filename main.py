@@ -31,13 +31,17 @@ def parse_args():
 
 
 def submit(slurm_folder):
-    """Given a folder submits the job to the supercomputer"""
+    """
+    Given a folder submits the job to the supercomputer
+    """
     for files in slurm_folder:
         call(["sbatch", "{}".format(files)])
 
 
 def side_function(input_):
-    """Put all the necessary steps here"""
+    """
+    Put all the necessary steps here
+    """
     input_ = abspath(input_)
     base = basename(input_)
     base = base.replace(".pdb", "")
@@ -49,7 +53,9 @@ def side_function(input_):
 
 
 def pele_folders(file_list):
-    """ file_list (list): list of pdb files created during the saturated mutagenesis"""
+    """
+    file_list: (list) list of pdb files created during the saturated mutagenesis
+    """
     count = 0
     if os.path.exists("folder_names.txt"):
         os.remove("folder_names.txt")

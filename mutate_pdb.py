@@ -27,8 +27,8 @@ class SaturatedMutagenesis:
 
     def __init__(self, model, position):
         """
-            model (str) path to the PDB file
-            position (str) chain ID:position of the residue, for example A:132
+        model (str) path to the PDB file
+        position (str) chain ID:position of the residue, for example A:132
         """
         self.model = Model(model)
         self.input = model
@@ -51,7 +51,9 @@ class SaturatedMutagenesis:
         self.model.replace_residue(residue, new_r)
 
     def check_coords(self, mode=0):
-        """map the user coordinates with pmx coordinates"""
+        """
+        map the user coordinates with pmx coordinates
+        """
         if not os.path.exists("pdb_files"):
             os.mkdir("pdb_files")
         if not mode:
@@ -87,7 +89,9 @@ class SaturatedMutagenesis:
         return self.final_pdbs
 
     def insert_atomtype(self, prep_pdb):
-        """modifies the pmx PDB files to include the atom type"""
+        """
+        modifies the pmx PDB files to include the atom type
+        """
         # read in user input
         with open(self.input, "r") as initial:
             initial_lines = initial.readlines()

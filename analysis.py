@@ -3,30 +3,36 @@ import pandas as pd
 import seaborn as sns
 import argparse
 from os.path import basename
-from multiprocessing import Process
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
     parser.add_argument("--pele", required=False, default="./",
-                        help="Include a file where the folders of the different pele simulation folders are written")
+                        help="Include a file with names of the different folders with PELE simulations inside")
     args = parser.parse_args()
 
     return args.pele
 
 
 class SimulationData:
-    num = None
+    original_distance = None
 
-    def __init__(self, folder=None):
-        """folder(str): path to the simulation folder"""
+    def __init__(self, folder):
+        """
+        folder: (str) path to the simulation folder
+        """
         self.folder = folder
         self.dataframe = None
         self.distance = None
         self.distribution = None
 
     def filtering(self):
+        """
+        Constructs a dataframe from all the reports in a PELE simulation folder with the best 20% binding energies
+        and a Series with the 100 best ligand distances
+        """
+
         reports = []
         for files in glob("{}/output/0/report_*".format(self.folder)):
             reports.append(pd.read_csv(files, sep="    ", engine="python"))
@@ -34,7 +40,7 @@ class SimulationData:
         self.dataframe = pd.concat(reports)
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.head(len(self.dataframe) * 20 / 100)
+        self.dataframe = self.dataframe.head(len(self.dataframe) * 20/100)
         self.distance = self.dataframe["distance0.5"].copy()
         self.distance.sort_values(inplace=True)
         self.distance.reset_index(drop=True, inplace=True)
@@ -46,15 +52,20 @@ class SimulationData:
         return self.dataframe, self.distance
 
     def set_distribution(self):
-        self.distribution = self.distance - self.num
+        """
+        Stores the difference between the mutated ligand distances and the original ligand distance
+        """
+        self.distribution = self.distance - self.original_distance
 
 
 def analyse_all(folders="."):
-    """folders (str): path to the different PELE simulation folders to be analyzed"""
+    """
+    folders: (str) path to the different PELE simulation folders to be analyzed
+    """
     data_dict = {}
     original = SimulationData("PELE_original")
     original.filtering()
-    SimulationData.num = original.distance
+    SimulationData.original_distance = original.distance
     for folder in glob("{}/PELE_*".format(folders)):
         name = basename(folder)
         data = SimulationData(folder)
@@ -73,7 +84,9 @@ def analyse_all(folders="."):
 
 
 def box_plot(dataframe, name):
-    """dataframe (tabular data): Any tabular structure that corresponds to the wide-form data accepted by seaborn"""
+    """
+    dataframe (tabular data): Any tabular structure that corresponds to the wide-form data accepted by seaborn
+    """
     sns.set(font_scale=1.8)
     sns.set_style("white")
     sns.set_context("paper")
@@ -87,8 +100,9 @@ def box_plot(dataframe, name):
 
 
 def consecutive_analysis(file_name):
-    """file_name (str) : A file that contains the names of the different folders
-     where the PELE simulation folders are in"""
+    """
+    file_name: (str) A file that contains the names of the different folders where the PELE simulation folders are in
+    """
 
     with open("{}".format(file_name), "r") as pele:
         pele_folders = pele.readlines()
