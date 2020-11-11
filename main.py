@@ -48,6 +48,24 @@ def side_function(input_):
     return input_
 
 
+def pele_folders(file_list):
+    """ file_list (list): list of pdb files created during the saturated mutagenesis"""
+    count = 0
+    if os.path.exists("folder_names.txt"):
+        os.remove("folder_names.txt")
+    for files in file_list:
+        name = basename(files)
+        name = name.replace(".pdb", "")
+        if not count:
+            hold = "bla"
+            count += 1
+        if name != "original":
+            if hold != name[:-1]:
+                hold = name[:-1]
+                with open("folder_names.txt", "a") as txt:
+                    txt.write("{}\n".format(hold))
+
+
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple = parse_args()
     input_ = side_function(input_)
@@ -55,7 +73,7 @@ def main():
         pdb_names = generate_multiple_mutations(input_, position, hydrogens=True)
     else:
         pdb_names = generate_mutations(input_, position, hydrogens=True)
-
+    pele_folders(pdb_names)
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                   file_list=pdb_names, cu=cu)
     submit(slurm_files)
