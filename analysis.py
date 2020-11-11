@@ -18,11 +18,11 @@ class Analysis:
         self.dataframe = pd.concat(reports)
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.head(len(self.dataframe)*10/100)
+        self.dataframe = self.dataframe.head(len(self.dataframe)*20/100)
         self.distance = self.dataframe["distance0.5"].copy()
         self.distance.sort_values(inplace=True)
         self.distance.reset_index(drop=True, inplace=True)
-        self.distance = self.distance.head(min(50, len(self.distance)))
+        self.distance = self.distance.head(min(100, len(self.distance)))
 
         if "original" in self.folder:
             self.distance = self.distance[0].copy()
