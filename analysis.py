@@ -3,20 +3,23 @@ import pandas as pd
 import seaborn as sns
 import argparse
 from os.path import basename
+from multiprocessing import Process
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
     parser.add_argument("--pele", required=False, default="./",
-                        help="Include the folder path where the pele simulations are located")
+                        help="Include a file where the folders of the different pele simulation folders are written")
     args = parser.parse_args()
 
     return args.pele
 
 
 class SimulationData:
-    def __init__(self, folder):
+    num = None
+
+    def __init__(self, folder=None):
         """folder(str): path to the simulation folder"""
         self.folder = folder
         self.dataframe = None
@@ -31,7 +34,7 @@ class SimulationData:
         self.dataframe = pd.concat(reports)
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.head(len(self.dataframe)*20/100)
+        self.dataframe = self.dataframe.head(len(self.dataframe) * 20 / 100)
         self.distance = self.dataframe["distance0.5"].copy()
         self.distance.sort_values(inplace=True)
         self.distance.reset_index(drop=True, inplace=True)
@@ -42,27 +45,26 @@ class SimulationData:
 
         return self.dataframe, self.distance
 
-    def set_distribution(self, num):
-        self.distribution = self.distance - num
+    def set_distribution(self):
+        self.distribution = self.distance - self.num
 
 
 def analyse_all(folders="."):
     """folders (str): path to the different PELE simulation folders to be analyzed"""
     data_dict = {}
+    original = SimulationData("PELE_original")
+    original.filtering()
+    SimulationData.num = original.distance
     for folder in glob("{}/PELE_*".format(folders)):
         name = basename(folder)
         data = SimulationData(folder)
         data.filtering()
+        data.set_distribution()
         data_dict[name[5:]] = data
-        if "original" in folder:
-            distance = data.distance
-        else:
-            distance = 3
 
     plot_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
-            value.set_distribution(distance)
             plot_dict[key] = value.distribution
 
     plot_dataframe = pd.DataFrame(plot_dict)
@@ -70,29 +72,35 @@ def analyse_all(folders="."):
     return data_dict, plot_dataframe
 
 
-def box_plot(dataframe):
+def box_plot(dataframe, name):
     """dataframe (tabular data): Any tabular structure that corresponds to the wide-form data accepted by seaborn"""
     sns.set(font_scale=1.8)
     sns.set_style("white")
     sns.set_context("paper")
     ax = sns.catplot(data=dataframe, kind="box", palette="Set2", height=4.5, aspect=2.3)
     ax.set(title="Distance variantion with respect to original")
-    ax.set_ylabels("Distance", fontsize=8)
-    ax.set_xlabels("Mutations", fontsize=8)
-    ax.set_xticklabels(fontsize=6)
-    ax.set_yticklabels(fontsize=6)
-    ax.savefig("distance.png", dpi=200)
+    ax.set_ylabels("Distance", fontsize=9)
+    ax.set_xlabels("Mutations", fontsize=9)
+    ax.set_xticklabels(fontsize=7)
+    ax.set_yticklabels(fontsize=7)
+    ax.savefig("{}.png".format(name), dpi=1500)
 
-    return ax
+
+def consecutive_analysis(file_name):
+    """file_name (str) : A file that contains the names of the different folders
+     where the PELE simulation folders are in"""
+
+    with open("{}".format(file_name), "r") as pele:
+        pele_folders = pele.readlines()
+    for folders in pele_folders:
+        folders = folders.strip("\n")
+        data_dict, plot_dataframe = analyse_all(folders)
+        box_plot(plot_dataframe, folders)
 
 
 def main():
-    """folders (str): path to the different PELE simulation folders"""
     folder = parse_args()
-    data_dict, plot_dataframe = analyse_all(folder)
-    ax = box_plot(plot_dataframe)
-
-    return data_dict, plot_dataframe, ax
+    consecutive_analysis(folder)
 
 
 if __name__ == "__main__":
