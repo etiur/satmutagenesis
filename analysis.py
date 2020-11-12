@@ -73,7 +73,7 @@ def analyse_all(folders="."):
         data.set_distribution()
         data_dict[name[5:]] = data
 
-    # create a dataframe with only the distance differences
+    # create a dataframe with only the distance differences for each simulation
     plot_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
@@ -87,7 +87,7 @@ def box_plot(dataframe, name):
     """
     dataframe (tabular data): Any tabular structure that corresponds to the wide-form data accepted by seaborn
     """
-    sns.set(font_scale=1.8)
+    sns.set(font_scale=1.9)
     sns.set_style("white")
     sns.set_context("paper")
     ax = sns.catplot(data=dataframe, kind="box", palette="Set2", height=4.5, aspect=2.3)
