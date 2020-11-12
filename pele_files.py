@@ -28,12 +28,12 @@ def parse_args():
 class CreateLaunchFiles:
     def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24, test=False, initial=None, cu=False):
         """
-        input_: (str) PDB files path
-        chain: (str) the chain ID where the ligand is located
-        ligname: (str) the residue name of the ligand in the PDB
-        atom1: (str) atom of the residue to follow in this format --> chain ID:position:atom name
-        atom2: (str) atom of the ligand to follow in this format --> chain ID:position:atom name
-        cpus: (str or int) how many cpus do you want to use
+        input_ (str): PDB files path
+        ligchain (str): the chain ID where the ligand is located
+        ligname (str): the residue name of the ligand in the PDB
+        atom1 (str): atom of the residue to follow in this format --> chain ID:position:atom name
+        atom2 (str): atom of the ligand to follow in this format --> chain ID:position:atom name
+        cpus (str or int): how many cpus do you want to use
         """
         self.input = input_
         self.ligchain = ligchain
@@ -48,7 +48,9 @@ class CreateLaunchFiles:
         self.cu = cu
 
     def match_dist(self):
-        """ match the user coordinates to pmx PDB coordinates"""
+        """
+        match the user coordinates to pmx PDB coordinates
+        """
         if self.initial:
             self.atom1 = map_atom_string(self.atom1, self.initial, self.input)
             self.atom2 = map_atom_string(self.atom2, self.initial, self.input)
@@ -56,7 +58,9 @@ class CreateLaunchFiles:
             pass
 
     def input_creation(self, yaml_name):
-        """ create the .yaml input files for PELE"""
+        """
+        create the .yaml input files for PELE
+        """
         if not os.path.exists("yaml_files"):
             os.mkdir("yaml_files")
         self.yaml = "yaml_files/{}.yaml".format(yaml_name)
@@ -66,7 +70,11 @@ class CreateLaunchFiles:
             inp.write("resname: '{}'\n".format(self.ligname))
             inp.write("induced_fit_exhaustive: true\n")
             inp.write("seed: 12345\n")
-            inp.write("working_folder: PELE_{}\n".format(yaml_name))
+            inp.write("usesrun: true\n")
+            if yaml_name != "original":
+                inp.write("working_folder: {}/PELE_{}\n".format(yaml_name[:-1], yaml_name))
+            else:
+                inp.write("working_folder: PELE_{}\n".format(yaml_name))
             if self.test:
                 inp.write("test: true\n")
                 self.cpus = 5
@@ -79,7 +87,9 @@ class CreateLaunchFiles:
             inp.write("pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n")
 
     def slurm_creation(self, slurm_name):
-        """Creates the slurm runing files for PELE"""
+        """
+        Creates the slurm running files for PELE
+        """
         if not os.path.exists("slurm_files"):
             os.mkdir("slurm_files")
         self.slurm = "slurm_files/{}.sh".format(slurm_name)
@@ -108,12 +118,11 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder="pdb_files"
                     file_list=None, cu=False):
     """
     creates for each of the mutants the yaml and slurm files
-
-        chain: (str) the chain ID where the ligand is located
-        resname: (str) the residue name of the ligand in the PDB
-        atom1: (str) atom of the residue to follow  --> chain ID:position:atom name
-        atom2: (str) atom of the ligand to follow  --> chain ID:position:atom name
-        cpus: (str or int) how many cpus do you want to use
+    ligchain (str): the chain ID where the ligand is located
+    ligname (str): the residue name of the ligand in the PDB
+    atom1 (str): atom of the residue to follow  --> chain ID:position:atom name
+    atom2 (str): atom of the ligand to follow  --> chain ID:position:atom name
+    cpus (str or int): how many cpus do you want to use
     """
     if not os.path.exists(folder):
         raise IOError("No directory named {}".format(folder))
@@ -128,6 +137,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder="pdb_files"
             run.input_creation(name)
             run.slurm_creation(name)
             slurm_files.append(run.slurm)
+
     else:
         for files in file_list:
             name = basename(files)
@@ -150,4 +160,4 @@ def main():
 
 if __name__ == "__main__":
     # Run this if this file is executed from command line but not if is imported as API
-    yaml_files, slurm_files = main()
+    yaml_list, slurm_list = main()
