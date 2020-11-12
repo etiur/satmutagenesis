@@ -3,6 +3,7 @@ import pandas as pd
 import seaborn as sns
 import argparse
 from os.path import basename
+import os
 
 
 def parse_args():
@@ -26,6 +27,7 @@ class SimulationData:
         self.dataframe = None
         self.distance = None
         self.distribution = None
+        self.profile = None
 
     def filtering(self):
         """
@@ -35,20 +37,25 @@ class SimulationData:
         reports = []
         for files in glob("{}/output/0/report_*".format(self.folder)):
             reports.append(pd.read_csv(files, sep="    ", engine="python"))
-
         self.dataframe = pd.concat(reports)
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.head(len(self.dataframe) * 20/100)
-        self.distance = self.dataframe["distance0.5"].copy()
-        self.distance.sort_values(inplace=True)
-        self.distance.reset_index(drop=True, inplace=True)
-        self.distance = self.distance.head(min(100, len(self.distance)))
 
+        # for the PELE profiles
+        dist = self.dataframe["distance0.5"].copy()
+        binding = self.dataframe["Binding Energy"].copy()
+        sasa = self.dataframe["sasaLig"].copy()
+        current = self.dataframe["currentEnergy"].copy()
+        self.profile = pd.concat([binding, dist, sasa, current], axis=1)
+
+        # For the box plots
+        data_20 = self.dataframe.head(len(self.dataframe) * 20 / 100)
+        dist20 = data_20["distance0.5"].copy()
+        dist20.sort_values(inplace=True)
+        dist20.reset_index(drop=True, inplace=True)
+        self.distance = dist20.head(min(100, len(dist20)))
         if "original" in self.folder:
-            self.distance = self.distance[0].copy()
-
-        return self.dataframe, self.distance
+            self.distance = dist20[0].copy()
 
     def set_distribution(self):
         """
@@ -66,6 +73,7 @@ def analyse_all(folders="."):
     original = SimulationData("PELE_original")
     original.filtering()
     SimulationData.original_distance = original.distance
+    data_dict["original"] = original
     for folder in glob("{}/PELE_*".format(folders)):
         name = basename(folder)
         data = SimulationData(folder)
@@ -73,30 +81,77 @@ def analyse_all(folders="."):
         data.set_distribution()
         data_dict[name[5:]] = data
 
+    return data_dict
+
+
+def box_plot(data_dict, name):
+    """
+    Creates a box plot of the 19 mutations from the same position
+    data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
+    """
+    if not os.path.exists("Plots"):
+        os.mkdir("Plots")
+    if not os.path.exists("Plots/box"):
+        os.mkdir("Plots/box")
     # create a dataframe with only the distance differences for each simulation
     plot_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
             plot_dict[key] = value.distribution
-    plot_dataframe = pd.DataFrame(plot_dict)
-
-    return data_dict, plot_dataframe
-
-
-def box_plot(dataframe, name):
-    """
-    dataframe (tabular data): Any tabular structure that corresponds to the wide-form data accepted by seaborn
-    """
+    dataframe = pd.DataFrame(plot_dict)
+    # Creates a boxplot from the dataframe
     sns.set(font_scale=1.9)
-    sns.set_style("white")
+    sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(data=dataframe, kind="box", palette="Set2", height=4.5, aspect=2.3)
+    ax = sns.catplot(data=dataframe, kind="box", palette="Accent", height=4.5, aspect=2.3)
     ax.set(title="{} distance variation with respect to wild type".format(name))
     ax.set_ylabels("Distance variation", fontsize=9)
     ax.set_xlabels("Mutations {}".format(name), fontsize=9)
     ax.set_xticklabels(fontsize=7)
     ax.set_yticklabels(fontsize=7)
-    ax.savefig("{}.png".format(name), dpi=1500)
+    ax.savefig("Plots/box/{}.png".format(name), dpi=1500)
+
+
+def pele_profiles(data_dict, name, types):
+    """
+    Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
+    data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
+    name (str): name for the folders where you want the scatter plot go in
+    type (str): distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
+    """
+    if not os.path.exists("Plots"):
+        os.mkdir("Plots")
+    if not os.path.exists("Plots/scatter_{}".format(name)):
+        os.mkdir("Plots/scatter_{}".format(name))
+
+    sns.set(font_scale=1)
+    sns.set_style("ticks")
+    sns.set_context("paper")
+    original = data_dict["original"].profile
+    original = original[["Binding Energy", types]].copy()
+    original.index = ["Wild type"]*len(original)
+    for key, value in data_dict.items():
+        if "original" not in key:
+            distance = value.profile
+            distance = distance[["Binding Energy", types]].copy()
+            distance.index = [key]*len(distance)
+            cat = pd.concat([original, distance], axis=0)
+            cat.index.name = "Type"
+            cat.reset_index(inplace=True)
+            ax = sns.scatterplot(x=type, y='Binding Energy', hue="Type", style="Type", palette="Set1")
+            ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
+            ax.savefig("Plots/scatter_{}/{}_{}.png".format(name, key, types), dpi=1500)
+
+
+def all_profiles(data_dict, name):
+    """
+    Creates all the possible scatter plots
+    data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
+    name (str): name for the folders where you want the scatter plot go in
+    """
+    types = ["distance0.5", "sasaLig", "currentEnergy"]
+    for x in types:
+        pele_profiles(data_dict, name, x)
 
 
 def consecutive_analysis(file_name):
@@ -107,9 +162,9 @@ def consecutive_analysis(file_name):
         pele_folders = pele.readlines()
     for folders in pele_folders:
         folders = folders.strip("\n")
-        data_dict, plot_dataframe = analyse_all(folders)
-        box_plot(plot_dataframe, folders)
-
+        data_dict = analyse_all(folders)
+        box_plot(data_dict, folders)
+        all_profiles(data_dict, folders)
 
 def main():
     folder = parse_args()
