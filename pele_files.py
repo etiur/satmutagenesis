@@ -94,7 +94,7 @@ class CreateLaunchFiles:
         with open(self.slurm, "w") as slurm:
             lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(slurm_name),
                      "#SBATCH --error={}.err\n".format(slurm_name)]
-            slurm.write(lines)
+            slurm.writelines(lines)
             if self.test:
                 slurm.write("#SBATCH --qos=debug\n")
                 self.cpus = 5
@@ -108,7 +108,6 @@ class CreateLaunchFiles:
                           self.yaml)]
 
             slurm.writelines(lines2)
-
 
 
 def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None,

@@ -128,19 +128,19 @@ def pele_profiles(data_dict, name, types):
     sns.set_style("ticks")
     sns.set_context("paper")
     original = data_dict["original"].profile
-    original.index = ["Wild type"]*len(original)
+    original.index = ["Wild type"] * len(original)
     for key, value in data_dict.items():
         if "original" not in key:
             distance = value.profile
-            distance.index = [key]*len(distance)
+            distance.index = [key] * len(distance)
             cat = pd.concat([original, distance], axis=0)
             cat.index.name = "Type"
             cat.reset_index(inplace=True)
             if types == "currentEnergy":
                 ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette="Set1", data=cat,
-                             height=4.5, aspect=2.3, hue_norm=(0,7))
+                                 height=4.5, aspect=2.3, hue_norm=(0, 7))
                 ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette="Set1", data=cat,
-                             height=4.5, aspect=2.3, hue_norm=(0,7))
+                                 height=4.5, aspect=2.3, hue_norm=(0, 7))
                 ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
                 ex.savefig("Plots/scatter_{}/{}_{}_{}.png".format(name, key, types, "distance0.5"), dpi=1500)
             else:
