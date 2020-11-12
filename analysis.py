@@ -166,6 +166,7 @@ def consecutive_analysis(file_name):
         box_plot(data_dict, folders)
         all_profiles(data_dict, folders)
 
+
 def main():
     folder = parse_args()
     consecutive_analysis(folder)
