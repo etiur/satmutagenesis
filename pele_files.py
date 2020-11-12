@@ -65,12 +65,10 @@ class CreateLaunchFiles:
             os.mkdir("yaml_files")
         self.yaml = "yaml_files/{}.yaml".format(yaml_name)
         with open(self.yaml, "w") as inp:
-            inp.write("system: '{}'\n".format(self.input))
-            inp.write("chain: '{}'\n".format(self.ligchain))
-            inp.write("resname: '{}'\n".format(self.ligname))
-            inp.write("induced_fit_exhaustive: true\n")
-            inp.write("seed: 12345\n")
-            inp.write("usesrun: true\n")
+            lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
+                     "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n", "seed: 12345\n",
+                     "usesrun: true\n"]
+            inp.writelines(lines)
             if yaml_name != "original":
                 inp.write("working_folder: {}/PELE_{}\n".format(yaml_name[:-1], yaml_name))
             else:
@@ -78,13 +76,13 @@ class CreateLaunchFiles:
             if self.test:
                 inp.write("test: true\n")
                 self.cpus = 5
-            inp.write("cpus: {}\n".format(self.cpus))
-            inp.write("atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2))
+            lines2 = ["cpus: {}\n".format(self.cpus), "atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2),
+                      "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n",
+                      "pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n"]
             if self.cu:
                 path = "/gpfs/projects/bsc72/ruite/examples/cuz"
                 inp.write("templates:\n- '{}'\n".format(path))
-            inp.write("pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n")
-            inp.write("pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n")
+            inp.writelines(lines2)
 
     def slurm_creation(self, slurm_name):
         """
@@ -94,24 +92,23 @@ class CreateLaunchFiles:
             os.mkdir("slurm_files")
         self.slurm = "slurm_files/{}.sh".format(slurm_name)
         with open(self.slurm, "w") as slurm:
-            slurm.write("#!/bin/bash\n")
-            slurm.write("#SBATCH -J PELE\n")
-            slurm.write("#SBATCH --output={}.out\n".format(slurm_name))
-            slurm.write("#SBATCH --error={}.err\n".format(slurm_name))
+            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(slurm_name),
+                     "#SBATCH --error={}.err\n".format(slurm_name)]
+            slurm.write(lines)
             if self.test:
                 slurm.write("#SBATCH --qos=debug\n")
                 self.cpus = 5
-            slurm.write("#SBATCH --ntasks={}\n\n".format(self.cpus))
-            slurm.write('module purge\n')
-            slurm.write('export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n')
-            slurm.write('export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n')
-            slurm.write('export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n')
-            slurm.write('module load impi\n')
-            slurm.write('module load intel mkl impi gcc # 2> /dev/null\n')
-            slurm.write('module load boost/1.64.0\n')
-            slurm.write(
-                '/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(
-                    self.yaml))
+
+            lines2 = ["#SBATCH --ntasks={}\n\n".format(self.cpus), 'module purge\n',
+                      'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
+                      'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
+                      'export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n', 'module load impi\n',
+                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n',
+                      '/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(
+                          self.yaml)]
+
+            slurm.writelines(lines2)
+
 
 
 def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None,
