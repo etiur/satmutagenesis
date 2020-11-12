@@ -57,6 +57,7 @@ def pele_folders(file_list):
     file_list (list): list of pdb files created during the saturated mutagenesis
     """
     count = 0
+    folder = []
     if os.path.exists("folder_names.txt"):
         os.remove("folder_names.txt")
     for files in file_list:
@@ -65,11 +66,11 @@ def pele_folders(file_list):
         if not count:
             hold = "bla"
             count += 1
-        if name != "original":
-            if hold != name[:-1]:
-                hold = name[:-1]
-                with open("folder_names.txt", "a") as txt:
-                    txt.write("{}\n".format(hold))
+        if name != "original" and hold != name[:-1]:
+            hold = name[:-1]
+            folder.append("{}\n".format(hold))
+    with open("folder_names.txt", "a") as txt:
+        txt.writelines(folder)
 
 
 def main():
