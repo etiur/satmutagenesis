@@ -98,7 +98,6 @@ class CreateLaunchFiles:
             if self.test:
                 slurm.write("#SBATCH --qos=debug\n")
                 self.cpus = 5
-
             lines2 = ["#SBATCH --ntasks={}\n\n".format(self.cpus), 'module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
                       'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
@@ -106,7 +105,6 @@ class CreateLaunchFiles:
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n',
                       '/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(
                           self.yaml)]
-
             slurm.writelines(lines2)
 
 
