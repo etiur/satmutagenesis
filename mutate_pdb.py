@@ -147,7 +147,7 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
     # Perform single saturated mutations
     for mutation in position:
         run = SaturatedMutagenesis(input_, mutation)
-        if not count:
+        if not count and not os.path.exists("pdb_files/original.pdb"):
             run.check_coords()
         else:
             run.check_coords(mode=1)
