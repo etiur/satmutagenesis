@@ -4,6 +4,7 @@ import seaborn as sns
 import argparse
 from os.path import basename
 import os
+import matplotlib.pyplot as plt
 
 
 def parse_args():
@@ -137,15 +138,19 @@ def pele_profiles(data_dict, name, types):
             cat.index.name = "Type"
             cat.reset_index(inplace=True)
             if types == "currentEnergy":
-                ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette="Set1", data=cat,
-                                 height=4.5, aspect=2.3, hue_norm=(0, 7))
-                ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette="Set1", data=cat,
-                                 height=4.5, aspect=2.3, hue_norm=(0, 7))
+                norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
+                norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
+
+                ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette='RdBu', data=cat,
+                                 height=3.8, aspect=1.8, hue_norm=norm)
+                ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
+                                 height=3.8, aspect=1.8, hue_norm=norm2)
                 ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
                 ex.savefig("Plots/scatter_{}/{}_{}_{}.png".format(name, key, types, "distance0.5"), dpi=1500)
+
             else:
                 ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
-                                 height=4.5, aspect=2.3)
+                                 height=3.8, aspect=1.8)
             ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
             ax.savefig("Plots/scatter_{}/{}_{}.png".format(name, key, types), dpi=1500)
 
