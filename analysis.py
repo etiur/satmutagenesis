@@ -18,8 +18,6 @@ def parse_args():
 
 
 class SimulationData:
-    original_distance = None
-
     def __init__(self, folder):
         """
         folder (str):  path to the simulation folder
@@ -55,11 +53,11 @@ class SimulationData:
         if "original" in self.folder:
             self.distance = dist20[0].copy()
 
-    def set_distribution(self):
+    def set_distribution(self, original_distance):
         """
         Stores the difference between the mutated ligand distances and the original ligand distance
         """
-        self.distribution = self.distance - self.original_distance
+        self.distribution = self.distance - original_distance
 
 
 def analyse_all(folders="."):
@@ -70,13 +68,12 @@ def analyse_all(folders="."):
     data_dict = {}
     original = SimulationData("PELE_original")
     original.filtering()
-    SimulationData.original_distance = original.distance
     data_dict["original"] = original
     for folder in glob("{}/PELE_*".format(folders)):
         name = basename(folder)
         data = SimulationData(folder)
         data.filtering()
-        data.set_distribution()
+        data.set_distribution(original.distance)
         data_dict[name[5:]] = data
 
     return data_dict
