@@ -43,12 +43,9 @@ class SimulationData:
         self.dataframe.reset_index(drop=True, inplace=True)
 
         # for the PELE profiles
-        dist = self.dataframe["distance0.5"].copy()
-        binding = self.dataframe["Binding Energy"].copy()
-        sasa = self.dataframe["sasaLig"].copy()
-        current = self.dataframe["currentEnergy"].copy()
-        self.profile = pd.concat([binding, dist, sasa, current], axis=1)
-
+        self.profile = self.dataframe.drop(["Step", '#Task', 'numberOfAcceptedPeleSteps'], axis=1, inplace=True)
+        self.profile = self.profile.iloc[:len(self.profile)-49]
+        
         # For the box plots
         data_20 = self.dataframe.head(len(self.dataframe) * 20 / 100)
         dist20 = data_20["distance0.5"].copy()
@@ -142,15 +139,15 @@ def pele_profiles(data_dict, name, types):
                 norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
 
                 ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette='RdBu', data=cat,
-                                 height=3.8, aspect=1.8, hue_norm=norm)
+                                 height=3.8, aspect=1.8, hue_norm=norm, s=120)
                 ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
-                                 height=3.8, aspect=1.8, hue_norm=norm2)
+                                 height=3.8, aspect=1.8, hue_norm=norm2, s=120)
                 ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
                 ex.savefig("Plots/scatter_{}/{}_{}_{}.png".format(name, key, types, "distance0.5"), dpi=1500)
 
             else:
                 ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
-                                 height=3.8, aspect=1.8)
+                                 height=3.8, aspect=1.8, s=120)
             ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
             ax.savefig("Plots/scatter_{}/{}_{}.png".format(name, key, types), dpi=1500)
 
