@@ -113,7 +113,7 @@ def box_plot(data_dict, name):
 def pele_profile_single(wild, key, types, name, mutation):
     """
     Creates a plot for a single mutation
-    wild (dataframe): Data for the wild type protein
+    wild (SimulationData): SimulationData object that stores data for the wild type protein
     key (str): name of the mutation
     types (str): Type of scatter plot - distance0.5, sasaLig or currentEnergy
     name (str): name for the folder to keep the images
@@ -127,9 +127,11 @@ def pele_profile_single(wild, key, types, name, mutation):
     sns.set(font_scale=1)
     sns.set_style("ticks")
     sns.set_context("paper")
+    original = wild.profile
+    original.index = ["Wild type"] * len(original)
     distance = mutation.profile
     distance.index = [key] * len(distance)
-    cat = pd.concat([wild, distance], axis=0)
+    cat = pd.concat([original, distance], axis=0)
     cat.index.name = "Type"
     cat.reset_index(inplace=True)
     if types == "currentEnergy":
@@ -157,11 +159,9 @@ def pele_profiles(data_dict, name, types):
     name (str): name for the folders where you want the scatter plot go in
     type (str): distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
     """
-    original = data_dict["original"].profile
-    original.index = ["Wild type"] * len(original)
     for key, value in data_dict.items():
         if "original" not in key:
-            pele_profile_single(original, key, types, name, value)
+            pele_profile_single(data_dict["original"], key, types, name, value)
 
 
 def all_profiles(data_dict, name):
