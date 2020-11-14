@@ -166,7 +166,7 @@ def pele_profiles(data_dict, name, types):
 
 def all_profiles(data_dict, name):
     """
-    Creates all the possible scatter plots
+    Creates all the possible scatter plots for the same mutated position
     data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
     name (str): name for the folders where you want the scatter plot go in
     """
@@ -177,6 +177,7 @@ def all_profiles(data_dict, name):
 
 def consecutive_analysis(file_name):
     """
+    Creates all the plots for the different mutated positions
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
     """
     with open("{}".format(file_name), "r") as pele:
