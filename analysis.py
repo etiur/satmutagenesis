@@ -43,7 +43,7 @@ class SimulationData:
         self.dataframe.reset_index(drop=True, inplace=True)
 
         # for the PELE profiles
-        self.profile = self.dataframe.drop(["Step", '#Task', 'numberOfAcceptedPeleSteps'], axis=1, inplace=True)
+        self.profile = self.dataframe.drop(["Step", '#Task', 'numberOfAcceptedPeleSteps'], axis=1)
         self.profile = self.profile.iloc[:len(self.profile)-49]
         
         # For the box plots
@@ -110,12 +110,14 @@ def box_plot(data_dict, name):
     ax.savefig("Plots/box/{}.png".format(name), dpi=1500)
 
 
-def pele_profiles(data_dict, name, types):
+def pele_profile_single(wild, key, types, name, mutation):
     """
-    Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
-    data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
-    name (str): name for the folders where you want the scatter plot go in
-    type (str): distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
+    Creates a plot for a single mutation
+    wild (dataframe): Data for the wild type protein
+    key (str): name of the mutation
+    types (str): Type of scatter plot - distance0.5, sasaLig or currentEnergy
+    name (str): name for the folder to keep the images
+    mutation (SimulationData): SimulationData object that stores data for the mutated protein
     """
     if not os.path.exists("Plots"):
         os.mkdir("Plots")
@@ -125,31 +127,41 @@ def pele_profiles(data_dict, name, types):
     sns.set(font_scale=1)
     sns.set_style("ticks")
     sns.set_context("paper")
+    distance = mutation.profile
+    distance.index = [key] * len(distance)
+    cat = pd.concat([wild, distance], axis=0)
+    cat.index.name = "Type"
+    cat.reset_index(inplace=True)
+    if types == "currentEnergy":
+        norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
+        norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
+
+        ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette='RdBu', data=cat,
+                         height=3.8, aspect=1.8, hue_norm=norm, s=120)
+        ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
+                         height=3.8, aspect=1.8, hue_norm=norm2, s=120)
+        ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
+        ex.savefig("Plots/scatter_{}/{}_{}_{}.png".format(name, key, types, "distance0.5"), dpi=1500)
+
+    else:
+        ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
+                         height=3.8, aspect=1.8, s=120)
+    ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
+    ax.savefig("Plots/scatter_{}/{}_{}.png".format(name, key, types), dpi=1500)
+
+
+def pele_profiles(data_dict, name, types):
+    """
+    Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
+    data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
+    name (str): name for the folders where you want the scatter plot go in
+    type (str): distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
+    """
     original = data_dict["original"].profile
     original.index = ["Wild type"] * len(original)
     for key, value in data_dict.items():
         if "original" not in key:
-            distance = value.profile
-            distance.index = [key] * len(distance)
-            cat = pd.concat([original, distance], axis=0)
-            cat.index.name = "Type"
-            cat.reset_index(inplace=True)
-            if types == "currentEnergy":
-                norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
-                norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
-
-                ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette='RdBu', data=cat,
-                                 height=3.8, aspect=1.8, hue_norm=norm, s=120)
-                ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
-                                 height=3.8, aspect=1.8, hue_norm=norm2, s=120)
-                ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-                ex.savefig("Plots/scatter_{}/{}_{}_{}.png".format(name, key, types, "distance0.5"), dpi=1500)
-
-            else:
-                ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
-                                 height=3.8, aspect=1.8, s=120)
-            ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-            ax.savefig("Plots/scatter_{}/{}_{}.png".format(name, key, types), dpi=1500)
+            pele_profile_single(original, key, types, name, value)
 
 
 def all_profiles(data_dict, name):
