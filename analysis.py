@@ -191,6 +191,7 @@ def consecutive_analysis(file_name):
     else:
         raise OSError("No file {}".format(file_name))
 
+
 def main():
     folder = parse_args()
     consecutive_analysis(folder)
