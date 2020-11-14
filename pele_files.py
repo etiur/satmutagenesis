@@ -119,7 +119,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder="pdb_files"
     cpus (str or int): how many cpus do you want to use
     """
     if not os.path.exists(folder):
-        raise IOError("No directory named {}".format(folder))
+        raise OSError("No directory named {}".format(folder))
 
     slurm_files = []
     if not file_list:

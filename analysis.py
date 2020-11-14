@@ -180,14 +180,16 @@ def consecutive_analysis(file_name):
     Creates all the plots for the different mutated positions
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
     """
-    with open("{}".format(file_name), "r") as pele:
-        pele_folders = pele.readlines()
-    for folders in pele_folders:
-        folders = folders.strip("\n")
-        data_dict = analyse_all(folders)
-        box_plot(data_dict, folders)
-        all_profiles(data_dict, folders)
-
+    if os.path.exists(file_name):
+        with open("{}".format(file_name), "r") as pele:
+            pele_folders = pele.readlines()
+        for folders in pele_folders:
+            folders = folders.strip("\n")
+            data_dict = analyse_all(folders)
+            box_plot(data_dict, folders)
+            all_profiles(data_dict, folders)
+    else:
+        raise OSError("No file {}".format(file_name))
 
 def main():
     folder = parse_args()
