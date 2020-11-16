@@ -146,9 +146,9 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
         norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
         norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
         ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette='RdBu', data=cat,
-                         height=3.8, aspect=1.8, hue_norm=norm, s=120, linewidth=0)
+                         height=3.8, aspect=1.8, hue_norm=norm, s=100, linewidth=0)
         ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
-                         height=3.8, aspect=1.8, hue_norm=norm2, s=120, linewidth=0)
+                         height=3.8, aspect=1.8, hue_norm=norm2, s=100, linewidth=0)
         ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
         ex.savefig("results/Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "distance0.5", key, types), dpi=dpi)
         ax.savefig("results/Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "sasaLig", key, types), dpi=dpi)
@@ -157,7 +157,7 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
         if not os.path.exists("results/Plots/scatter_{}_{}".format(name, types)):
             os.makedirs("results/Plots/scatter_{}_{}".format(name, types))
         ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
-                         height=3.8, aspect=1.8, s=120, linewidth=0)
+                         height=3.8, aspect=1.8, s=100, linewidth=0)
         ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
         ax.savefig("results/Plots/scatter_{}_{}/{}_{}.png".format(name, types, key, types), dpi=dpi)
 
