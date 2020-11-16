@@ -127,9 +127,6 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
     name (str): name for the folder to keep the images
     mutation (SimulationData): SimulationData object that stores data for the mutated protein
     """
-    if not os.path.exists("Plots/scatter_{}_{}".format(name, types)):
-        os.makedirs("Plots/scatter_{}_{}".format(name, types))
-
     sns.set(font_scale=1)
     sns.set_style("ticks")
     sns.set_context("paper")
@@ -141,21 +138,28 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
     cat.index.name = "Type"
     cat.reset_index(inplace=True)
     if types == "currentEnergy":
+        if not os.path.exists("Plots/scatter_{}_{}/{}".format(name, types, "distance0.5")):
+            os.makedirs("Plots/scatter_{}_{}/{}".format(name, types, "distance0.5"))
+        if not os.path.exists("Plots/scatter_{}_{}/{}".format(name, types, "sasaLig")):
+            os.makedirs("Plots/scatter_{}_{}/{}".format(name, types, "sasaLig"))
+
         norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
         norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
-
         ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette='RdBu', data=cat,
-                         height=3.8, aspect=1.8, hue_norm=norm, s=120)
+                         height=3.8, aspect=1.8, hue_norm=norm, s=120, linewidth=0)
         ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
-                         height=3.8, aspect=1.8, hue_norm=norm2, s=120)
+                         height=3.8, aspect=1.8, hue_norm=norm2, s=120, linewidth=0)
         ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ex.savefig("Plots/scatter_{}_{}/{}_{}_{}.png".format(name, types, key, types, "distance0.5"), dpi=dpi)
+        ex.savefig("Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "distance0.5", key, types), dpi=dpi)
+        ax.savefig("Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "sasaLig", key, types), dpi=dpi)
 
     else:
+        if not os.path.exists("Plots/scatter_{}_{}".format(name, types)):
+            os.makedirs("Plots/scatter_{}_{}".format(name, types))
         ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
-                         height=3.8, aspect=1.8, s=120)
-    ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-    ax.savefig("Plots/scatter_{}_{}/{}_{}.png".format(name, types, key, types), dpi=dpi)
+                         height=3.8, aspect=1.8, s=120, linewidth=0)
+        ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
+        ax.savefig("Plots/scatter_{}_{}/{}_{}.png".format(name, types, key, types), dpi=dpi)
 
 
 def pele_profiles(data_dict, name, types, dpi=1000):
@@ -181,7 +185,7 @@ def all_profiles(data_dict, name, dpi=1000):
         pele_profiles(data_dict, name, x, dpi)
 
 
-def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, out_freq=1):
+def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, dist, out_freq=1):
     """
     Extracts PDB files from trajectories
     simulation_folder (str): Path to the simulation folder
@@ -190,6 +194,7 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, o
     step (int): The step in the trajectory you want to keep
     out_freq (int): How frequent the steps are saved, in PELE every 1 step is saved
     mutation (str): The folder name for the results of one of the simulations
+    dist (float): The distance between ligand and protein (used as name for the result file - not essential)
     """
     if not os.path.exists("distances_{}/{}_pdbs".format(output, mutation)):
         os.makedirs("distances_{}/{}_pdbs".format(output, mutation))
@@ -206,7 +211,7 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, o
     # Output Snapshot
     traj = []
     path = "distances_{}/{}_pdbs".format(output, mutation)
-    with open(os.path.join(path, "traj{}_step{}.pdb".format(f_id, step)), 'w') as f:
+    with open(os.path.join(path, "traj{}_step{}_dist{}.pdb".format(f_id, step, round(dist, 2))), 'w') as f:
         traj.append("MODEL     {}".format(int((step/out_freq)+1)))
         try:
             traj.append(trajectory_selected.group(1))
@@ -228,7 +233,8 @@ def extract_10_pdb_single(data, simulation_folder, output, mutation, out_freq=1)
     for ind in data.trajectory.index:
         ids = data.trajectory["ID"][ind]
         step = int(data.trajectory["numberOfAcceptedPeleSteps"][ind])
-        extract_snapshot_from_pdb(simulation_folder, ids, output, mutation, step, out_freq=out_freq)
+        dist = data.trajectory["distance0.5"][ind]
+        extract_snapshot_from_pdb(simulation_folder, ids, output, mutation, step, dist, out_freq=out_freq)
 
 
 def extract_10_pdbs_staturated(data_dict, folders, out_freq=1):
