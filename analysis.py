@@ -52,10 +52,9 @@ class SimulationData:
 
         # for the PELE profiles
         self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
-        self.trajectory = self.dataframe.sort_values(by=["distance0.5", "Binding Energy"])
+        self.trajectory = self.dataframe.sort_values(by="distance0.5")
         self.trajectory.reset_index(drop=True, inplace=True)
-        self.trajectory.drop(["Step", 'distance0.5', 'sasaLig', 'Binding Energy',
-                              'currentEnergy'], axis=1, inplace=True)
+        self.trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = self.trajectory.head(10)
 
         # For the box plots
