@@ -5,6 +5,8 @@ import argparse
 from os.path import basename
 import os
 import matplotlib.pyplot as plt
+import sys
+import re
 
 
 def parse_args():
@@ -12,9 +14,11 @@ def parse_args():
     # main required arguments
     parser.add_argument("--pele", required=False, default="./",
                         help="Include a file with names of the different folders with PELE simulations inside")
+    parser.add_argument("--dpi", required=False, default=1000, type=int,
+                        help="Set the quality of the plots")
     args = parser.parse_args()
 
-    return args.pele
+    return args.pele, args.dpi
 
 
 class SimulationData:
@@ -27,6 +31,7 @@ class SimulationData:
         self.distance = None
         self.distribution = None
         self.profile = None
+        self.trajectory = None
 
     def filtering(self):
         """
@@ -35,21 +40,30 @@ class SimulationData:
         """
         reports = []
         for files in glob("{}/output/0/report_*".format(self.folder)):
-            reports.append(pd.read_csv(files, sep="    ", engine="python"))
+            rep = basename(files).split("_")[1]
+            data = pd.read_csv(files, sep="    ", engine="python")
+            data['#Task'].replace({1: rep}, inplace=True)
+            data.rename(columns={'#Task': "ID"}, inplace=True)
+            reports.append(data)
         self.dataframe = pd.concat(reports)
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
+        self.dataframe = self.dataframe.iloc[:len(self.dataframe)-99]
 
         # for the PELE profiles
-        self.profile = self.dataframe.drop(["Step", '#Task', 'numberOfAcceptedPeleSteps'], axis=1)
-        self.profile = self.profile.iloc[:len(self.profile)-49]
-        
+        self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
+        self.trajectory = self.dataframe.sort_values(by=["distance0.5", "Binding Energy"])
+        self.trajectory.reset_index(drop=True, inplace=True)
+        self.trajectory.drop(["Step", 'distance0.5', 'sasaLig', 'Binding Energy',
+                              'currentEnergy'], axis=1, inplace=True)
+        self.trajectory = self.trajectory.head(10)
+
         # For the box plots
         data_20 = self.dataframe.head(len(self.dataframe) * 20 / 100)
         dist20 = data_20["distance0.5"].copy()
         dist20.sort_values(inplace=True)
         dist20.reset_index(drop=True, inplace=True)
-        self.distance = dist20.head(min(100, len(dist20)))
+        self.distance = dist20.head(min(100, len(dist20)))  # 20 - 100
         if "original" in self.folder:
             self.distance = dist20[0].copy()
 
@@ -79,15 +93,13 @@ def analyse_all(folders="."):
     return data_dict
 
 
-def box_plot(data_dict, name):
+def box_plot(data_dict, name, dpi=1000):
     """
     Creates a box plot of the 19 mutations from the same position
     data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
     """
-    if not os.path.exists("Plots"):
-        os.mkdir("Plots")
     if not os.path.exists("Plots/box"):
-        os.mkdir("Plots/box")
+        os.makedirs("Plots/box")
     # create a dataframe with only the distance differences for each simulation
     plot_dict = {}
     for key, value in data_dict.items():
@@ -104,10 +116,10 @@ def box_plot(data_dict, name):
     ax.set_xlabels("Mutations {}".format(name), fontsize=9)
     ax.set_xticklabels(fontsize=7)
     ax.set_yticklabels(fontsize=7)
-    ax.savefig("Plots/box/{}.png".format(name), dpi=1500)
+    ax.savefig("Plots/box/{}.png".format(name), dpi=dpi)
 
 
-def pele_profile_single(wild, key, types, name, mutation):
+def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
     """
     Creates a plot for a single mutation
     wild (SimulationData): SimulationData object that stores data for the wild type protein
@@ -116,10 +128,8 @@ def pele_profile_single(wild, key, types, name, mutation):
     name (str): name for the folder to keep the images
     mutation (SimulationData): SimulationData object that stores data for the mutated protein
     """
-    if not os.path.exists("Plots"):
-        os.mkdir("Plots")
-    if not os.path.exists("Plots/scatter_{}".format(name)):
-        os.mkdir("Plots/scatter_{}".format(name))
+    if not os.path.exists("Plots/scatter_{}_{}".format(name, types)):
+        os.makedirs("Plots/scatter_{}_{}".format(name, types))
 
     sns.set(font_scale=1)
     sns.set_style("ticks")
@@ -140,28 +150,28 @@ def pele_profile_single(wild, key, types, name, mutation):
         ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
                          height=3.8, aspect=1.8, hue_norm=norm2, s=120)
         ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ex.savefig("Plots/scatter_{}/{}_{}_{}.png".format(name, key, types, "distance0.5"), dpi=1500)
+        ex.savefig("Plots/scatter_{}_{}/{}_{}_{}.png".format(name, types, key, types, "distance0.5"), dpi=dpi)
 
     else:
         ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
                          height=3.8, aspect=1.8, s=120)
     ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-    ax.savefig("Plots/scatter_{}/{}_{}.png".format(name, key, types), dpi=1500)
+    ax.savefig("Plots/scatter_{}_{}/{}_{}.png".format(name, types, key, types), dpi=dpi)
 
 
-def pele_profiles(data_dict, name, types):
+def pele_profiles(data_dict, name, types, dpi=1000):
     """
     Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
-    data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
+    data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
     name (str): name for the folders where you want the scatter plot go in
     type (str): distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
     """
     for key, value in data_dict.items():
         if "original" not in key:
-            pele_profile_single(data_dict["original"], key, types, name, value)
+            pele_profile_single(data_dict["original"], key, types, name, value, dpi)
 
 
-def all_profiles(data_dict, name):
+def all_profiles(data_dict, name, dpi=1000):
     """
     Creates all the possible scatter plots for the same mutated position
     data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
@@ -169,10 +179,72 @@ def all_profiles(data_dict, name):
     """
     types = ["distance0.5", "sasaLig", "currentEnergy"]
     for x in types:
-        pele_profiles(data_dict, name, x)
+        pele_profiles(data_dict, name, x, dpi)
 
 
-def consecutive_analysis(file_name):
+def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, out_freq=1):
+    """
+    Extracts PDB files from trajectories
+    simulation_folder (str): Path to the simulation folder
+    f_id (str): trajectory file ID
+    output (str): The folder name for the results of the different simulations
+    step (int): The step in the trajectory you want to keep
+    out_freq (int): How frequent the steps are saved, in PELE every 1 step is saved
+    mutation (str): The folder name for the results of one of the simulations
+    """
+    if not os.path.exists("Top_distances_{}/{}_pdbs".format(output, mutation)):
+        os.makedirs("Top_distance_{}/{}_pdbs".format(output, mutation))
+
+    f_in = glob("{}/output/0/*trajectory*_{}.*".format(simulation_folder, f_id))
+    if len(f_in) == 0:
+        sys.exit("Trajectory_{} not found. Be aware that PELE trajectories must contain the label 'trajectory' in "
+                 "their file name to be detected".format(f_id))
+    f_in = f_in[0]
+    with open(f_in, 'r') as input_file:
+        file_content = input_file.read()
+    trajectory_selected = re.search(r'MODEL\s+{}(.*?)ENDMDL'.format(int((step/out_freq)+1)), file_content, re.DOTALL)
+
+    # Output Snapshot
+    traj = []
+    with open(os.path.join(output, "traj{}_step{}.pdb".format(f_id, step)), 'w') as f:
+        traj.append("MODEL     {}".format(int((step/out_freq)+1)))
+        try:
+            traj.append(trajectory_selected.group(1))
+        except AttributeError:
+            raise AttributeError("Model not found")
+        traj.append("ENDMDL\n")
+        f.write("\n".join(traj))
+
+
+def extract_10_pdb_single(data, simulation_folder, output, mutation, out_freq=1):
+    """
+    Extracts the top 10 distances from one simulation
+    data (SimulationData): A simulationData object that holds information of the simulation
+    simulation_folder (str): Path to the simulation folders
+    output (str): Folder name to store the results from different simulations
+    mutation (str): Name for the folder to store results for one of the simulations
+    out_freq (int): How frequent the steps are saved, in PELE every 1 step is saved
+    """
+    for ind in data.trajectory.index:
+        ids = data.trajectory["ID"][ind]
+        step = int(data.trajectory["numberOfAcceptedPeleSteps"][ind])
+        extract_snapshot_from_pdb(simulation_folder, ids, output, mutation, step, out_freq=out_freq)
+
+
+def extract_10_pdbs_staturated(data_dict, folders, out_freq=1):
+    """
+    Extracts the top 10 distances for every 19 mutations at the same position
+    data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
+    folders (str): Folder that has the results from different simulations at the same position
+    out_freq (int): How frequent the steps are saved, in PELE every 1 step is saved
+    """
+    for folder in glob("{}/PELE_*".format(folders)):
+        name = basename(folder)[5:]
+        output = folder.split("/")[0]
+        extract_10_pdb_single(data_dict[name], folder, output, mutation=name, out_freq=out_freq)
+
+
+def consecutive_analysis(file_name, dpi=1000, out_freq=1):
     """
     Creates all the plots for the different mutated positions
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
@@ -183,15 +255,16 @@ def consecutive_analysis(file_name):
         for folders in pele_folders:
             folders = folders.strip("\n")
             data_dict = analyse_all(folders)
-            box_plot(data_dict, folders)
-            all_profiles(data_dict, folders)
+            box_plot(data_dict, folders, dpi)
+            all_profiles(data_dict, folders, dpi)
+            extract_10_pdbs_staturated(data_dict, folders, out_freq)
     else:
         raise OSError("No file {}".format(file_name))
 
 
 def main():
-    folder = parse_args()
-    consecutive_analysis(folder)
+    folder, dpi = parse_args()
+    consecutive_analysis(folder, dpi)
 
 
 if __name__ == "__main__":
