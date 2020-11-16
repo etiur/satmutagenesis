@@ -192,8 +192,8 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, o
     out_freq (int): How frequent the steps are saved, in PELE every 1 step is saved
     mutation (str): The folder name for the results of one of the simulations
     """
-    if not os.path.exists("Top_distances_{}/{}_pdbs".format(output, mutation)):
-        os.makedirs("Top_distance_{}/{}_pdbs".format(output, mutation))
+    if not os.path.exists("distances_{}/{}_pdbs".format(output, mutation)):
+        os.makedirs("distances_{}/{}_pdbs".format(output, mutation))
 
     f_in = glob("{}/output/0/*trajectory*_{}.*".format(simulation_folder, f_id))
     if len(f_in) == 0:
@@ -206,7 +206,8 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, o
 
     # Output Snapshot
     traj = []
-    with open(os.path.join(output, "traj{}_step{}.pdb".format(f_id, step)), 'w') as f:
+    path = "distances_{}/{}_pdbs".format(output, mutation)
+    with open(os.path.join(path, "traj{}_step{}.pdb".format(f_id, step)), 'w') as f:
         traj.append("MODEL     {}".format(int((step/out_freq)+1)))
         try:
             traj.append(trajectory_selected.group(1))
