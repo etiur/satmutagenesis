@@ -97,8 +97,8 @@ def box_plot(data_dict, name, dpi=1000):
     Creates a box plot of the 19 mutations from the same position
     data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
     """
-    if not os.path.exists("Plots/box"):
-        os.makedirs("Plots/box")
+    if not os.path.exists("results/Plots/box"):
+        os.makedirs("results/Plots/box")
     # create a dataframe with only the distance differences for each simulation
     plot_dict = {}
     for key, value in data_dict.items():
@@ -115,7 +115,7 @@ def box_plot(data_dict, name, dpi=1000):
     ax.set_xlabels("Mutations {}".format(name), fontsize=9)
     ax.set_xticklabels(fontsize=7)
     ax.set_yticklabels(fontsize=7)
-    ax.savefig("Plots/box/{}.png".format(name), dpi=dpi)
+    ax.savefig("results/Plots/box/{}.png".format(name), dpi=dpi)
 
 
 def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
@@ -138,10 +138,10 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
     cat.index.name = "Type"
     cat.reset_index(inplace=True)
     if types == "currentEnergy":
-        if not os.path.exists("Plots/scatter_{}_{}/{}".format(name, types, "distance0.5")):
-            os.makedirs("Plots/scatter_{}_{}/{}".format(name, types, "distance0.5"))
-        if not os.path.exists("Plots/scatter_{}_{}/{}".format(name, types, "sasaLig")):
-            os.makedirs("Plots/scatter_{}_{}/{}".format(name, types, "sasaLig"))
+        if not os.path.exists("results/Plots/scatter_{}_{}/{}".format(name, types, "distance0.5")):
+            os.makedirs("results/Plots/scatter_{}_{}/{}".format(name, types, "distance0.5"))
+        if not os.path.exists("results/Plots/scatter_{}_{}/{}".format(name, types, "sasaLig")):
+            os.makedirs("results/Plots/scatter_{}_{}/{}".format(name, types, "sasaLig"))
 
         norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
         norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
@@ -150,16 +150,16 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
         ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
                          height=3.8, aspect=1.8, hue_norm=norm2, s=120, linewidth=0)
         ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ex.savefig("Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "distance0.5", key, types), dpi=dpi)
-        ax.savefig("Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "sasaLig", key, types), dpi=dpi)
+        ex.savefig("results/Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "distance0.5", key, types), dpi=dpi)
+        ax.savefig("results/Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "sasaLig", key, types), dpi=dpi)
 
     else:
-        if not os.path.exists("Plots/scatter_{}_{}".format(name, types)):
-            os.makedirs("Plots/scatter_{}_{}".format(name, types))
+        if not os.path.exists("results/Plots/scatter_{}_{}".format(name, types)):
+            os.makedirs("results/Plots/scatter_{}_{}".format(name, types))
         ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
                          height=3.8, aspect=1.8, s=120, linewidth=0)
         ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ax.savefig("Plots/scatter_{}_{}/{}_{}.png".format(name, types, key, types), dpi=dpi)
+        ax.savefig("results/Plots/scatter_{}_{}/{}_{}.png".format(name, types, key, types), dpi=dpi)
 
 
 def pele_profiles(data_dict, name, types, dpi=1000):
@@ -196,8 +196,8 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, d
     mutation (str): The folder name for the results of one of the simulations
     dist (float): The distance between ligand and protein (used as name for the result file - not essential)
     """
-    if not os.path.exists("distances_{}/{}_pdbs".format(output, mutation)):
-        os.makedirs("distances_{}/{}_pdbs".format(output, mutation))
+    if not os.path.exists("results/distances_{}/{}_pdbs".format(output, mutation)):
+        os.makedirs("results/distances_{}/{}_pdbs".format(output, mutation))
 
     f_in = glob("{}/output/0/*trajectory*_{}.*".format(simulation_folder, f_id))
     if len(f_in) == 0:
@@ -210,8 +210,8 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, d
 
     # Output Snapshot
     traj = []
-    path = "distances_{}/{}_pdbs".format(output, mutation)
-    with open(os.path.join(path, "traj{}_step{}_dist{}.pdb".format(f_id, step, round(dist, 2))), 'w') as f:
+    path_ = "results/distances_{}/{}_pdbs".format(output, mutation)
+    with open(os.path.join(path_, "traj{}_step{}_dist{}.pdb".format(f_id, step, round(dist, 2))), 'w') as f:
         traj.append("MODEL     {}".format(int((step/out_freq)+1)))
         try:
             traj.append(trajectory_selected.group(1))
