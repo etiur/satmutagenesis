@@ -103,6 +103,7 @@ def box_plot(data_dict, name, dpi=1000):
     if not os.path.exists("results/Plots/box"):
         os.makedirs("results/Plots/box")
     # create a dataframe with only the distance differences for each simulation
+    plt.ioff()
     plot_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
@@ -130,6 +131,7 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
     name (str): name for the folder to keep the images
     mutation (SimulationData): SimulationData object that stores data for the mutated protein
     """
+    plt.ioff()
     sns.set(font_scale=1)
     sns.set_style("ticks")
     sns.set_context("paper")
