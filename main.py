@@ -52,10 +52,14 @@ def side_function(input_):
     return input_
 
 
-def pele_folders(file_list):
+def pele_folders(input_, file_list):
     """
     file_list (list): list of pdb files created during the saturated mutagenesis
     """
+    os.chdir("../")
+    input_ = abspath(input_)
+    base = basename(input_)
+    base = base.replace(".pdb", "")
     count = 0
     folder = []
     if os.path.exists("folder_names.txt"):
@@ -68,7 +72,7 @@ def pele_folders(file_list):
             count += 1
         if name != "original" and hold != name[:-1]:
             hold = name[:-1]
-            folder.append("{}\n".format(hold))
+            folder.append("mutations_{}/{}\n".format(base, hold))
     with open("folder_names.txt", "a") as txt:
         txt.writelines(folder)
 
@@ -80,11 +84,11 @@ def main():
         pdb_names = generate_multiple_mutations(input_, position, hydrogens=True)
     else:
         pdb_names = generate_mutations(input_, position, hydrogens=True)
-    pele_folders(pdb_names)
+
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                   file_list=pdb_names, cu=cu)
     submit(slurm_files)
-
+    pele_folders(input_, pdb_names)
 
 if __name__ == "__main__":
     # Run this if this file is executed from command line but not if is imported as API
