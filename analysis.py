@@ -2,7 +2,7 @@ from glob import glob
 import pandas as pd
 import seaborn as sns
 import argparse
-from os.path import basename
+from os.path import basename, dirname
 import os
 import matplotlib.pyplot as plt
 import sys
@@ -16,13 +16,17 @@ def parse_args():
                         help="Include a file with names of the different folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=1000, type=int,
                         help="Set the quality of the plots")
+    parser.add_argument("--distance", required=False, default=20, type=int,
+                        help="Set how many data points are used for the boxplot")
+    parser.add_argument("--trajectory", required=False, default=10, type=int,
+                        help="Set how many PDBs are extracted from the trajectories")
     args = parser.parse_args()
 
-    return args.pele, args.dpi
+    return args.pele, args.dpi, args.distance, args.trajectory
 
 
 class SimulationData:
-    def __init__(self, folder):
+    def __init__(self, folder, points=20, pdb=10):
         """
         folder (str):  path to the simulation folder
         """
@@ -32,6 +36,8 @@ class SimulationData:
         self.distribution = None
         self.profile = None
         self.trajectory = None
+        self.points = points
+        self.pdb = pdb
 
     def filtering(self):
         """
@@ -55,14 +61,14 @@ class SimulationData:
         self.trajectory = self.dataframe.sort_values(by="distance0.5")
         self.trajectory.reset_index(drop=True, inplace=True)
         self.trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
-        self.trajectory = self.trajectory.head(10)
+        self.trajectory = self.trajectory.head(self.pdb)
 
         # For the box plots
         data_20 = self.dataframe.head(len(self.dataframe) * 20 / 100)
         dist20 = data_20["distance0.5"].copy()
         dist20.sort_values(inplace=True)
         dist20.reset_index(drop=True, inplace=True)
-        self.distance = dist20.head(min(100, len(dist20)))  # 20 - 100
+        self.distance = dist20.head(min(self.points, len(dist20)))  # 20 - 100
         if "original" in self.folder:
             self.distance = dist20[0].copy()
 
@@ -73,21 +79,21 @@ class SimulationData:
         self.distribution = self.distance - original_distance
 
 
-def analyse_all(folders="."):
+def analyse_all(folders=".", distance=20, trajectory=10):
     """
     folders (str): path to the different PELE simulation folders to be analyzed
     """
     data_dict = {}
     if len(folders.split("/")) > 1:
-        mutation_dir = folders.split("/")[0]
-        original = SimulationData("{}/PELE_original".format(mutation_dir))
+        mutation_dir = dirname(folders)
+        original = SimulationData("{}/PELE_original".format(mutation_dir), points=distance, pdb=trajectory)
     else:
         original = SimulationData("PELE_original")
     original.filtering()
     data_dict["original"] = original
     for folder in glob("{}/PELE_*".format(folders)):
         name = basename(folder)
-        data = SimulationData(folder)
+        data = SimulationData(folder, points=distance, pdb=trajectory)
         data.filtering()
         data.set_distribution(original.distance)
         data_dict[name[5:]] = data
@@ -190,16 +196,16 @@ def all_profiles(data_dict, name, dpi=1000):
         pele_profiles(data_dict, name, x, dpi)
 
 
-def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, dist, out_freq=1):
+def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, dist, bind):
     """
     Extracts PDB files from trajectories
     simulation_folder (str): Path to the simulation folder
     f_id (str): trajectory file ID
     output (str): The folder name for the results of the different simulations
     step (int): The step in the trajectory you want to keep
-    out_freq (int): How frequent the steps are saved, in PELE every 1 step is saved
     mutation (str): The folder name for the results of one of the simulations
     dist (float): The distance between ligand and protein (used as name for the result file - not essential)
+    bind (float): The binding energy between ligand and protein (used as name for the result file - not essential)
     """
     if not os.path.exists("results/distances_{}/{}_pdbs".format(output, mutation)):
         os.makedirs("results/distances_{}/{}_pdbs".format(output, mutation))
@@ -211,13 +217,14 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, d
     f_in = f_in[0]
     with open(f_in, 'r') as input_file:
         file_content = input_file.read()
-    trajectory_selected = re.search(r'MODEL\s+{}(.*?)ENDMDL'.format(int((step/out_freq)+1)), file_content, re.DOTALL)
+    trajectory_selected = re.search(r'MODEL\s+{}(.*?)ENDMDL'.format(int(step)+1), file_content, re.DOTALL)
 
     # Output Snapshot
     traj = []
     path_ = "results/distances_{}/{}_pdbs".format(output, mutation)
-    with open(os.path.join(path_, "traj{}_step{}_dist{}.pdb".format(f_id, step, round(dist, 2))), 'w') as f:
-        traj.append("MODEL     {}".format(int((step/out_freq)+1)))
+    name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
+    with open(os.path.join(path_, name), 'w') as f:
+        traj.append("MODEL     {}".format(int(step)+1))
         try:
             traj.append(trajectory_selected.group(1))
         except AttributeError:
@@ -226,36 +233,38 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, d
         f.write("\n".join(traj))
 
 
-def extract_10_pdb_single(data, simulation_folder, output, mutation, out_freq=1):
+def extract_10_pdb_single(data, simulation_folder, output, mutation):
     """
     Extracts the top 10 distances from one simulation
     data (SimulationData): A simulationData object that holds information of the simulation
     simulation_folder (str): Path to the simulation folders
     output (str): Folder name to store the results from different simulations
     mutation (str): Name for the folder to store results for one of the simulations
-    out_freq (int): How frequent the steps are saved, in PELE every 1 step is saved
     """
     for ind in data.trajectory.index:
         ids = data.trajectory["ID"][ind]
-        step = int(data.trajectory["numberOfAcceptedPeleSteps"][ind])
+        step = data.trajectory["numberOfAcceptedPeleSteps"][ind]
         dist = data.trajectory["distance0.5"][ind]
-        extract_snapshot_from_pdb(simulation_folder, ids, output, mutation, step, dist, out_freq=out_freq)
+        bind = data.trajectory["Binding Energy"][ind]
+        extract_snapshot_from_pdb(simulation_folder, ids, output, mutation=mutation, step=step, dist=dist, bind=bind)
 
 
-def extract_10_pdbs_staturated(data_dict, folders, out_freq=1):
+def extract_10_pdbs_staturated(data_dict, folders):
     """
     Extracts the top 10 distances for every 19 mutations at the same position
     data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
     folders (str): Folder that has the results from different simulations at the same position
-    out_freq (int): How frequent the steps are saved, in PELE every 1 step is saved
     """
     for folder in glob("{}/PELE_*".format(folders)):
         name = basename(folder)[5:]
-        output = folder.split("/")[0]
-        extract_10_pdb_single(data_dict[name], folder, output, mutation=name, out_freq=out_freq)
+        if len(folder.split("/")) > 2:
+            output = folder.split("/")[1]
+        else:
+            output = folder.split("/")[0]
+        extract_10_pdb_single(data_dict[name], folder, output, mutation=name)
 
 
-def consecutive_analysis(file_name, dpi=1000, out_freq=1):
+def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10):
     """
     Creates all the plots for the different mutated positions
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
@@ -265,17 +274,17 @@ def consecutive_analysis(file_name, dpi=1000, out_freq=1):
             pele_folders = pele.readlines()
         for folders in pele_folders:
             folders = folders.strip("\n")
-            data_dict = analyse_all(folders)
+            data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
             box_plot(data_dict, folders, dpi)
             all_profiles(data_dict, folders, dpi)
-            extract_10_pdbs_staturated(data_dict, folders, out_freq)
+            extract_10_pdbs_staturated(data_dict, folders)
     else:
         raise OSError("No file {}".format(file_name))
 
 
 def main():
-    folder, dpi = parse_args()
-    consecutive_analysis(folder, dpi)
+    folder, dpi, distance, trajectory = parse_args()
+    consecutive_analysis(folder, dpi, distance, trajectory)
 
 
 if __name__ == "__main__":
