@@ -12,7 +12,7 @@ import re
 def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
-    parser.add_argument("--pele", required=False, default="./",
+    parser.add_argument("--pele", required=True,
                         help="Include a file with names of the different folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=1000, type=int,
                         help="Set the quality of the plots")
@@ -77,9 +77,12 @@ def analyse_all(folders="."):
     """
     folders (str): path to the different PELE simulation folders to be analyzed
     """
-    # create a SimulationData object for each pele simulation
     data_dict = {}
-    original = SimulationData("PELE_original")
+    if len(folders.split("/")) > 1:
+        mutation_dir = folders.split("/")[0]
+        original = SimulationData("{}/PELE_original".format(mutation_dir))
+    else:
+        original = SimulationData("PELE_original")
     original.filtering()
     data_dict["original"] = original
     for folder in glob("{}/PELE_*".format(folders)):
