@@ -16,7 +16,7 @@ def parse_args():
                         help="Include a file with names of the different folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=1000, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--distance", required=False, default=20, type=int,
+    parser.add_argument("--distance", required=False, default=40, type=int,
                         help="Set how many data points are used for the boxplot")
     parser.add_argument("--trajectory", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
@@ -26,7 +26,7 @@ def parse_args():
 
 
 class SimulationData:
-    def __init__(self, folder, points=20, pdb=10):
+    def __init__(self, folder, points=40, pdb=10):
         """
         folder (str):  path to the simulation folder
         """
@@ -68,7 +68,7 @@ class SimulationData:
         dist20 = data_20["distance0.5"].copy()
         dist20.sort_values(inplace=True)
         dist20.reset_index(drop=True, inplace=True)
-        self.distance = dist20.head(min(self.points, len(dist20)))  # 20 - 100
+        self.distance = dist20.head(min(self.points, len(dist20)))
         if "original" in self.folder:
             self.distance = dist20[0].copy()
 
@@ -235,7 +235,7 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, d
 
 def extract_10_pdb_single(data, simulation_folder, output, mutation):
     """
-    Extracts the top 10 distances from one simulation
+    Extracts the top 10 distances for one mutation
     data (SimulationData): A simulationData object that holds information of the simulation
     simulation_folder (str): Path to the simulation folders
     output (str): Folder name to store the results from different simulations
@@ -249,9 +249,9 @@ def extract_10_pdb_single(data, simulation_folder, output, mutation):
         extract_snapshot_from_pdb(simulation_folder, ids, output, mutation=mutation, step=step, dist=dist, bind=bind)
 
 
-def extract_10_pdbs_staturated(data_dict, folders):
+def extract_all(data_dict, folders):
     """
-    Extracts the top 10 distances for every 19 mutations at the same position
+    Extracts the top 10 distances for the 19 mutations at the same position
     data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
     folders (str): Folder that has the results from different simulations at the same position
     """
@@ -264,7 +264,7 @@ def extract_10_pdbs_staturated(data_dict, folders):
         extract_10_pdb_single(data_dict[name], folder, output, mutation=name)
 
 
-def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10):
+def consecutive_analysis(file_name, dpi=1000, distance=40, trajectory=10):
     """
     Creates all the plots for the different mutated positions
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
@@ -277,7 +277,7 @@ def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10):
             data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
             box_plot(data_dict, folders, dpi)
             all_profiles(data_dict, folders, dpi)
-            extract_10_pdbs_staturated(data_dict, folders)
+            extract_all(data_dict, folders)
     else:
         raise OSError("No file {}".format(file_name))
 
