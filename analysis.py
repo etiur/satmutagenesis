@@ -79,7 +79,7 @@ class SimulationData:
         self.distribution = self.distance - original_distance
 
 
-def analyse_all(folders=".", distance=20, trajectory=10):
+def analyse_all(folders=".", distance=40, trajectory=10):
     """
     folders (str): path to the different PELE simulation folders to be analyzed
     """
