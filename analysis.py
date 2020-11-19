@@ -29,6 +29,8 @@ class SimulationData:
     def __init__(self, folder, points=40, pdb=10):
         """
         folder (str):  path to the simulation folder
+        points (int): Number of points to consider for the boxplots
+        pdb (int): how many pdbs to extract from the trajectories 
         """
         self.folder = folder
         self.dataframe = None
@@ -126,7 +128,7 @@ def box_plot(data_dict, name, dpi=1000):
 
     data_dist = pd.DataFrame(plot_dict_dist)
     data_bind = pd.DataFrame(plot_dict_bind)
-    
+
     sns.set(font_scale=1.9)
     sns.set_style("ticks")
     sns.set_context("paper")
