@@ -48,6 +48,7 @@ class SimulationData:
         Constructs a dataframe from all the reports in a PELE simulation folder with the best 20% binding energies
         and a Series with the 100 best ligand distances
         """
+        pd.options.mode.chained_assignment = None
         reports = []
         for files in glob("{}/output/0/report_*".format(self.folder)):
             rep = basename(files).split("_")[1]
@@ -65,21 +66,21 @@ class SimulationData:
         self.trajectory = self.dataframe.sort_values(by="distance0.5")
         self.trajectory.reset_index(drop=True, inplace=True)
         self.trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
-        self.trajectory = self.trajectory.head(self.pdb)
+        self.trajectory = self.trajectory.iloc[:self.pdb]
 
         # For the box plots
-        data_20 = self.dataframe.head(len(self.dataframe) * 20 / 100)
+        data_20 = self.dataframe.iloc[:len(self.dataframe) * 20 / 100]
         data_20.sort_values(by="distance0.5", inplace=True)
         data_20.reset_index(drop=True, inplace=True)
-        data_20 = data_20.head(min(self.points, len(data_20)))
+        data_20 = data_20.iloc[:min(self.points, len(data_20))]
         self.distance = data_20["distance0.5"].copy()
         self.binding = data_20["Binding Energy"].copy()
         self.binding.sort_values(inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
 
         if "original" in self.folder:
-            self.distance = self.distance[0].copy()
-            self.binding = self.binding[0].copy()
+            self.distance = self.distance.iloc[0]
+            self.binding = self.binding.iloc[0]
 
     def set_distribution(self, original_distance):
         self.distribution = self.distance - original_distance
@@ -141,8 +142,8 @@ def box_plot(data_dict, name, dpi=1000):
     ax.set_xticklabels(fontsize=7)
     ax.set_yticklabels(fontsize=7)
     ax.savefig("results/Plots/box/{}_distance.png".format(name), dpi=dpi)
-    ex = sns.catplot(data=data_bind, kind="box", palette="Accent", height=4.5, aspect=2.3)
     # Binding energy Box plot
+    ex = sns.catplot(data=data_bind, kind="box", palette="Accent", height=4.5, aspect=2.3)
     ex.set(title="{} Binding energy variation with respect to wild type".format(name))
     ex.set_ylabels("Binding energy variation", fontsize=9)
     ex.set_xlabels("Mutations {}".format(name), fontsize=9)
