@@ -30,7 +30,7 @@ class SimulationData:
         """
         folder (str):  path to the simulation folder
         points (int): Number of points to consider for the boxplots
-        pdb (int): how many pdbs to extract from the trajectories 
+        pdb (int): how many pdbs to extract from the trajectories
         """
         self.folder = folder
         self.dataframe = None
@@ -86,6 +86,7 @@ class SimulationData:
 
     def set_binding(self, original_binding):
         self.bind_diff = self.binding - original_binding
+
 
 def analyse_all(folders=".", distance=40, trajectory=10):
     """
