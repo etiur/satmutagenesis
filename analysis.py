@@ -7,6 +7,8 @@ import os
 import matplotlib.pyplot as plt
 import sys
 import re
+from fpdf import FPDF
+import numpy as np
 
 
 def parse_args():
@@ -42,6 +44,7 @@ class SimulationData:
         self.pdb = pdb
         self.binding = None
         self.bind_diff = None
+        self.data = None
 
     def filtering(self):
         """
@@ -87,6 +90,16 @@ class SimulationData:
 
     def set_binding(self, original_binding):
         self.bind_diff = self.binding - original_binding
+
+
+class PDF(FPDF):
+    def footer(self):
+        # Go to 1.5 cm from bottom
+        self.set_y(-15)
+        # Select Arial italic 8
+        self.set_font('Arial', "", 8)
+        # Print centered page number
+        self.cell(0, 10, 'Page {}'.format(self.page_no()), 0, 0, 'C')
 
 
 def analyse_all(folders=".", distance=40, trajectory=10):
@@ -162,7 +175,7 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
     mutation (SimulationData): SimulationData object that stores data for the mutated protein
     """
     plt.ioff()
-    sns.set(font_scale=1)
+    sns.set(font_scale=1.3)
     sns.set_style("ticks")
     sns.set_context("paper")
     original = wild.profile
@@ -286,6 +299,69 @@ def extract_all(data_dict, folders):
         else:
             output = folder.split("/")[0]
         extract_10_pdb_single(data_dict[name], folder, output, mutation=name)
+
+
+def create_report(mutation, top_poses, best_energies, name, plots=None, output="simulation_summary"):
+    """
+
+    mutation (dict): {mutations: [distances, binding energies]}
+    plots (list): list of path names to the different plots or nothing
+    top_poses:
+    best_energies:
+    output (str): The pdf filename
+    return: pdf file
+    """
+    pdf = FPDF()
+    pdf.set_top_margin(17.0)
+    pdf.set_left_margin(13.0)
+    pdf.set_right_margin(13.0)
+    pdf.add_page()
+    # Title
+    pdf.set_font('Arial', 'B', 14)
+    pdf.cell(0, 10, "Best mutations in terms of distance and binding energy", align='C', ln=1)
+    pdf.ln(3)  # linebreaks
+    pdf.set_font('Arial', '', size=12)
+    for num, mut in enumerate(mutation.items()):
+        message = 'Mutation {}: {} - median distance increment {}, median binding energy increment {}'.format(num, mut[0], mut[1][0], mut[1][1])
+        pdf.cell(0, 5, message, ln=1)
+        pdf.ln(3)
+    pdf.ln(10)  # linebreaks
+
+    # Plots
+    pdf.set_font('Arial', 'B', size=12)
+    pdf.cell(0, 10, "Plots", align='C', ln=1)
+    pdf.set_font('Arial', '', size=10)
+    if plots:
+        for i, plot in enumerate(plots):
+            if i % 2 == 0 and i != 0:
+                pdf.ln(1000000)  # page break
+            pdf.ln(5)
+            pdf.image(plot, w=180)
+        pdf.ln(10000000)  # page break
+    else:
+        for num, mut in enumerate(mutation.keys()):
+            if num % 2 == 0 and num != 0:
+                pdf.ln(1000000)  # page break
+            pdf.ln(3)
+            pdf.cell(0, 10, "Plots {}".format(mut), ln=1)
+            pdf.ln(3)
+            plot1 = "results/Plots/scatter_{}_{}/{}_{}.png".format(name, "distance0.5", mut, "distance0.5")
+            pdf.image(plot1, w=180)
+
+    # Top poses
+    pdf.set_font('Arial', 'B', size=12)
+    pdf.cell(0, 10, "Top poses", align='C')
+    pdf.set_font('Arial', size=10)
+    top_poses_ordered = np.array(top_poses)[np.argsort(best_energies)[:len(top_poses)]]
+    for i, poses in enumerate(top_poses_ordered[0:20]):
+        if i == 0:
+            pdf.ln(10)
+        pdf.cell(0, 50, os.path.basename(poses), align='C')
+        pdf.ln(10)
+
+    # Output report
+    pdf.output("{}.pdf".format(output), 'F')
+    return output
 
 
 def consecutive_analysis(file_name, dpi=1000, distance=40, trajectory=10):
