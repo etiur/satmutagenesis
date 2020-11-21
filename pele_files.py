@@ -68,21 +68,21 @@ class CreateLaunchFiles:
             lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n", "seed: 12345\n",
                      "usesrun: true\n"]
-            inp.writelines(lines)
             if yaml_name != "original":
-                inp.write("working_folder: {}/PELE_{}\n".format(yaml_name[:-1], yaml_name))
+                lines.append("working_folder: {}/PELE_{}\n".format(yaml_name[:-1], yaml_name))
             else:
-                inp.write("working_folder: PELE_{}\n".format(yaml_name))
+                lines.append("working_folder: PELE_{}\n".format(yaml_name))
             if self.test:
-                inp.write("test: true\n")
+                lines.append("test: true\n")
                 self.cpus = 5
             lines2 = ["cpus: {}\n".format(self.cpus), "atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2),
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n",
                       "pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n"]
             if self.cu:
                 path = "/gpfs/projects/bsc72/ruite/examples/cuz"
-                inp.write("templates:\n- '{}'\n".format(path))
-            inp.writelines(lines2)
+                lines2.append("templates:\n- '{}'\n".format(path))
+            lines.extend(lines2)
+            inp.writelines(lines)
 
     def slurm_creation(self, slurm_name):
         """
@@ -94,9 +94,8 @@ class CreateLaunchFiles:
         with open(self.slurm, "w") as slurm:
             lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(slurm_name),
                      "#SBATCH --error={}.err\n".format(slurm_name)]
-            slurm.writelines(lines)
             if self.test:
-                slurm.write("#SBATCH --qos=debug\n")
+                lines.append("#SBATCH --qos=debug\n")
                 self.cpus = 5
             lines2 = ["#SBATCH --ntasks={}\n\n".format(self.cpus), 'module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
@@ -105,7 +104,8 @@ class CreateLaunchFiles:
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n',
                       '/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(
                           self.yaml)]
-            slurm.writelines(lines2)
+            lines.extend(lines2)
+            slurm.writelines(lines)
 
 
 def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None,
