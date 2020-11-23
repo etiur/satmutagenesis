@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import sys
 import re
 from fpdf import FPDF
+import logging
 
 
 def parse_args():
@@ -357,12 +358,13 @@ def create_report(mutation, position_num, output="summary"):
     return output
 
 
-def find_top_mutations(data_dict, position_num, warn=False):
+def find_top_mutations(data_dict, position_num):
     """
     Finds those mutations that decreases the binding distance and binding energy and create a report
     data_dict (dict): A dictionary of SimulationData objects that holds information for all mutations
     """
     # Find top mutations
+    logging.basicConfig(filename='top_mutations.log', level=logging.DEBUG)
     mutation_dict = {}
     for key, value in data_dict.items():
         if value.distribution.median() < 0 and value.bind_diff.median() < 0:
@@ -371,11 +373,10 @@ def find_top_mutations(data_dict, position_num, warn=False):
     if len(mutation_dict) != 0:
         create_report(mutation_dict, position_num)
     else:
-        if warn:
-            raise ValueError("No mutations found to be better than wild type")
+        logging.warning("No residues at position {} found to improve protein-ligand interactions".format(position_num))
 
 
-def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, warn=False):
+def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10):
     """
     Creates all the plots for the different mutated positions
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
@@ -389,9 +390,9 @@ def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, warn=F
             box_plot(data_dict, folders, dpi)
             all_profiles(data_dict, folders, dpi)
             extract_all(data_dict, folders)
-            find_top_mutations(data_dict, folders, warn)
+            find_top_mutations(data_dict, folders)
     else:
-        raise OSError("No file {}".format(file_name))
+        raise OSError("No file named {}".format(file_name))
 
 
 def main():
