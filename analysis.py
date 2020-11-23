@@ -17,7 +17,7 @@ def parse_args():
                         help="Include a file with names of the different folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=1000, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--distance", required=False, default=40, type=int,
+    parser.add_argument("--distance", required=False, default=30, type=int,
                         help="Set how many data points are used for the boxplot")
     parser.add_argument("--trajectory", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
@@ -91,17 +91,7 @@ class SimulationData:
         self.bind_diff = self.binding - original_binding
 
 
-class PDF(FPDF):
-    def footer(self):
-        # Go to 1.5 cm from bottom
-        self.set_y(-15)
-        # Select Arial italic 8
-        self.set_font('Arial', "", 8)
-        # Print centered page number
-        self.cell(0, 10, 'Page {}'.format(self.page_no()), 0, 0, 'C')
-
-
-def analyse_all(folders=".", distance=40, trajectory=10):
+def analyse_all(folders=".", distance=30, trajectory=10):
     """
     folders (str): path to the different PELE simulation folders to be analyzed
     """
@@ -385,7 +375,7 @@ def find_top_mutations(data_dict, position_num, warn=False):
             raise ValueError("No mutations found to be better than wild type")
 
 
-def consecutive_analysis(file_name, dpi=1000, distance=40, trajectory=10, warn=False):
+def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, warn=False):
     """
     Creates all the plots for the different mutated positions
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
