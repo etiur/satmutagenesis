@@ -369,6 +369,7 @@ def find_top_mutations(data_dict, position_num):
     for key, value in data_dict.items():
         if value.distribution.median() < 0 and value.bind_diff.median() < 0:
             mutation_dict[key] = value
+            logging.info("mutation {} improves distance and biding energy compared to wild type".format(key))
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
         create_report(mutation_dict, position_num)
