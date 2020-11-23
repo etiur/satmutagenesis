@@ -2,7 +2,7 @@ from glob import glob
 import pandas as pd
 import seaborn as sns
 import argparse
-from os.path import basename, dirname
+from os.path import basename, dirname, abspath
 import os
 import matplotlib.pyplot as plt
 import sys
@@ -295,7 +295,7 @@ def extract_all(data_dict, position_num):
 
 def create_report(mutation, position_num, output="summary"):
     """
-
+    Create pdf files with the plots of chosen mutations and the path to the
     mutation (dict): {mutations: [distances, binding energies]}
     plots (list): list of path names to the different plots or nothing
     top_poses:
@@ -346,10 +346,10 @@ def create_report(mutation, position_num, output="summary"):
     for mut, key in mutation.items():
         pdf.set_font('Arial', 'B', size=12)
         pdf.cell(0, 10, "Path for the top poses", align='C', ln=1)
-        pdf.set_font('Arial', size=12)
+        pdf.set_font('Arial', size=10)
         pdf.ln(5)
         path = "results/distances_{}/{}_pdbs".format(position_num, mut)
-        pdf.cell(0, 10, "Top poses {}: {} ".format(mut, path), ln=1)
+        pdf.cell(0, 10, "Top poses {}: {} ".format(mut, abspath(path)), ln=1)
         pdf.ln(5)
 
     # Output report
