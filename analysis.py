@@ -364,7 +364,7 @@ def find_top_mutations(data_dict, position_num):
     data_dict (dict): A dictionary of SimulationData objects that holds information for all mutations
     """
     # Find top mutations
-    logging.basicConfig(filename='top_mutations.log', level=logging.DEBUG)
+    logging.basicConfig(filename='results/top_mutations.log', level=logging.DEBUG)
     mutation_dict = {}
     for key, value in data_dict.items():
         if value.distribution.median() < 0 and value.bind_diff.median() < 0:
