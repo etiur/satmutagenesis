@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import sys
 import re
 from fpdf import FPDF
-import numpy as np
 
 
 def parse_args():
@@ -28,7 +27,7 @@ def parse_args():
 
 
 class SimulationData:
-    def __init__(self, folder, points=40, pdb=10):
+    def __init__(self, folder, points=30, pdb=10):
         """
         folder (str):  path to the simulation folder
         points (int): Number of points to consider for the boxplots
@@ -125,10 +124,11 @@ def analyse_all(folders=".", distance=40, trajectory=10):
     return data_dict
 
 
-def box_plot(data_dict, name, dpi=1000):
+def box_plot(data_dict, position_num, dpi=1000):
     """
     Creates a box plot of the 19 mutations from the same position
     data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
+    position_num (str): Position at the which the mutations occurred
     """
     if not os.path.exists("results/Plots/box"):
         os.makedirs("results/Plots/box")
@@ -149,31 +149,32 @@ def box_plot(data_dict, name, dpi=1000):
     sns.set_context("paper")
     # Distance boxplot
     ax = sns.catplot(data=data_dist, kind="box", palette="Accent", height=4.5, aspect=2.3)
-    ax.set(title="{} distance variation with respect to wild type".format(name))
+    ax.set(title="{} distance variation with respect to wild type".format(position_num))
     ax.set_ylabels("Distance variation", fontsize=9)
-    ax.set_xlabels("Mutations {}".format(name), fontsize=9)
+    ax.set_xlabels("Mutations {}".format(position_num), fontsize=9)
     ax.set_xticklabels(fontsize=7)
     ax.set_yticklabels(fontsize=7)
-    ax.savefig("results/Plots/box/{}_distance.png".format(name), dpi=dpi)
+    ax.savefig("results/Plots/box/{}_distance.png".format(position_num), dpi=dpi)
     # Binding energy Box plot
     ex = sns.catplot(data=data_bind, kind="box", palette="Accent", height=4.5, aspect=2.3)
-    ex.set(title="{} Binding energy variation with respect to wild type".format(name))
+    ex.set(title="{} Binding energy variation with respect to wild type".format(position_num))
     ex.set_ylabels("Binding energy variation", fontsize=9)
-    ex.set_xlabels("Mutations {}".format(name), fontsize=9)
+    ex.set_xlabels("Mutations {}".format(position_num), fontsize=9)
     ex.set_xticklabels(fontsize=7)
     ex.set_yticklabels(fontsize=7)
-    ex.savefig("results/Plots/box/{}_binding.png".format(name), dpi=dpi)
+    ex.savefig("results/Plots/box/{}_binding.png".format(position_num), dpi=dpi)
 
 
-def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
+def pele_profile_single(wild, key, types, position_num, mutation, dpi=1000):
     """
     Creates a plot for a single mutation
     wild (SimulationData): SimulationData object that stores data for the wild type protein
     key (str): name of the mutation
     types (str): Type of scatter plot - distance0.5, sasaLig or currentEnergy
-    name (str): name for the folder to keep the images
+    position_num (str): name for the folder to keep the images from the different mutations
     mutation (SimulationData): SimulationData object that stores data for the mutated protein
     """
+    # Configuring the plot
     plt.ioff()
     sns.set(font_scale=1.3)
     sns.set_style("ticks")
@@ -185,11 +186,12 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
     cat = pd.concat([original, distance], axis=0)
     cat.index.name = "Type"
     cat.reset_index(inplace=True)
+    # Creating the scatter plots
     if types == "currentEnergy":
-        if not os.path.exists("results/Plots/scatter_{}_{}/{}".format(name, types, "distance0.5")):
-            os.makedirs("results/Plots/scatter_{}_{}/{}".format(name, types, "distance0.5"))
-        if not os.path.exists("results/Plots/scatter_{}_{}/{}".format(name, types, "sasaLig")):
-            os.makedirs("results/Plots/scatter_{}_{}/{}".format(name, types, "sasaLig"))
+        if not os.path.exists("results/Plots/scatter_{}_{}/{}".format(position_num, types, "distance0.5")):
+            os.makedirs("results/Plots/scatter_{}_{}/{}".format(position_num, types, "distance0.5"))
+        if not os.path.exists("results/Plots/scatter_{}_{}/{}".format(position_num, types, "sasaLig")):
+            os.makedirs("results/Plots/scatter_{}_{}/{}".format(position_num, types, "sasaLig"))
 
         norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
         norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
@@ -198,54 +200,54 @@ def pele_profile_single(wild, key, types, name, mutation, dpi=1000):
         ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
                          height=3.8, aspect=1.8, hue_norm=norm2, s=100, linewidth=0)
         ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ex.savefig("results/Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "distance0.5", key, types), dpi=dpi)
-        ax.savefig("results/Plots/scatter_{}_{}/{}/{}_{}.png".format(name, types, "sasaLig", key, types), dpi=dpi)
+        ex.savefig("results/Plots/scatter_{}_{}/{}/{}_{}.png".format(position_num, types, "distance0.5", key, types), dpi=dpi)
+        ax.savefig("results/Plots/scatter_{}_{}/{}/{}_{}.png".format(position_num, types, "sasaLig", key, types), dpi=dpi)
 
     else:
-        if not os.path.exists("results/Plots/scatter_{}_{}".format(name, types)):
-            os.makedirs("results/Plots/scatter_{}_{}".format(name, types))
+        if not os.path.exists("results/Plots/scatter_{}_{}".format(position_num, types)):
+            os.makedirs("results/Plots/scatter_{}_{}".format(position_num, types))
         ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
                          height=3.8, aspect=1.8, s=100, linewidth=0)
         ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ax.savefig("results/Plots/scatter_{}_{}/{}_{}.png".format(name, types, key, types), dpi=dpi)
+        ax.savefig("results/Plots/scatter_{}_{}/{}_{}.png".format(position_num, types, key, types), dpi=dpi)
 
 
-def pele_profiles(data_dict, name, types, dpi=1000):
+def pele_profiles(data_dict, position_num, types, dpi=1000):
     """
     Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
     data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
-    name (str): name for the folders where you want the scatter plot go in
+    position_num (str): name for the folders where you want the scatter plot go in
     type (str): distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
     """
     for key, value in data_dict.items():
         if "original" not in key:
-            pele_profile_single(data_dict["original"], key, types, name, value, dpi)
+            pele_profile_single(data_dict["original"], key, types, position_num, value, dpi)
 
 
-def all_profiles(data_dict, name, dpi=1000):
+def all_profiles(data_dict, position_num, dpi=1000):
     """
     Creates all the possible scatter plots for the same mutated position
     data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
-    name (str): name for the folders where you want the scatter plot go in
+    position_num (str): name for the folders where you want the scatter plot go in
     """
     types = ["distance0.5", "sasaLig", "currentEnergy"]
     for x in types:
-        pele_profiles(data_dict, name, x, dpi)
+        pele_profiles(data_dict, position_num, x, dpi)
 
 
-def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, dist, bind):
+def extract_snapshot_from_pdb(simulation_folder, f_id, position_num, mutation, step, dist, bind):
     """
     Extracts PDB files from trajectories
     simulation_folder (str): Path to the simulation folder
     f_id (str): trajectory file ID
-    output (str): The folder name for the results of the different simulations
+    position_num (str): The folder name for the output of this function for the different simulations
     step (int): The step in the trajectory you want to keep
-    mutation (str): The folder name for the results of one of the simulations
+    mutation (str): The folder name for the output of this function for one of the simulations
     dist (float): The distance between ligand and protein (used as name for the result file - not essential)
     bind (float): The binding energy between ligand and protein (used as name for the result file - not essential)
     """
-    if not os.path.exists("results/distances_{}/{}_pdbs".format(output, mutation)):
-        os.makedirs("results/distances_{}/{}_pdbs".format(output, mutation))
+    if not os.path.exists("results/distances_{}/{}_pdbs".format(position_num, mutation)):
+        os.makedirs("results/distances_{}/{}_pdbs".format(position_num, mutation))
 
     f_in = glob("{}/output/0/*trajectory*_{}.*".format(simulation_folder, f_id))
     if len(f_in) == 0:
@@ -258,7 +260,7 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, output, mutation, step, d
 
     # Output Snapshot
     traj = []
-    path_ = "results/distances_{}/{}_pdbs".format(output, mutation)
+    path_ = "results/distances_{}/{}_pdbs".format(position_num, mutation)
     name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
     with open(os.path.join(path_, name), 'w') as f:
         traj.append("MODEL     {}".format(int(step)+1))
@@ -286,13 +288,13 @@ def extract_10_pdb_single(data, simulation_folder, output, mutation):
         extract_snapshot_from_pdb(simulation_folder, ids, output, mutation=mutation, step=step, dist=dist, bind=bind)
 
 
-def extract_all(data_dict, folders):
+def extract_all(data_dict, position_num):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
     data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
-    folders (str): Folder that has the results from different simulations at the same position
+    position_num (str): Folder that has the results from different simulations at the same position
     """
-    for folder in glob("{}/PELE_*".format(folders)):
+    for folder in glob("{}/PELE_*".format(position_num)):
         name = basename(folder)[5:]
         if len(folder.split("/")) > 2:
             output = folder.split("/")[1]
@@ -301,14 +303,14 @@ def extract_all(data_dict, folders):
         extract_10_pdb_single(data_dict[name], folder, output, mutation=name)
 
 
-def create_report(mutation, top_poses, best_energies, name, plots=None, output="simulation_summary"):
+def create_report(mutation, position_num, output="summary"):
     """
 
     mutation (dict): {mutations: [distances, binding energies]}
     plots (list): list of path names to the different plots or nothing
     top_poses:
     best_energies:
-    output (str): The pdf filename
+    output (str): The pdf filename without the extension
     return: pdf file
     """
     pdf = FPDF()
@@ -319,52 +321,71 @@ def create_report(mutation, top_poses, best_energies, name, plots=None, output="
     # Title
     pdf.set_font('Arial', 'B', 14)
     pdf.cell(0, 10, "Best mutations in terms of distance and binding energy", align='C', ln=1)
-    pdf.ln(3)  # linebreaks
-    pdf.set_font('Arial', '', size=12)
-    for num, mut in enumerate(mutation.items()):
-        message = 'Mutation {}: {} - median distance increment {}, median binding energy increment {}'.format(num, mut[0], mut[1][0], mut[1][1])
+    pdf.set_font('Arial', '', size=10)
+    for mut, key in mutation.items():
+        dis = key.distribution.median()
+        bind = key.bind_diff.median()
+        message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(mut, dis, bind)
+        pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
-        pdf.ln(3)
-    pdf.ln(10)  # linebreaks
+    pdf.ln(8)  # linebreaks
 
     # Plots
     pdf.set_font('Arial', 'B', size=12)
     pdf.cell(0, 10, "Plots", align='C', ln=1)
     pdf.set_font('Arial', '', size=10)
-    if plots:
-        for i, plot in enumerate(plots):
-            if i % 2 == 0 and i != 0:
-                pdf.ln(1000000)  # page break
-            pdf.ln(5)
-            pdf.image(plot, w=180)
-        pdf.ln(10000000)  # page break
-    else:
-        for num, mut in enumerate(mutation.keys()):
-            if num % 2 == 0 and num != 0:
-                pdf.ln(1000000)  # page break
-            pdf.ln(3)
-            pdf.cell(0, 10, "Plots {}".format(mut), ln=1)
-            pdf.ln(3)
-            plot1 = "results/Plots/scatter_{}_{}/{}_{}.png".format(name, "distance0.5", mut, "distance0.5")
-            pdf.image(plot1, w=180)
+    for mut, key in mutation.items():
+        pdf.ln(3)
+        pdf.cell(0, 10, "Plots {}".format(mut), ln=1)
+        pdf.ln(3)
+        plot1 = "results/Plots/scatter_{}_{}/{}_{}.png".format(position_num, "distance0.5", mut, "distance0.5")
+        plot2 = "results/Plots/scatter_{}_{}/{}_{}.png".format(position_num, "sasaLig", mut, "sasaLig")
+        plot3 = "results/Plots/scatter_{}_{}/{}/{}_{}.png".format(position_num, "currentEnergy", "sasaLig", mut, "currentEnergy")
+        plot4 = "results/Plots/scatter_{}_{}/{}/{}_{}.png".format(position_num, "currentEnergy", "distance0.5", mut, "currentEnergy")
+        pdf.image(plot1, w=180)
+        pdf.ln(3)
+        pdf.image(plot2, w=180)
+        pdf.ln(1000000)  # page break
+        pdf.ln(3)
+        pdf.image(plot3, w=180)
+        pdf.ln(3)
+        pdf.image(plot4, w=180)
+        pdf.ln(1000000)  # page break
 
     # Top poses
-    pdf.set_font('Arial', 'B', size=12)
-    pdf.cell(0, 10, "Top poses", align='C')
-    pdf.set_font('Arial', size=10)
-    top_poses_ordered = np.array(top_poses)[np.argsort(best_energies)[:len(top_poses)]]
-    for i, poses in enumerate(top_poses_ordered[0:20]):
-        if i == 0:
-            pdf.ln(10)
-        pdf.cell(0, 50, os.path.basename(poses), align='C')
-        pdf.ln(10)
+    for mut, key in mutation.items():
+        pdf.set_font('Arial', 'B', size=12)
+        pdf.cell(0, 10, "Path for the top poses", align='C', ln=1)
+        pdf.set_font('Arial', size=12)
+        pdf.ln(5)
+        path = "results/distances_{}/{}_pdbs".format(position_num, mut)
+        pdf.cell(0, 10, "Top poses {}: {} ".format(mut, path), ln=1)
+        pdf.ln(5)
 
     # Output report
-    pdf.output("{}.pdf".format(output), 'F')
+    pdf.output("results/{}_{}.pdf".format(output, position_num), 'F')
     return output
 
 
-def consecutive_analysis(file_name, dpi=1000, distance=40, trajectory=10):
+def find_top_mutations(data_dict, position_num, warn=False):
+    """
+    Finds those mutations that decreases the binding distance and binding energy and create a report
+    data_dict (dict): A dictionary of SimulationData objects that holds information for all mutations
+    """
+    # Find top mutations
+    mutation_dict = {}
+    for key, value in data_dict.items():
+        if value.distribution.median() < 0 and value.bind_diff.median() < 0:
+            mutation_dict[key] = value
+    # Create a summary report with the top mutations
+    if len(mutation_dict) != 0:
+        create_report(mutation_dict, position_num)
+    else:
+        if warn:
+            raise ValueError("No mutations found to be better than wild type")
+
+
+def consecutive_analysis(file_name, dpi=1000, distance=40, trajectory=10, warn=False):
     """
     Creates all the plots for the different mutated positions
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
@@ -378,6 +399,7 @@ def consecutive_analysis(file_name, dpi=1000, distance=40, trajectory=10):
             box_plot(data_dict, folders, dpi)
             all_profiles(data_dict, folders, dpi)
             extract_all(data_dict, folders)
+            find_top_mutations(data_dict, folders, warn)
     else:
         raise OSError("No file {}".format(file_name))
 
