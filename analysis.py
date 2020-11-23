@@ -315,8 +315,8 @@ def create_report(mutation, position_num, output="summary"):
     """
     pdf = FPDF()
     pdf.set_top_margin(17.0)
-    pdf.set_left_margin(13.0)
-    pdf.set_right_margin(13.0)
+    pdf.set_left_margin(15.0)
+    pdf.set_right_margin(15.0)
     pdf.add_page()
     # Title
     pdf.set_font('Arial', 'B', 14)
