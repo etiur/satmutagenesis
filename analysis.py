@@ -22,9 +22,11 @@ def parse_args():
                         help="Set how many data points are used for the boxplot")
     parser.add_argument("--trajectory", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
+    parser.add_argument("--out", required=False, default="summary",
+                        help="Name of the summary file created at the end of the analysis")
     args = parser.parse_args()
 
-    return args.pele, args.dpi, args.distance, args.trajectory
+    return args.pele, args.dpi, args.distance, args.trajectory, args.out
 
 
 class SimulationData:
@@ -263,12 +265,12 @@ def extract_snapshot_from_pdb(simulation_folder, f_id, position_num, mutation, s
         f.write("\n".join(traj))
 
 
-def extract_10_pdb_single(data, simulation_folder, output, mutation):
+def extract_10_pdb_single(data, simulation_folder, position_num, mutation):
     """
     Extracts the top 10 distances for one mutation
     data (SimulationData): A simulationData object that holds information of the simulation
     simulation_folder (str): Path to the simulation folders
-    output (str): Folder name to store the results from different simulations
+    position_num (str): The folder name for the output of this function for the different simulations
     mutation (str): Name for the folder to store results for one of the simulations
     """
     for ind in data.trajectory.index:
@@ -276,14 +278,14 @@ def extract_10_pdb_single(data, simulation_folder, output, mutation):
         step = data.trajectory["numberOfAcceptedPeleSteps"][ind]
         dist = data.trajectory["distance0.5"][ind]
         bind = data.trajectory["Binding Energy"][ind]
-        extract_snapshot_from_pdb(simulation_folder, ids, output, mutation=mutation, step=step, dist=dist, bind=bind)
+        extract_snapshot_from_pdb(simulation_folder, ids, position_num, mutation=mutation, step=step, dist=dist, bind=bind)
 
 
 def extract_all(data_dict, position_num):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
     data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
-    position_num (str): Folder that has the results from different simulations at the same position
+    position_num (str): Folder that has the results from the different simulations from the same residue number
     """
     for folder in glob("{}/PELE_*".format(position_num)):
         name = basename(folder)[5:]
@@ -298,9 +300,7 @@ def create_report(mutation, position_num, output="summary"):
     """
     Create pdf files with the plots of chosen mutations and the path to the
     mutation (dict): {mutations: [distances, binding energies]}
-    plots (list): list of path names to the different plots or nothing
-    top_poses:
-    best_energies:
+    position_num (str): part of the path to the plots
     output (str): The pdf filename without the extension
     return: pdf file
     """
@@ -358,31 +358,39 @@ def create_report(mutation, position_num, output="summary"):
     return output
 
 
-def find_top_mutations(data_dict, position_num):
+def find_top_mutations(data_dict, position_num, output="summary"):
     """
     Finds those mutations that decreases the binding distance and binding energy and create a report
     data_dict (dict): A dictionary of SimulationData objects that holds information for all mutations
+    position_num (str): Part of the path to the plots included at the reports
+    output (str): Name of the reports created
     """
     # Find top mutations
-    logging.basicConfig(filename='results/top_mutations.log', level=logging.DEBUG)
+    count = 0
     mutation_dict = {}
     for key, value in data_dict.items():
         if value.distribution.median() < 0 and value.bind_diff.median() < 0:
             mutation_dict[key] = value
-            logging.info("mutation {} improves distance and biding energy compared to wild type".format(key))
+            count += 1
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
-        create_report(mutation_dict, position_num)
+        logging.info("{} mutations at position {} estimated to improve the system".format(count, position_num))
+        create_report(mutation_dict, position_num, output)
     else:
-        logging.warning("No residues at position {} found to improve protein-ligand interactions".format(position_num))
+        logging.warning("No residues at position {} estimated to improve the system".format(position_num))
 
 
-def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10):
+def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output="summary"):
     """
     Creates all the plots for the different mutated positions
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
+    dpi (int): The quality of the plots
+    distance (int): how many points are used for the boxplots
+    trajectory (int): how many top pdbs are extracted from the trajectories
+    output (str): name of the output file for the pdfs
     """
     if os.path.exists(file_name):
+        logging.basicConfig(filename='results/top_mutations.log', level=logging.DEBUG)
         with open("{}".format(file_name), "r") as pele:
             pele_folders = pele.readlines()
         for folders in pele_folders:
@@ -391,14 +399,14 @@ def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10):
             box_plot(data_dict, folders, dpi)
             all_profiles(data_dict, folders, dpi)
             extract_all(data_dict, folders)
-            find_top_mutations(data_dict, folders)
+            find_top_mutations(data_dict, folders, output)
     else:
         raise OSError("No file named {}".format(file_name))
 
 
 def main():
-    folder, dpi, distance, trajectory = parse_args()
-    consecutive_analysis(folder, dpi, distance, trajectory)
+    folder, dpi, distance, trajectory, out = parse_args()
+    consecutive_analysis(folder, dpi, distance, trajectory, out)
 
 
 if __name__ == "__main__":
