@@ -150,7 +150,7 @@ def box_plot(input_, data_dict, position_num, dpi=1000):
     ax.set_xlabels("Mutations {}".format(position_num), fontsize=9)
     ax.set_xticklabels(fontsize=7)
     ax.set_yticklabels(fontsize=7)
-    ax.savefig("results_{}/Plots/box/{}_distance.png".format(input_ ,position_num), dpi=dpi)
+    ax.savefig("results_{}/Plots/box/{}_distance.png".format(input_, position_num), dpi=dpi)
     # Binding energy Box plot
     ex = sns.catplot(data=data_bind, kind="box", palette="Accent", height=4.5, aspect=2.3)
     ex.set(title="{} Binding energy variation with respect to wild type".format(position_num))
