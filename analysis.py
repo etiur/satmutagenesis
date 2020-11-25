@@ -305,10 +305,7 @@ def extract_all(res_dir, data_dict, position_num):
     """
     for folder in glob("{}/PELE_*".format(position_num)):
         name = basename(folder)[5:]
-        if len(folder.split("/")) > 2:
-            output = folder.split("/")[1]
-        else:
-            output = folder.split("/")[0]
+        output = basename(dirname(folder))
         extract_10_pdb_single(res_dir, data_dict[name], folder, output, mutation=name)
 
 
