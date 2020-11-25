@@ -75,7 +75,7 @@ def pele_folders(input_, file_list):
         if name != "original" and hold != name[:-1]:
             hold = name[:-1]
             folder.append("mutations_{}/{}\n".format(base, hold))
-    with open("folder_names.txt", "w") as txt:
+    with open("dirnames_{}.txt".format(base), "w") as txt:
         txt.writelines(folder)
 
 
