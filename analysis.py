@@ -15,7 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
     parser.add_argument("--pele", required=True,
-                        help="Include a file with names of the different folders with PELE simulations inside")
+                        help="Include a file or list with the path to the folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=1000, type=int,
                         help="Set the quality of the plots")
     parser.add_argument("--distance", required=False, default=30, type=int,
