@@ -402,7 +402,7 @@ def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output
     """
     Creates all the plots for the different mutated positions
     res_dir (str): Name for the results folder
-    file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
+    file_name (str, list): A file or list that contains the path to the folders where the PELE simulations are in
     dpi (int): The quality of the plots
     distance (int): how many points are used for the box plots
     trajectory (int): how many top pdbs are extracted from the trajectories
@@ -423,7 +423,16 @@ def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output
             extract_all(res_dir, data_dict, folders)
             find_top_mutations(res_dir, data_dict, folders, output)
     else:
-        raise OSError("No file named {}".format(file_name))
+        if type(file_name) == list:
+            for folders in file_name:
+                folders = folders.strip("\n")
+                data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
+                box_plot(res_dir, data_dict, folders, dpi)
+                all_profiles(res_dir, data_dict, folders, dpi)
+                extract_all(res_dir, data_dict, folders)
+                find_top_mutations(res_dir, data_dict, folders, output)
+        else:
+            raise OSError("No file named {}".format(file_name))
 
 
 def main():
