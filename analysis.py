@@ -98,7 +98,11 @@ class SimulationData:
 
 def analyse_all(folders=".", distance=30, trajectory=10):
     """
+    Analyse all the 19 simulations folders and build SimulationData objects for each of them
     folders (str): path to the different PELE simulation folders to be analyzed
+    distance (int): How many points to use for the box plots
+    trajectory (int): How many snapshots to extract from the trajectories
+    :return (dict): Dictionary of SimulationData objects
     """
     data_dict = {}
     if len(folders.split("/")) > 1:
@@ -125,6 +129,7 @@ def box_plot(input_, data_dict, position_num, dpi=1000):
     input_ (str): name of the results folder
     data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
     position_num (str): Position at the which the mutations occurred
+    dpi (int): The quality of the plots produced
     """
     if not os.path.exists("results_{}/Plots/box".format(input_)):
         os.makedirs("results_{}/Plots/box".format(input_))
@@ -170,6 +175,7 @@ def pele_profile_single(input_, wild, key, types, position_num, mutation, dpi=10
     types (str): Type of scatter plot - distance0.5, sasaLig or currentEnergy
     position_num (str): name for the folder to keep the images from the different mutations
     mutation (SimulationData): SimulationData object that stores data for the mutated protein
+    dpi (int): Quality of the plots
     """
     # Configuring the plot
     plt.ioff()
@@ -216,6 +222,7 @@ def pele_profiles(input_, data_dict, position_num, types, dpi=1000):
     data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
     position_num (str): name for the folders where you want the scatter plot go in
     type (str): distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
+    dpi (int): Quality of the plots
     """
     for key, value in data_dict.items():
         if "original" not in key:
@@ -228,6 +235,7 @@ def all_profiles(input_, data_dict, position_num, dpi=1000):
     input_ (str): Name of the results folder
     data_dict (dict): A dictionary that contains SimulationData objects from the simulation folders
     position_num (str): name for the folders where you want the scatter plot go in
+    dpi (int): Quality of the plots
     """
     types = ["distance0.5", "sasaLig", "currentEnergy"]
     for x in types:
@@ -396,7 +404,7 @@ def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output
     input_ (str): Name for the results folder
     file_name (str): A file that contains the names of the different folders where the PELE simulation folders are in
     dpi (int): The quality of the plots
-    distance (int): how many points are used for the boxplots
+    distance (int): how many points are used for the box plots
     trajectory (int): how many top pdbs are extracted from the trajectories
     output (str): name of the output file for the pdfs
     """
