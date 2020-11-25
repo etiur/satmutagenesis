@@ -143,7 +143,7 @@ class SaturatedMutagenesis:
 
 def generate_multiple_mutations(input_, position, hydrogens=True):
     """
-    To generate a combination of mutations
+    To generate up to 2 mutations per pdb
     input (str): Input pdb to be used to generate the mutations
     position (list): [chain ID:position] of the residue, for example [A:139,..]
     hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
@@ -179,7 +179,7 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
 
 def generate_mutations(input_, position, hydrogens=True):
     """
-    To generate single point mutations
+    To generate one mutation per pdb
     input (str): Input pdb to be used to generate the mutations
     position (list): [chain ID:position] of the residue, for example [A:139,..]
     hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
