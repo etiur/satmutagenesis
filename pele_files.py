@@ -8,7 +8,7 @@ from os.path import basename
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
-    parser.add_argument("--folder", required=False, default="pdb_files",
+    parser.add_argument("--folder", required=False,
                         help="Include the folder where the pdb files are located")
     parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--ligname", required=True, help="The ligand residue name")
@@ -35,7 +35,10 @@ class CreateLaunchFiles:
         ligname (str): the residue name of the ligand in the PDB
         atom1 (str): atom of the residue to follow in this format --> chain ID:position:atom name
         atom2 (str): atom of the ligand to follow in this format --> chain ID:position:atom name
-        cpus (str or int): how many cpus do you want to use
+        cpus (str or int): How many cpus do you want to use
+        test (boolean): Setting the simulation to test mode
+        initial (file): The initial PDB file before the modification by pmx
+        cu (boolean): Set it to true if there are coppers in the system
         seed (int): A seed number to make the simulations reproducible
         """
         self.input = input_
@@ -64,6 +67,7 @@ class CreateLaunchFiles:
     def input_creation(self, yaml_name):
         """
         create the .yaml input files for PELE
+        yaml_name (str): Name for the input file for the simulation
         """
         if not os.path.exists("yaml_files"):
             os.mkdir("yaml_files")
@@ -91,6 +95,7 @@ class CreateLaunchFiles:
     def slurm_creation(self, slurm_name):
         """
         Creates the slurm running files for PELE
+        slurm_name (str): Name for the batch file
         """
         if not os.path.exists("slurm_files"):
             os.mkdir("slurm_files")
@@ -112,7 +117,7 @@ class CreateLaunchFiles:
             slurm.writelines(lines)
 
 
-def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder="pdb_files", test=False, initial=None,
+def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder=None, test=False, initial=None,
                     file_list=None, cu=False, seed=12345):
     """
     creates for each of the mutants the yaml and slurm files
@@ -121,12 +126,17 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder="pdb_files"
     atom1 (str): atom of the residue to follow  --> chain ID:position:atom name
     atom2 (str): atom of the ligand to follow  --> chain ID:position:atom name
     cpus (str or int): how many cpus do you want to use
+    folder (str): Folder name if file_list is not None
+    test (boolean): Setting the simulation to test mode
+    initial (file): The initial PDB file before the modification by pmx
+    file_list (list): A list of the location of the different pdb files to create the input files for PELE
+    cu (boolean): Set it to true if there are coppers in the system
+    seed (int): A seed number to make the simulations reproducible
     """
-    if not os.path.exists(folder):
-        raise OSError("No directory named {}".format(folder))
-
     slurm_files = []
     if not file_list:
+        if not os.path.exists(folder):
+            raise OSError("No directory named {}".format(folder))
         for files in glob("{}/*.pdb".format(folder)):
             name = basename(files)
             name = name.replace(".pdb", "")

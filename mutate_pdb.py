@@ -53,6 +53,7 @@ class SaturatedMutagenesis:
     def check_coords(self, mode=0):
         """
         map the user coordinates with pmx coordinates
+        mode (0/1): Acts as a switch, 0 if only 1 mutation per PDB, 1 if 2 mutations per PDB
         """
         if not os.path.exists("pdb_files"):
             os.mkdir("pdb_files")
@@ -71,6 +72,9 @@ class SaturatedMutagenesis:
     def generate_pdb(self, hydrogens=True, mode=0, name=None):
         """
         Generate all the other 19 mutations
+        hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
+        mode (0/1): Acts as a switch, 0 if only 1 mutation per PDB, 1 if 2 mutations per PDB
+        name (str): Only used when mode set to 1
         """
         aa_name = self.chain.residues[self.position].resname
         invert_aa = {v: k for k, v in _aacids_dic.items()}
@@ -91,6 +95,7 @@ class SaturatedMutagenesis:
     def insert_atomtype(self, prep_pdb):
         """
         modifies the pmx PDB files to include the atom type
+        prep_pdb (file): PDB files to modify
         """
         # read in user input
         with open(self.input, "r") as initial:
@@ -138,9 +143,10 @@ class SaturatedMutagenesis:
 
 def generate_multiple_mutations(input_, position, hydrogens=True):
     """
-        To generate a combination of mutations
-        input (str): Input pdb to be used to generate the mutations
-        position (list): [chain ID:position] of the residue, for example [A:139,..]
+    To generate a combination of mutations
+    input (str): Input pdb to be used to generate the mutations
+    position (list): [chain ID:position] of the residue, for example [A:139,..]
+    hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
     """
     count = 0
     pdbs = []
@@ -173,9 +179,10 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
 
 def generate_mutations(input_, position, hydrogens=True):
     """
-        To generate single point mutations
-        input (str): Input pdb to be used to generate the mutations
-        position (list): [chain ID:position] of the residue, for example [A:139,..]
+    To generate single point mutations
+    input (str): Input pdb to be used to generate the mutations
+    position (list): [chain ID:position] of the residue, for example [A:139,..]
+    hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
     """
     count = 0
     pdbs = []
