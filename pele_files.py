@@ -101,8 +101,9 @@ class CreateLaunchFiles:
             os.mkdir("slurm_files")
         self.slurm = "slurm_files/{}.sh".format(slurm_name)
         with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(slurm_name),
-                     "#SBATCH --error={}.err\n".format(slurm_name)]
+            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n",
+                     "#SBATCH --output={}/{}.out\n".format(slurm_name[:-1], slurm_name),
+                     "#SBATCH --error={}/{}.err\n".format(slurm_name[:-1], slurm_name)]
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
                 self.cpus = 5

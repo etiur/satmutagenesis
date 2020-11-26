@@ -92,6 +92,7 @@ def main():
     submit(slurm_files)
     pele_folders(input_, pdb_names)
 
+
 if __name__ == "__main__":
     # Run this if this file is executed from command line but not if is imported as API
     main()
