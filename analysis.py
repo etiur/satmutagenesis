@@ -381,6 +381,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary"):
     output (str): Name of the reports created
     """
     # Find top mutations
+    logging.basicConfig(filename='results_{}/top_mutations.log'.format(res_dir), level=logging.DEBUG)
     count = 0
     mutation_dict = {}
     for key, value in data_dict.items():
@@ -405,7 +406,6 @@ def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output
     trajectory (int): how many top pdbs are extracted from the trajectories
     output (str): name of the output file for the pdfs
     """
-    logging.basicConfig(filename='results_{}/top_mutations.log'.format(res_dir), level=logging.DEBUG)
     if os.path.exists(file_name):
         with open("{}".format(file_name), "r") as pele:
             pele_folders = pele.readlines()
