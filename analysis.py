@@ -424,29 +424,22 @@ def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10, output
     if os.path.exists(file_name):
         with open("{}".format(file_name), "r") as pele:
             pele_folders = pele.readlines()
-        if not res_dir:
-            res_dir = pele_folders[0].strip("\n")
-            res_dir = basename(dirname(res_dir)).replace("mutations_", "")
-        for folders in pele_folders:
-            folders = folders.strip("\n")
-            base = basename(folders)
-            data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
-            box_plot(res_dir, data_dict, base, dpi)
-            all_profiles(res_dir, data_dict, base, dpi)
-            extract_all(res_dir, data_dict, folders)
-            find_top_mutations(res_dir, data_dict, base, output, analysis=opt)
+    elif type(file_name) == list:
+        pele_folders = file_name
     else:
-        if type(file_name) == list:
-            for folders in file_name:
-                folders = folders.strip("\n")
-                base = basename(folders)
-                data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
-                box_plot(res_dir, data_dict, base, dpi)
-                all_profiles(res_dir, data_dict, base, dpi)
-                extract_all(res_dir, data_dict, folders)
-                find_top_mutations(res_dir, data_dict, base, output, analysis=opt)
-        else:
-            raise OSError("No file named {}".format(file_name))
+        raise OSError("No file named {}".format(file_name))
+
+    if not res_dir:
+        res_dir = pele_folders[0].strip("\n")
+        res_dir = basename(dirname(res_dir)).replace("mutations_", "")
+    for folders in pele_folders:
+        folders = folders.strip("\n")
+        base = basename(folders)
+        data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
+        box_plot(res_dir, data_dict, base, dpi)
+        all_profiles(res_dir, data_dict, base, dpi)
+        extract_all(res_dir, data_dict, folders)
+        find_top_mutations(res_dir, data_dict, base, output, analysis=opt)
 
 
 def main():
