@@ -4,11 +4,12 @@ import seaborn as sns
 import argparse
 from os.path import basename, dirname, abspath
 import os
-import matplotlib.pyplot as plt
 import sys
 import re
 from fpdf import FPDF
 import logging
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 
 def parse_args():
@@ -18,7 +19,7 @@ def parse_args():
                         help="Include a file or list with the path to the folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=1000, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--distance", required=False, default=30, type=int,
+    parser.add_argument("--distance", required=False, default=20, type=int,
                         help="Set how many data points are used for the boxplot")
     parser.add_argument("--trajectory", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
@@ -26,13 +27,17 @@ def parse_args():
                         help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--folder", required=False,
                         help="Name of the results folder")
+    parser.add_argument("--folder", required=False,
+                        help="Name of the results folder")
+    parser.add_argument("--analyse", required=False, choices=("bind", "dist", "all"), default="dist",
+                        help="Name of the results folder")
     args = parser.parse_args()
 
-    return args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder
+    return args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse
 
 
 class SimulationData:
-    def __init__(self, folder, points=30, pdb=10):
+    def __init__(self, folder, points=20, pdb=10):
         """
         folder (str):  path to the simulation folder
         points (int): Number of points to consider for the boxplots
@@ -41,7 +46,7 @@ class SimulationData:
         self.folder = folder
         self.dataframe = None
         self.distance = None
-        self.distribution = None
+        self.dist_diff = None
         self.profile = None
         self.trajectory = None
         self.points = points
@@ -89,14 +94,14 @@ class SimulationData:
             self.distance = self.distance.iloc[0]
             self.binding = self.binding.iloc[0]
 
-    def set_distribution(self, original_distance):
-        self.distribution = self.distance - original_distance
+    def set_distance(self, original_distance):
+        self.dist_diff = self.distance - original_distance
 
     def set_binding(self, original_binding):
         self.bind_diff = self.binding - original_binding
 
 
-def analyse_all(folders=".", distance=30, trajectory=10):
+def analyse_all(folders=".", distance=20, trajectory=10):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
     folders (str): path to the different PELE simulation folders to be analyzed
@@ -116,7 +121,7 @@ def analyse_all(folders=".", distance=30, trajectory=10):
         name = basename(folder)
         data = SimulationData(folder, points=distance, pdb=trajectory)
         data.filtering()
-        data.set_distribution(original.distance)
+        data.set_distance(original.distance)
         data.set_binding(original.binding)
         data_dict[name[5:]] = data
 
@@ -139,7 +144,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=1000):
     plot_dict_bind = {}
     for key, value in data_dict.items():
         if "original" not in key:
-            plot_dict_dist[key] = value.distribution
+            plot_dict_dist[key] = value.dist_diff
             plot_dict_bind[key] = value.bind_diff
 
     data_dist = pd.DataFrame(plot_dict_dist)
@@ -164,6 +169,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=1000):
     ex.set_xticklabels(fontsize=7)
     ex.set_yticklabels(fontsize=7)
     ex.savefig("results_{}/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
+    plt.close("all")
 
 
 def pele_profile_single(res_dir, wild, key, types, position_num, mutation, dpi=1000):
@@ -205,7 +211,7 @@ def pele_profile_single(res_dir, wild, key, types, position_num, mutation, dpi=1
         ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
         ex.savefig("results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "distance0.5", key, types), dpi=dpi)
         ax.savefig("results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "sasaLig", key, types), dpi=dpi)
-
+        plt.close("all")
     else:
         if not os.path.exists("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types)):
             os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types))
@@ -213,6 +219,7 @@ def pele_profile_single(res_dir, wild, key, types, position_num, mutation, dpi=1
                          height=3.8, aspect=1.8, s=100, linewidth=0)
         ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
         ax.savefig("results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, types, key, types), dpi=dpi)
+        plt.close("all")
 
 
 def pele_profiles(res_dir, data_dict, position_num, types, dpi=1000):
@@ -296,17 +303,17 @@ def extract_10_pdb_single(res_dir, data, simulation_folder, position_num, mutati
         extract_snapshot_from_pdb(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind)
 
 
-def extract_all(res_dir, data_dict, position_num):
+def extract_all(res_dir, data_dict, folders):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
     res_dir (str): name of the results folder
     data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
-    position_num (str): Folder that has the results from the different simulations from the same residue number
+    folders (str): Path to the folder that has all the simulations at the same residue
     """
-    for folder in glob("{}/PELE_*".format(position_num)):
-        name = basename(folder)[5:]
-        output = basename(dirname(folder))
-        extract_10_pdb_single(res_dir, data_dict[name], folder, output, mutation=name)
+    for pele in glob("{}/PELE_*".format(folders)):
+        name = basename(pele)[5:]
+        output = basename(dirname(pele))
+        extract_10_pdb_single(res_dir, data_dict[name], pele, output, mutation=name)
 
 
 def create_report(res_dir, mutation, position_num, output="summary"):
@@ -325,10 +332,10 @@ def create_report(res_dir, mutation, position_num, output="summary"):
     pdf.add_page()
     # Title
     pdf.set_font('Arial', 'B', 14)
-    pdf.cell(0, 10, "Best mutations in terms of distance and binding energy", align='C', ln=1)
+    pdf.cell(0, 10, "Best mutations in terms of distance and/or binding energy", align='C', ln=1)
     pdf.set_font('Arial', '', size=10)
     for mut, key in mutation.items():
-        dis = key.distribution.median()
+        dis = key.dist_diff.median()
         bind = key.bind_diff.median()
         message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(mut, dis, bind)
         pdf.ln(3)  # linebreaks
@@ -372,22 +379,30 @@ def create_report(res_dir, mutation, position_num, output="summary"):
     return output
 
 
-def find_top_mutations(res_dir, data_dict, position_num, output="summary"):
+def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="dist"):
     """
     Finds those mutations that decreases the binding distance and binding energy and create a report
     res_dir (str): Name of the results folder
     data_dict (dict): A dictionary of SimulationData objects that holds information for all mutations
     position_num (str): Part of the path to the plots included at the reports
     output (str): Name of the reports created
+    analysis (str): Choose between ("dist", "bind" and "all") to specify how to filter the mutations to keep
     """
     # Find top mutations
     logging.basicConfig(filename='results_{}/top_mutations.log'.format(res_dir), level=logging.DEBUG)
     count = 0
     mutation_dict = {}
     for key, value in data_dict.items():
-        if value.distribution.median() < 0 and value.bind_diff.median() < 0:
-            mutation_dict[key] = value
-            count += 1
+        if "original" not in key:
+            if analysis == "dist" and value.dist_diff.median() < 0:
+                mutation_dict[key] = value
+                count += 1
+            elif analysis == "bind" and value.bind_diff.median() < 0:
+                mutation_dict[key] = value
+                count += 1
+            elif analysis == "all" and value.dist_diff.median() < 0 and value.bind_diff.median() < 0:
+                mutation_dict[key] = value
+                count += 1
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
         logging.info("{} mutations at position {} estimated to improve the system".format(count, position_num))
@@ -396,7 +411,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary"):
         logging.warning("No residues at position {} estimated to improve the system".format(position_num))
 
 
-def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output="summary", res_dir=None):
+def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10, output="summary", res_dir=None, opt="dist"):
     """
     Creates all the plots for the different mutated positions
     res_dir (str): Name for the results folder
@@ -414,27 +429,29 @@ def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output
             res_dir = basename(dirname(res_dir)).replace("mutations_", "")
         for folders in pele_folders:
             folders = folders.strip("\n")
+            base = basename(folders)
             data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
-            box_plot(res_dir, data_dict, folders, dpi)
-            all_profiles(res_dir, data_dict, folders, dpi)
+            box_plot(res_dir, data_dict, base, dpi)
+            all_profiles(res_dir, data_dict, base, dpi)
             extract_all(res_dir, data_dict, folders)
-            find_top_mutations(res_dir, data_dict, folders, output)
+            find_top_mutations(res_dir, data_dict, base, output, analysis=opt)
     else:
         if type(file_name) == list:
             for folders in file_name:
                 folders = folders.strip("\n")
+                base = basename(folders)
                 data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
-                box_plot(res_dir, data_dict, folders, dpi)
-                all_profiles(res_dir, data_dict, folders, dpi)
+                box_plot(res_dir, data_dict, base, dpi)
+                all_profiles(res_dir, data_dict, base, dpi)
                 extract_all(res_dir, data_dict, folders)
-                find_top_mutations(res_dir, data_dict, folders, output)
+                find_top_mutations(res_dir, data_dict, base, output)
         else:
             raise OSError("No file named {}".format(file_name))
 
 
 def main():
-    pele, dpi, distance, trajectory, out, folder = parse_args()
-    consecutive_analysis(pele, dpi, distance, trajectory, out, folder)
+    pele, dpi, distance, trajectory, out, folder, analysis = parse_args()
+    consecutive_analysis(pele, dpi, distance, trajectory, out, folder, analysis)
 
 
 if __name__ == "__main__":
