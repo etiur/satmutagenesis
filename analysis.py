@@ -444,7 +444,7 @@ def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10, output
                 box_plot(res_dir, data_dict, base, dpi)
                 all_profiles(res_dir, data_dict, base, dpi)
                 extract_all(res_dir, data_dict, folders)
-                find_top_mutations(res_dir, data_dict, base, output)
+                find_top_mutations(res_dir, data_dict, base, output, analysis=opt)
         else:
             raise OSError("No file named {}".format(file_name))
 
