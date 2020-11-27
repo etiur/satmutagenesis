@@ -127,7 +127,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder=None, test=
     atom1 (str): atom of the residue to follow  --> chain ID:position:atom name
     atom2 (str): atom of the ligand to follow  --> chain ID:position:atom name
     cpus (str or int): how many cpus do you want to use
-    folder (str): Folder name if file_list is not None
+    folder (str): Folder name if file_list is None
     test (boolean): Setting the simulation to test mode
     initial (file): The initial PDB file before the modification by pmx
     file_list (list): A list of the location of the different pdb files to create the input files for PELE
