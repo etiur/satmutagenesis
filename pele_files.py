@@ -118,8 +118,8 @@ class CreateLaunchFiles:
             slurm.writelines(lines)
 
 
-def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder=None, test=False, initial=None,
-                    file_list=None, cu=False, seed=12345):
+def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, test=False, initial=None,
+                    file_=None, cu=False, seed=12345):
     """
     creates for each of the mutants the yaml and slurm files
     ligchain (str): the chain ID where the ligand is located
@@ -127,42 +127,35 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, folder=None, test=
     atom1 (str): atom of the residue to follow  --> chain ID:position:atom name
     atom2 (str): atom of the ligand to follow  --> chain ID:position:atom name
     cpus (str or int): how many cpus do you want to use
-    folder (str): Folder name if file_list is None
     test (boolean): Setting the simulation to test mode
     initial (file): The initial PDB file before the modification by pmx
-    file_list (list): A list of the location of the different pdb files to create the input files for PELE
+    file_ (list or folder): A list of the location of the different pdb files or a folder where the files are located
     cu (boolean): Set it to true if there are coppers in the system
     seed (int): A seed number to make the simulations reproducible
     """
     slurm_files = []
-    if not file_list:
-        if not os.path.exists(folder):
-            raise OSError("No directory named {}".format(folder))
-        for files in glob("{}/*.pdb".format(folder)):
-            name = basename(files)
-            name = name.replace(".pdb", "")
-            run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test, initial=initial, cu=cu, seed=seed)
-            run.match_dist()
-            run.input_creation(name)
-            run.slurm_creation(name)
-            slurm_files.append(run.slurm)
-
+    if os.path.exists(file_):
+        file_list = list(filter(lambda x: ".pdb" in x, os.listdir(file_)))
+    elif type(file_) == list:
+        file_list = file_[:]
     else:
-        for files in file_list:
-            name = basename(files)
-            name = name.replace(".pdb", "")
-            run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test, initial=initial, cu=cu, seed=seed)
-            run.match_dist()
-            run.input_creation(name)
-            run.slurm_creation(name)
-            slurm_files.append(run.slurm)
+        raise OSError("No directory named {}".format(file_))
+    # Create the launching files
+    for files in file_list:
+        name = basename(files)
+        name = name.replace(".pdb", "")
+        run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test, initial=initial, cu=cu, seed=seed)
+        run.match_dist()
+        run.input_creation(name)
+        run.slurm_creation(name)
+        slurm_files.append(run.slurm)
 
     return slurm_files
 
 
 def main():
     folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed = parse_args()
-    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, folder=folder, test=test, cu=cu, seed=seed)
+    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, file_=folder, test=test, cu=cu, seed=seed)
 
     return slurm_files
 

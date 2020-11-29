@@ -425,7 +425,7 @@ def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10, output
         with open("{}".format(file_name), "r") as pele:
             pele_folders = pele.readlines()
     elif type(file_name) == list:
-        pele_folders = file_name
+        pele_folders = file_name[:]
     else:
         raise OSError("No file named {}".format(file_name))
 
