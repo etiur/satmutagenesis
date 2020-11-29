@@ -141,7 +141,7 @@ class SaturatedMutagenesis:
             p.join()
 
 
-def generate_multiple_mutations(input_, position, hydrogens=True):
+def generate_mutations(input_, position, hydrogens=True, multiple=False):
     """
     To generate up to 2 mutations per pdb
     input (str): Input pdb to be used to generate the mutations
@@ -161,7 +161,7 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
         pdbs.extend(final_pdbs)
         run.accelerated_insert()
         # Mutate in a second position for each of the single mutations
-        if not count and len(position) == 2:
+        if multiple and not count and len(position) == 2:
             for files in final_pdbs:
                 name = basename(files)
                 if name != "original.pdb":
@@ -172,29 +172,6 @@ def generate_multiple_mutations(input_, position, hydrogens=True):
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
 
-            count += 1
-
-    return pdbs
-
-
-def generate_mutations(input_, position, hydrogens=True):
-    """
-    To generate one mutation per pdb
-    input (str): Input pdb to be used to generate the mutations
-    position (list): [chain ID:position] of the residue, for example [A:139,..]
-    hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
-    """
-    count = 0
-    pdbs = []
-    for mutation in position:
-        run = SaturatedMutagenesis(input_, mutation)
-        if not count and not os.path.exists("pdb_files/original.pdb"):
-            run.check_coords()
-        else:
-            run.check_coords(mode=1)
-        final_pdbs = run.generate_pdb(hydrogens=hydrogens)
-        pdbs.extend(final_pdbs)
-        run.accelerated_insert()
         count += 1
 
     return pdbs
@@ -202,10 +179,7 @@ def generate_mutations(input_, position, hydrogens=True):
 
 def main():
     input_, position, multiple = parse_args()
-    if multiple:
-        output = generate_multiple_mutations(input_, position)
-    else:
-        output = generate_mutations(input_, position)
+    output = generate_mutations(input_, position, multiple)
 
     return output
 

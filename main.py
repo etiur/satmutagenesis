@@ -1,5 +1,5 @@
 import argparse
-from mutate_pdb import generate_mutations, generate_multiple_mutations
+from mutate_pdb import generate_mutations
 from pele_files import create_20sbatch
 from subprocess import call
 from os.path import abspath, basename
@@ -82,13 +82,9 @@ def pele_folders(input_, file_list):
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed = parse_args()
     input_ = side_function(input_)
-    if multiple:
-        pdb_names = generate_multiple_mutations(input_, position, hydrogens=True)
-    else:
-        pdb_names = generate_mutations(input_, position, hydrogens=True)
-
+    pdb_names = generate_mutations(input_, position, hydrogens=True, multiple=multiple)
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
-                                  file_list=pdb_names, cu=cu, seed=seed)
+                                  file_=pdb_names, cu=cu, seed=seed)
     submit(slurm_files)
     pele_folders(input_, pdb_names)
 
