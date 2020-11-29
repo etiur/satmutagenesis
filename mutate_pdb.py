@@ -147,6 +147,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False):
     input (str): Input pdb to be used to generate the mutations
     position (list): [chain ID:position] of the residue, for example [A:139,..]
     hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
+    multiple (boolean): Specify if to mutate 2 positions at the same pdb
     """
     count = 0
     pdbs = []
