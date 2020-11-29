@@ -427,7 +427,7 @@ def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10, output
     elif type(file_name) == list:
         pele_folders = file_name[:]
     else:
-        raise OSError("No file named {}".format(file_name))
+        raise OSError("No file or list passed ")
 
     if not res_dir:
         res_dir = pele_folders[0].strip("\n")

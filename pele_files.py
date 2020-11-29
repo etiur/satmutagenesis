@@ -139,7 +139,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, test=False, initia
     elif type(file_) == list:
         file_list = file_[:]
     else:
-        raise OSError("No directory named {}".format(file_))
+        raise OSError("No directory or list passed")
     # Create the launching files
     for files in file_list:
         name = basename(files)
