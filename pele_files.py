@@ -1,6 +1,5 @@
 import argparse
 import os
-from glob import glob
 from helper import map_atom_string
 from os.path import basename
 

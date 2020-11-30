@@ -9,6 +9,8 @@ import re
 from fpdf import FPDF
 import logging
 import matplotlib.pyplot as plt
+from datetime import datetime
+import multiprocessing as mp
 plt.switch_backend('agg')
 
 
@@ -19,7 +21,7 @@ def parse_args():
                         help="Include a file or list with the path to the folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=1000, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--distance", required=False, default=20, type=int,
+    parser.add_argument("--distance", required=False, default=30, type=int,
                         help="Set how many data points are used for the boxplot")
     parser.add_argument("--trajectory", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
@@ -27,17 +29,17 @@ def parse_args():
                         help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--folder", required=False,
                         help="Name of the results folder")
-    parser.add_argument("--folder", required=False,
-                        help="Name of the results folder")
     parser.add_argument("--analyse", required=False, choices=("bind", "dist", "all"), default="dist",
                         help="Name of the results folder")
+    parser.add_argument("--cpus", required=False, default=24, type=int,
+                        help="Include the number of cpus desired")
     args = parser.parse_args()
 
-    return args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse
+    return args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse, args.cpus
 
 
 class SimulationData:
-    def __init__(self, folder, points=20, pdb=10):
+    def __init__(self, folder, points=30, pdb=10):
         """
         folder (str):  path to the simulation folder
         points (int): Number of points to consider for the boxplots
@@ -53,7 +55,6 @@ class SimulationData:
         self.pdb = pdb
         self.binding = None
         self.bind_diff = None
-        self.data = None
 
     def filtering(self):
         """
@@ -101,7 +102,7 @@ class SimulationData:
         self.bind_diff = self.binding - original_binding
 
 
-def analyse_all(folders=".", distance=20, trajectory=10):
+def analyse_all(folders=".", distance=30, trajectory=10):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
     folders (str): path to the different PELE simulation folders to be analyzed
@@ -172,18 +173,18 @@ def box_plot(res_dir, data_dict, position_num, dpi=1000):
     plt.close("all")
 
 
-def pele_profile_single(res_dir, wild, key, types, position_num, mutation, dpi=1000):
+def pele_profile_single(res_dir, wild, types, position_num, dpi, mutations):
     """
     Creates a plot for a single mutation
     res_dir (str): name of the results folder
     wild (SimulationData): SimulationData object that stores data for the wild type protein
-    key (str): name of the mutation
     types (str): Type of scatter plot - distance0.5, sasaLig or currentEnergy
     position_num (str): name for the folder to keep the images from the different mutations
-    mutation (SimulationData): SimulationData object that stores data for the mutated protein
+    mutations (tuple or list): A tuple or list that contains a name and a SimulationData object
     dpi (int): Quality of the plots
     """
     # Configuring the plot
+    key, mutation = mutations
     plt.ioff()
     sns.set(font_scale=1.3)
     sns.set_style("ticks")
@@ -222,7 +223,7 @@ def pele_profile_single(res_dir, wild, key, types, position_num, mutation, dpi=1
         plt.close("all")
 
 
-def pele_profiles(res_dir, data_dict, position_num, types, dpi=1000):
+def pele_profiles(res_dir, data_dict, position_num, types, dpi=1000, cpus=24):
     """
     Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
     res_dir (str): Name of the results folder
@@ -231,12 +232,15 @@ def pele_profiles(res_dir, data_dict, position_num, types, dpi=1000):
     type (str): distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
     dpi (int): Quality of the plots
     """
-    for key, value in data_dict.items():
-        if "original" not in key:
-            pele_profile_single(res_dir, data_dict["original"], key, types, position_num, value, dpi)
+    dic = data_dict.copy()
+    del dic["original"]
+    items = dic.items()
+    with mp.Pool(cpus) as p:
+        args = [(res_dir, data_dict["original"], types, position_num, dpi, mutations) for mutations in items]
+        p.map(pele_profile_single, args)
 
 
-def all_profiles(res_dir, data_dict, position_num, dpi=1000):
+def all_profiles(res_dir, data_dict, position_num, dpi=1000, cpus=24):
     """
     Creates all the possible scatter plots for the same mutated position
     res_dir (str): Name of the results folder
@@ -246,7 +250,7 @@ def all_profiles(res_dir, data_dict, position_num, dpi=1000):
     """
     types = ["distance0.5", "sasaLig", "currentEnergy"]
     for x in types:
-        pele_profiles(res_dir, data_dict, position_num, x, dpi)
+        pele_profiles(res_dir, data_dict, position_num, x, dpi, cpus)
 
 
 def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind):
@@ -303,17 +307,22 @@ def extract_10_pdb_single(res_dir, data, simulation_folder, position_num, mutati
         extract_snapshot_from_pdb(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind)
 
 
-def extract_all(res_dir, data_dict, folders):
+def extract_all(res_dir, data_dict, folders, cpus=24):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
     res_dir (str): name of the results folder
     data_dict (dict): A dictionary that contains SimulationData objects from the 19 simulation folders
-    folders (str): Path to the folder that has all the simulations at the same residue
+    folders (str): Path to the folder that has all the simulations at the same position
     """
+    args = []
     for pele in glob("{}/PELE_*".format(folders)):
         name = basename(pele)[5:]
         output = basename(dirname(pele))
-        extract_10_pdb_single(res_dir, data_dict[name], pele, output, mutation=name)
+        args.append((pele, name, output))
+
+    with mp.Pool(cpus) as p:
+        args = [(res_dir, data_dict[name], pele, output, name) for pele, name, output in args]
+        p.map(extract_10_pdb_single, args)
 
 
 def create_report(res_dir, mutation, position_num, output="summary"):
@@ -354,14 +363,14 @@ def create_report(res_dir, mutation, position_num, output="summary"):
         plot2 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "sasaLig", mut, "sasaLig")
         plot3 = "results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", "sasaLig", mut, "currentEnergy")
         plot4 = "results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", "distance0.5", mut, "currentEnergy")
-        pdf.image(plot1, w=180)
+        pdf.image(plot1, w=150)
         pdf.ln(3)
-        pdf.image(plot2, w=180)
+        pdf.image(plot2, w=150)
         pdf.ln(1000000)  # page break
         pdf.ln(3)
-        pdf.image(plot3, w=180)
+        pdf.image(plot3, w=150)
         pdf.ln(3)
-        pdf.image(plot4, w=180)
+        pdf.image(plot4, w=150)
         pdf.ln(1000000)  # page break
 
     # Top poses
@@ -379,7 +388,7 @@ def create_report(res_dir, mutation, position_num, output="summary"):
     return output
 
 
-def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="dist"):
+def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="dist", cpus=24):
     """
     Finds those mutations that decreases the binding distance and binding energy and create a report
     res_dir (str): Name of the results folder
@@ -411,7 +420,8 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
         logging.warning("No residues at position {} estimated to improve the system".format(position_num))
 
 
-def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10, output="summary", res_dir=None, opt="dist"):
+def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output="summary",
+                         res_dir=None, opt="dist", cpus=24):
     """
     Creates all the plots for the different mutated positions
     res_dir (str): Name for the results folder
@@ -427,7 +437,7 @@ def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10, output
     elif type(file_name) == list:
         pele_folders = file_name[:]
     else:
-        raise OSError("No file or list passed ")
+        raise OSError("No file or list passed")
 
     if not res_dir:
         res_dir = pele_folders[0].strip("\n")
@@ -435,16 +445,26 @@ def consecutive_analysis(file_name, dpi=1000, distance=20, trajectory=10, output
     for folders in pele_folders:
         folders = folders.strip("\n")
         base = basename(folders)
+        beg_data = datetime.now()
         data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
+        end_data = datetime.now()
         box_plot(res_dir, data_dict, base, dpi)
-        all_profiles(res_dir, data_dict, base, dpi)
-        extract_all(res_dir, data_dict, folders)
-        find_top_mutations(res_dir, data_dict, base, output, analysis=opt)
+        end_box = datetime.now()
+        all_profiles(res_dir, data_dict, base, dpi, cpus=cpus)
+        end_profiles = datetime.now()
+        extract_all(res_dir, data_dict, folders, cpus=cpus)
+        end_pdbs = datetime.now()
+        find_top_mutations(res_dir, data_dict, base, output, analysis=opt, cpus=cpus)
+        end_report = datetime.now()
+        with open("time_{}.txt".format(base), "w") as fi:
+            dic = {"data": end_data-beg_data, "box": end_box-end_data, "profiles": end_profiles-end_box,
+                   "pdbs": end_pdbs-end_profiles, "report": end_report-end_pdbs}
+            fi.write(str(dic))
 
 
 def main():
-    pele, dpi, distance, trajectory, out, folder, analysis = parse_args()
-    consecutive_analysis(pele, dpi, distance, trajectory, out, folder, analysis)
+    pele, dpi, distance, trajectory, out, folder, analysis, cpus = parse_args()
+    consecutive_analysis(pele, dpi, distance, trajectory, out, folder, analysis, cpus)
 
 
 if __name__ == "__main__":
