@@ -235,9 +235,13 @@ def pele_profiles(res_dir, data_dict, position_num, types, dpi=1000, cpus=24):
     dic = data_dict.copy()
     del dic["original"]
     items = dic.items()
-    with mp.Pool(cpus) as p:
-        args = [(res_dir, data_dict["original"], types, position_num, dpi, mutations) for mutations in items]
-        p.map(pele_profile_single, args)
+    
+    # parallelizing the function
+    args = [(res_dir, data_dict["original"], types, position_num, dpi, mutations) for mutations in items]
+    p = mp.Pool(cpus)
+    p.map(pele_profile_single, args)
+    p.close()
+    p.terminate()
 
 
 def all_profiles(res_dir, data_dict, position_num, dpi=1000, cpus=24):
@@ -320,9 +324,12 @@ def extract_all(res_dir, data_dict, folders, cpus=24):
         output = basename(dirname(pele))
         args.append((pele, name, output))
 
-    with mp.Pool(cpus) as p:
-        args = [(res_dir, data_dict[name], pele, output, name) for pele, name, output in args]
-        p.map(extract_10_pdb_single, args)
+    # parallelizing the function
+    args = [(res_dir, data_dict[name], pele, output, name) for pele, name, output in args]
+    p = mp.Pool(cpus)
+    p.map(extract_10_pdb_single, args)
+    p.close()
+    p.terminate()
 
 
 def create_report(res_dir, mutation, position_num, output="summary"):
