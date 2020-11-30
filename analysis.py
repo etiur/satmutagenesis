@@ -11,6 +11,7 @@ import logging
 import matplotlib.pyplot as plt
 from datetime import datetime
 import multiprocessing as mp
+from functools import partial
 plt.switch_backend('agg')
 
 
@@ -173,7 +174,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=1000):
     plt.close("all")
 
 
-def pele_profile_single(res_dir, wild, types, position_num, dpi, mutations):
+def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
     """
     Creates a plot for a single mutation
     res_dir (str): name of the results folder
@@ -186,7 +187,7 @@ def pele_profile_single(res_dir, wild, types, position_num, dpi, mutations):
     # Configuring the plot
     key, mutation = mutations
     plt.ioff()
-    sns.set(font_scale=1.3)
+    sns.set(font_scale=1.1)
     sns.set_style("ticks")
     sns.set_context("paper")
     original = wild.profile
@@ -235,11 +236,11 @@ def pele_profiles(res_dir, data_dict, position_num, types, dpi=1000, cpus=24):
     dic = data_dict.copy()
     del dic["original"]
     items = dic.items()
-    
     # parallelizing the function
-    args = [(res_dir, data_dict["original"], types, position_num, dpi, mutations) for mutations in items]
     p = mp.Pool(cpus)
-    p.map(pele_profile_single, args)
+    func = partial(pele_profile_single, res_dir=res_dir, wild=data_dict["original"], types=types,
+                   position_num=position_num, dpi=dpi)
+    p.map(func, items)
     p.close()
     p.terminate()
 
@@ -294,7 +295,7 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
         f.write("\n".join(traj))
 
 
-def extract_10_pdb_single(res_dir, data, simulation_folder, position_num, mutation):
+def extract_10_pdb_single(info, res_dir, data_dict):
     """
     Extracts the top 10 distances for one mutation
     res_dir (str): Name of the results folder
@@ -303,6 +304,8 @@ def extract_10_pdb_single(res_dir, data, simulation_folder, position_num, mutati
     position_num (str): The folder name for the output of this function for the different simulations
     mutation (str): Name for the folder to store results for one of the simulations
     """
+    simulation_folder, position_num, mutation = info
+    data = data_dict[mutation]
     for ind in data.trajectory.index:
         ids = data.trajectory["ID"][ind]
         step = data.trajectory["numberOfAcceptedPeleSteps"][ind]
@@ -322,12 +325,12 @@ def extract_all(res_dir, data_dict, folders, cpus=24):
     for pele in glob("{}/PELE_*".format(folders)):
         name = basename(pele)[5:]
         output = basename(dirname(pele))
-        args.append((pele, name, output))
+        args.append((pele, output, name))
 
     # parallelizing the function
-    args = [(res_dir, data_dict[name], pele, output, name) for pele, name, output in args]
     p = mp.Pool(cpus)
-    p.map(extract_10_pdb_single, args)
+    func = partial(extract_10_pdb_single, res_dir=res_dir, data_dict=data_dict)
+    p.map(func, args)
     p.close()
     p.terminate()
 
