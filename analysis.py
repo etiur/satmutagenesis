@@ -34,9 +34,11 @@ def parse_args():
                         help="Name of the results folder")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
+    parser.add_argument("--less", required=False, default=-0.1, type=float,
+                        help="Include the number of cpus desired")
     args = parser.parse_args()
 
-    return args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse, args.cpus
+    return args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse, args.cpus, args.less
 
 
 class SimulationData:
@@ -152,24 +154,24 @@ def box_plot(res_dir, data_dict, position_num, dpi=1000):
     data_dist = pd.DataFrame(plot_dict_dist)
     data_bind = pd.DataFrame(plot_dict_bind)
 
-    sns.set(font_scale=1.9)
+    sns.set(font_scale=1.5)
     sns.set_style("ticks")
     sns.set_context("paper")
     # Distance boxplot
     ax = sns.catplot(data=data_dist, kind="box", palette="Accent", height=4.5, aspect=2.3)
     ax.set(title="{} distance variation with respect to wild type".format(position_num))
-    ax.set_ylabels("Distance variation", fontsize=9)
-    ax.set_xlabels("Mutations {}".format(position_num), fontsize=9)
-    ax.set_xticklabels(fontsize=7)
-    ax.set_yticklabels(fontsize=7)
+    ax.set_ylabels("Distance variation", fontsize=8)
+    ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
+    ax.set_xticklabels(fontsize=6)
+    ax.set_yticklabels(fontsize=6)
     ax.savefig("results_{}/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
     # Binding energy Box plot
     ex = sns.catplot(data=data_bind, kind="box", palette="Accent", height=4.5, aspect=2.3)
     ex.set(title="{} Binding energy variation with respect to wild type".format(position_num))
-    ex.set_ylabels("Binding energy variation", fontsize=9)
-    ex.set_xlabels("Mutations {}".format(position_num), fontsize=9)
-    ex.set_xticklabels(fontsize=7)
-    ex.set_yticklabels(fontsize=7)
+    ex.set_ylabels("Binding energy variation", fontsize=8)
+    ex.set_xlabels("Mutations {}".format(position_num), fontsize=6)
+    ex.set_xticklabels(fontsize=6)
+    ex.set_yticklabels(fontsize=6)
     ex.savefig("results_{}/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
     plt.close("all")
 
@@ -207,9 +209,9 @@ def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
         norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
         norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
         ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette='RdBu', data=cat,
-                         height=3.8, aspect=1.8, hue_norm=norm, s=100, linewidth=0)
+                         height=3.5, aspect=1.5, hue_norm=norm, s=100, linewidth=0)
         ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
-                         height=3.8, aspect=1.8, hue_norm=norm2, s=100, linewidth=0)
+                         height=3.5, aspect=1.5, hue_norm=norm2, s=100, linewidth=0)
         ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
         ex.savefig("results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "distance0.5", key, types), dpi=dpi)
         ax.savefig("results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "sasaLig", key, types), dpi=dpi)
@@ -218,7 +220,7 @@ def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
         if not os.path.exists("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types)):
             os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types))
         ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
-                         height=3.8, aspect=1.8, s=100, linewidth=0)
+                         height=3.5, aspect=1.5, s=100, linewidth=0)
         ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
         ax.savefig("results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, types, key, types), dpi=dpi)
         plt.close("all")
@@ -398,7 +400,7 @@ def create_report(res_dir, mutation, position_num, output="summary"):
     return output
 
 
-def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="dist", cpus=24):
+def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="dist", cpus=24, less=-0.1):
     """
     Finds those mutations that decreases the binding distance and binding energy and create a report
     res_dir (str): Name of the results folder
@@ -413,25 +415,25 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     mutation_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
-            if analysis == "dist" and value.dist_diff.median() < 0:
+            if analysis == "dist" and value.dist_diff.median() < less:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "bind" and value.bind_diff.median() < 0:
+            elif analysis == "bind" and value.bind_diff.median() < less:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "all" and value.dist_diff.median() < 0 and value.bind_diff.median() < 0:
+            elif analysis == "all" and value.dist_diff.median() < less and value.bind_diff.median() < less:
                 mutation_dict[key] = value
                 count += 1
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
-        logging.info("{} mutations at position {} estimated to improve the system".format(count, position_num))
+        logging.info("{} mutations at position {} decrease {} by {}".format(count, position_num, analysis, less))
         create_report(res_dir, mutation_dict, position_num, output)
     else:
-        logging.warning("No residues at position {} estimated to improve the system".format(position_num))
+        logging.warning("No residues at position {} decrease {} by {}".format(position_num, analysis, less))
 
 
 def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output="summary",
-                         res_dir=None, opt="dist", cpus=24):
+                         res_dir=None, opt="dist", cpus=24, less=-0.1):
     """
     Creates all the plots for the different mutated positions
     res_dir (str): Name for the results folder
@@ -473,8 +475,8 @@ def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output
 
 
 def main():
-    pele, dpi, distance, trajectory, out, folder, analysis, cpus = parse_args()
-    consecutive_analysis(pele, dpi, distance, trajectory, out, folder, analysis, cpus)
+    pele, dpi, distance, trajectory, out, folder, analysis, cpus, less = parse_args()
+    consecutive_analysis(pele, dpi, distance, trajectory, out, folder, analysis, cpus, less)
 
 
 if __name__ == "__main__":
