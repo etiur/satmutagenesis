@@ -400,7 +400,7 @@ def create_report(res_dir, mutation, position_num, output="summary"):
     return output
 
 
-def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="dist", cpus=24, less=-0.1):
+def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="dist", less=-0.1):
     """
     Finds those mutations that decreases the binding distance and binding energy and create a report
     res_dir (str): Name of the results folder
@@ -429,7 +429,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
         logging.info("{} mutations at position {} decrease {} by {}".format(count, position_num, analysis, less))
         create_report(res_dir, mutation_dict, position_num, output)
     else:
-        logging.warning("No residues at position {} decrease {} by {}".format(position_num, analysis, less))
+        logging.warning("No mutations at position {} decrease {} by {}".format(position_num, analysis, less))
 
 
 def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output="summary",
@@ -466,7 +466,7 @@ def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output
         end_profiles = datetime.now()
         extract_all(res_dir, data_dict, folders, cpus=cpus)
         end_pdbs = datetime.now()
-        find_top_mutations(res_dir, data_dict, base, output, analysis=opt, cpus=cpus)
+        find_top_mutations(res_dir, data_dict, base, output, analysis=opt, less=less)
         end_report = datetime.now()
         with open("time_{}.txt".format(base), "w") as fi:
             dic = {"data": end_data-beg_data, "box": end_box-end_data, "profiles": end_profiles-end_box,
