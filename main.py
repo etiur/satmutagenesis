@@ -25,11 +25,13 @@ def parse_args():
     parser.add_argument("--multiple", required=False, action="store_true")
     parser.add_argument("--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
+    parser.add_argument("--dir", required=False,
+                        help="The name of the folder for all the simulations")
 
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
-            args.cu, args.multiple, args.seed]
+            args.cu, args.multiple, args.seed, args.dir]
 
 
 def submit(slurm_folder):
@@ -40,14 +42,18 @@ def submit(slurm_folder):
         call(["sbatch", "{}".format(files)])
 
 
-def side_function(input_):
+def side_function(input_, dir_=None):
     """
-    input_ (str): The wild type PDB file path
     Put all the necessary previous steps here
+    input_ (str): The wild type PDB file path
+    dir_ (str): Name of the folder ofr the simulations
     """
     input_ = abspath(input_)
-    base = basename(input_)
-    base = base.replace(".pdb", "")
+    if not dir_:
+        base = basename(input_)
+        base = base.replace(".pdb", "")
+    else:
+        base = dir_
     if not os.path.exists("mutations_{}".format(base)):
         os.mkdir("mutations_{}".format(base))
     os.chdir("mutations_{}".format(base))
@@ -55,15 +61,19 @@ def side_function(input_):
     return input_
 
 
-def pele_folders(input_, file_list):
+def pele_folders(input_, file_list, dir_=None):
     """
     Creates a file with the names of the different folders where the pele simulations are contained
     input_ (str): The wild type PDB file pat
     file_list (list): list of pdb files created during the saturated mutagenesis
+    dir_ (str): Name of the folder ofr the simulations
     """
     os.chdir("../")
-    base = basename(input_)
-    base = base.replace(".pdb", "")
+    if not dir_:
+        base = basename(input_)
+        base = base.replace(".pdb", "")
+    else:
+        base = dir_
     count = 0
     folder = []
     for files in file_list:
@@ -80,13 +90,13 @@ def pele_folders(input_, file_list):
 
 
 def main():
-    input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed = parse_args()
-    input_ = side_function(input_)
+    input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_ = parse_args()
+    input_ = side_function(input_, dir_)
     pdb_names = generate_mutations(input_, position, hydrogens=True, multiple=multiple)
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                   file_=pdb_names, cu=cu, seed=seed)
     submit(slurm_files)
-    pele_folders(input_, pdb_names)
+    pele_folders(input_, pdb_names, dir_)
 
 
 if __name__ == "__main__":
