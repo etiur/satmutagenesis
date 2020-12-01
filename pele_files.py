@@ -27,7 +27,8 @@ def parse_args():
 
 
 class CreateLaunchFiles:
-    def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24, test=False, initial=None, cu=False, seed=12345):
+    def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24,
+                 test=False, initial=None, cu=False, seed=12345):
         """
         input_ (str): PDB files path
         ligchain (str): the chain ID where the ligand is located
@@ -143,7 +144,8 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, test=False, initia
     for files in file_list:
         name = basename(files)
         name = name.replace(".pdb", "")
-        run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test, initial=initial, cu=cu, seed=seed)
+        run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
+                                initial=initial, cu=cu, seed=seed)
         run.match_dist()
         run.input_creation(name)
         run.slurm_creation(name)
