@@ -30,7 +30,7 @@ def parse_args():
                         help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--folder", required=False,
                         help="Name of the results folder")
-    parser.add_argument("--analyse", required=False, choices=("bind", "dist", "all"), default="dist",
+    parser.add_argument("--analyse", required=False, choices=("energy", "distance", "all"), default="distance",
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
@@ -317,7 +317,7 @@ def extract_all(res_dir, data_dict, folders, cpus=24):
     p.terminate()
 
 
-def create_report(res_dir, mutation, position_num, output="summary", analysis="dist"):
+def create_report(res_dir, mutation, position_num, output="summary", analysis="distance"):
     """
     Create pdf files with the plots of chosen mutations and the path to the
     res_dir (str): Name of the results folder
@@ -342,28 +342,31 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(mut, dis, bind)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
-    pdf.ln(5)  # linebreaks
+    pdf.ln(8)  # linebreaks
 
     # box plots
-    if analysis == "dist":
+    pdf.set_font('Arial', 'B', size=12)
+    pdf.cell(0, 10, "Box plot of {}".format(analysis), align='C', ln=1)
+    pdf.ln(8)
+    if analysis == "distance":
         box1 = "results_{}/Plots/box/{}_distance.png".format(res_dir, position_num)
-        pdf.image(box1, w=150)
+        pdf.image(box1, w=180)
         pdf.ln(1000000)
-    elif analysis == "bind":
+    elif analysis == "energy":
         box1 = "results_{}/Plots/box/{}_binding.png".format(res_dir, position_num)
-        pdf.image(box1, w=150)
+        pdf.image(box1, w=180)
         pdf.ln(1000000)
     elif analysis == "all":
         box1 = "results_{}/Plots/box/{}_distance.png".format(res_dir, position_num)
         box2 = "results_{}/Plots/box/{}_binding.png".format(res_dir, position_num)
-        pdf.image(box1, w=150)
+        pdf.image(box1, w=180)
         pdf.ln(5)
-        pdf.image(box2, w=150)
+        pdf.image(box2, w=180)
         pdf.ln(1000000)
 
     # Plots
     pdf.set_font('Arial', 'B', size=12)
-    pdf.cell(0, 10, "Plots", align='C', ln=1)
+    pdf.cell(0, 10, "Scatter plots", align='C', ln=1)
     pdf.set_font('Arial', '', size=10)
     for mut, key in mutation.items():
         pdf.ln(3)
@@ -372,12 +375,12 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         plot1 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "distance0.5", mut, "distance0.5")
         plot2 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "sasaLig", mut, "sasaLig")
         plot3 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", mut, "currentEnergy")
-        pdf.image(plot1, w=150)
+        pdf.image(plot1, w=180)
         pdf.ln(3)
-        pdf.image(plot2, w=150)
+        pdf.image(plot2, w=180)
         pdf.ln(1000000)  # page break
         pdf.ln(3)
-        pdf.image(plot3, w=150)
+        pdf.image(plot3, w=180)
         pdf.ln(1000000)  # page break
 
     # Top poses
@@ -395,7 +398,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     return output
 
 
-def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="dist", less=-0.1):
+def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", less=-0.1):
     """
     Finds those mutations that decreases the binding distance and binding energy and create a report
     res_dir (str): Name of the results folder
@@ -410,10 +413,10 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     mutation_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
-            if analysis == "dist" and value.dist_diff.median() < -abs(less):
+            if analysis == "distance" and value.dist_diff.median() < -abs(less):
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "bind" and value.bind_diff.median() < -abs(less):
+            elif analysis == "energy" and value.bind_diff.median() < -abs(less):
                 mutation_dict[key] = value
                 count += 1
             elif analysis == "all" and value.dist_diff.median() < -abs(less) and value.bind_diff.median() < -abs(less):
@@ -422,10 +425,10 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
-        logging.info("{} mutations at position {} decrease {} by {}".format(count, position_num, analysis, -abs(less)))
+        logging.info("{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, -abs(less)))
         create_report(res_dir, mutation_dict, position_num, output, analysis)
     else:
-        logging.warning("No mutations at position {} decrease {} by {}".format(position_num, analysis, -abs(less)))
+        logging.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, -abs(less)))
 
 
 def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output="summary",
