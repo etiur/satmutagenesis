@@ -203,40 +203,14 @@ def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
     cat.reset_index(inplace=True)
 
     # Creating the scatter plots
-    if types == "currentEnergy":
-        if not os.path.exists("results_{}/Plots/scatter_{}_{}/{}".format(res_dir, position_num, types, "distance0.5")):
-            os.makedirs("results_{}/Plots/scatter_{}_{}/{}".format(res_dir, position_num, types, "distance0.5"))
-        if not os.path.exists("results_{}/Plots/scatter_{}_{}/{}".format(res_dir, position_num, types, "sasaLig")):
-            os.makedirs("results_{}/Plots/scatter_{}_{}/{}".format(res_dir, position_num, types, "sasaLig"))
-
-        # SasaLig as the hue
-        norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
-        ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette='RdBu', data=cat,
-                         height=3.5, aspect=1.5, hue_norm=norm, s=80, linewidth=0)
-        ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ax.savefig(
-            "results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "sasaLig", key, types),
-            dpi=dpi)
-
-        # Distance as the hue
-        norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
-        ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
-                         height=3.5, aspect=1.5, hue_norm=norm2, s=80, linewidth=0)
-
-        ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ex.savefig(
-            "results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "distance0.5", key,
-                                                                 types), dpi=dpi)
-        plt.close("all")
-
-    else:
-        if not os.path.exists("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types)):
-            os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types))
-        ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
+    if not os.path.exists("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types)):
+        os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types))
+    ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
                          height=3.5, aspect=1.5, s=80, linewidth=0)
-        ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ax.savefig("results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, types, key, types), dpi=dpi)
-        plt.close("all")
+    ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
+    ax.savefig("results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, types,
+                                                                     key, types), dpi=dpi)
+    plt.close("all")
 
 
 def pele_profiles(res_dir, data_dict, position_num, types, dpi=800, cpus=24):
@@ -253,6 +227,9 @@ def pele_profiles(res_dir, data_dict, position_num, types, dpi=800, cpus=24):
     items = dic.items()
 
     # parallelizing the function
+    # for i in items:
+    #     pele_profile_single(i, res_dir=res_dir, wild=data_dict["original"], types=types,
+    #                position_num=position_num, dpi=dpi)
     p = mp.Pool(cpus)
     func = partial(pele_profile_single, res_dir=res_dir, wild=data_dict["original"], types=types,
                    position_num=position_num, dpi=dpi)
@@ -346,7 +323,7 @@ def extract_all(res_dir, data_dict, folders, cpus=24):
     # parallelizing the function
     p = mp.Pool(cpus)
     func = partial(extract_10_pdb_single, res_dir=res_dir, data_dict=data_dict)
-    p.map(func, args)
+    p.map(func, args, 1)
     p.close()
     p.terminate()
 
@@ -405,16 +382,13 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         pdf.ln(3)
         plot1 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "distance0.5", mut, "distance0.5")
         plot2 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "sasaLig", mut, "sasaLig")
-        plot3 = "results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", "sasaLig", mut, "currentEnergy")
-        plot4 = "results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", "distance0.5", mut, "currentEnergy")
+        plot3 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", mut, "currentEnergy")
         pdf.image(plot1, w=150)
         pdf.ln(3)
         pdf.image(plot2, w=150)
         pdf.ln(1000000)  # page break
         pdf.ln(3)
         pdf.image(plot3, w=150)
-        pdf.ln(3)
-        pdf.image(plot4, w=150)
         pdf.ln(1000000)  # page break
 
     # Top poses
