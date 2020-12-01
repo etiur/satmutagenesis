@@ -446,22 +446,22 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     mutation_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
-            if analysis == "dist" and value.dist_diff.median() < less:
+            if analysis == "dist" and value.dist_diff.median() < -abs(less):
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "bind" and value.bind_diff.median() < less:
+            elif analysis == "bind" and value.bind_diff.median() < -abs(less):
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "all" and value.dist_diff.median() < less and value.bind_diff.median() < less:
+            elif analysis == "all" and value.dist_diff.median() < -abs(less) and value.bind_diff.median() < -abs(less):
                 mutation_dict[key] = value
                 count += 1
-                
+
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
-        logging.info("{} mutations at position {} decrease {} by {}".format(count, position_num, analysis, less))
+        logging.info("{} mutations at position {} decrease {} by {}".format(count, position_num, analysis, -abs(less)))
         create_report(res_dir, mutation_dict, position_num, output, analysis)
     else:
-        logging.warning("No mutations at position {} decrease {} by {}".format(position_num, analysis, less))
+        logging.warning("No mutations at position {} decrease {} by {}".format(position_num, analysis, -abs(less)))
 
 
 def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output="summary",
