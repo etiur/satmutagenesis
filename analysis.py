@@ -38,7 +38,8 @@ def parse_args():
                         help="The threshold for the improvement")
     args = parser.parse_args()
 
-    return args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse, args.cpus, args.less
+    return [args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse,
+            args.cpus, args.less]
 
 
 class SimulationData:
