@@ -432,7 +432,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
 
 def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output="summary",
-                         res_dir=None, opt="dist", cpus=24, less=-0.1):
+                         res_dir=None, opt="distance", cpus=24, less=-0.1):
     """
     Creates all the plots for the different mutated positions
     res_dir (str): Name for the results folder
