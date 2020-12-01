@@ -20,7 +20,7 @@ def parse_args():
     # main required arguments
     parser.add_argument("--pele", required=True,
                         help="Include a file or list with the path to the folders with PELE simulations inside")
-    parser.add_argument("--dpi", required=False, default=1000, type=int,
+    parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
     parser.add_argument("--distance", required=False, default=30, type=int,
                         help="Set how many data points are used for the boxplot")
@@ -31,11 +31,11 @@ def parse_args():
     parser.add_argument("--folder", required=False,
                         help="Name of the results folder")
     parser.add_argument("--analyse", required=False, choices=("bind", "dist", "all"), default="dist",
-                        help="Name of the results folder")
+                        help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--less", required=False, default=-0.1, type=float,
-                        help="Include the number of cpus desired")
+                        help="The threshold for the improvement")
     args = parser.parse_args()
 
     return args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse, args.cpus, args.less
@@ -132,7 +132,7 @@ def analyse_all(folders=".", distance=30, trajectory=10):
     return data_dict
 
 
-def box_plot(res_dir, data_dict, position_num, dpi=1000):
+def box_plot(res_dir, data_dict, position_num, dpi=800):
     """
     Creates a box plot of the 19 mutations from the same position
     res_dir (str): name of the results folder
@@ -154,10 +154,10 @@ def box_plot(res_dir, data_dict, position_num, dpi=1000):
     data_dist = pd.DataFrame(plot_dict_dist)
     data_bind = pd.DataFrame(plot_dict_bind)
 
-    sns.set(font_scale=1.5)
+    # Distance boxplot
+    sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    # Distance boxplot
     ax = sns.catplot(data=data_dist, kind="box", palette="Accent", height=4.5, aspect=2.3)
     ax.set(title="{} distance variation with respect to wild type".format(position_num))
     ax.set_ylabels("Distance variation", fontsize=8)
@@ -165,6 +165,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=1000):
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
     ax.savefig("results_{}/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
+
     # Binding energy Box plot
     ex = sns.catplot(data=data_bind, kind="box", palette="Accent", height=4.5, aspect=2.3)
     ex.set(title="{} Binding energy variation with respect to wild type".format(position_num))
@@ -189,7 +190,7 @@ def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
     # Configuring the plot
     key, mutation = mutations
     plt.ioff()
-    sns.set(font_scale=1.1)
+    sns.set(font_scale=1.2)
     sns.set_style("ticks")
     sns.set_context("paper")
     original = wild.profile
@@ -199,6 +200,7 @@ def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
     cat = pd.concat([original, distance], axis=0)
     cat.index.name = "Type"
     cat.reset_index(inplace=True)
+
     # Creating the scatter plots
     if types == "currentEnergy":
         if not os.path.exists("results_{}/Plots/scatter_{}_{}/{}".format(res_dir, position_num, types, "distance0.5")):
@@ -206,27 +208,37 @@ def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
         if not os.path.exists("results_{}/Plots/scatter_{}_{}/{}".format(res_dir, position_num, types, "sasaLig")):
             os.makedirs("results_{}/Plots/scatter_{}_{}/{}".format(res_dir, position_num, types, "sasaLig"))
 
+        # SasaLig as the hue
         norm = plt.Normalize(cat["sasaLig"].min(), cat["sasaLig"].max())
-        norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
         ax = sns.relplot(x=types, y='Binding Energy', hue="sasaLig", style="Type", palette='RdBu', data=cat,
-                         height=3.5, aspect=1.5, hue_norm=norm, s=100, linewidth=0)
+                         height=3.5, aspect=1.5, hue_norm=norm, s=80, linewidth=0)
+        ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
+        ax.savefig(
+            "results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "sasaLig", key, types),
+            dpi=dpi)
+
+        # Distance as the hue
+        norm2 = plt.Normalize(cat["distance0.5"].min(), cat["distance0.5"].max())
         ex = sns.relplot(x=types, y='Binding Energy', hue="distance0.5", style="Type", palette='RdBu', data=cat,
-                         height=3.5, aspect=1.5, hue_norm=norm2, s=100, linewidth=0)
+                         height=3.5, aspect=1.5, hue_norm=norm2, s=80, linewidth=0)
+
         ex.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-        ex.savefig("results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "distance0.5", key, types), dpi=dpi)
-        ax.savefig("results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "sasaLig", key, types), dpi=dpi)
+        ex.savefig(
+            "results_{}/Plots/scatter_{}_{}/{}/{}_{}.png".format(res_dir, position_num, types, "distance0.5", key,
+                                                                 types), dpi=dpi)
         plt.close("all")
+
     else:
         if not os.path.exists("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types)):
             os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types))
         ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
-                         height=3.5, aspect=1.5, s=100, linewidth=0)
+                         height=3.5, aspect=1.5, s=80, linewidth=0)
         ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
         ax.savefig("results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, types, key, types), dpi=dpi)
         plt.close("all")
 
 
-def pele_profiles(res_dir, data_dict, position_num, types, dpi=1000, cpus=24):
+def pele_profiles(res_dir, data_dict, position_num, types, dpi=800, cpus=24):
     """
     Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
     res_dir (str): Name of the results folder
@@ -238,6 +250,7 @@ def pele_profiles(res_dir, data_dict, position_num, types, dpi=1000, cpus=24):
     dic = data_dict.copy()
     del dic["original"]
     items = dic.items()
+
     # parallelizing the function
     p = mp.Pool(cpus)
     func = partial(pele_profile_single, res_dir=res_dir, wild=data_dict["original"], types=types,
@@ -247,7 +260,7 @@ def pele_profiles(res_dir, data_dict, position_num, types, dpi=1000, cpus=24):
     p.terminate()
 
 
-def all_profiles(res_dir, data_dict, position_num, dpi=1000, cpus=24):
+def all_profiles(res_dir, data_dict, position_num, dpi=800, cpus=24):
     """
     Creates all the possible scatter plots for the same mutated position
     res_dir (str): Name of the results folder
@@ -337,7 +350,7 @@ def extract_all(res_dir, data_dict, folders, cpus=24):
     p.terminate()
 
 
-def create_report(res_dir, mutation, position_num, output="summary"):
+def create_report(res_dir, mutation, position_num, output="summary", analysis="dist"):
     """
     Create pdf files with the plots of chosen mutations and the path to the
     res_dir (str): Name of the results folder
@@ -351,6 +364,7 @@ def create_report(res_dir, mutation, position_num, output="summary"):
     pdf.set_left_margin(15.0)
     pdf.set_right_margin(15.0)
     pdf.add_page()
+
     # Title
     pdf.set_font('Arial', 'B', 14)
     pdf.cell(0, 10, "Best mutations in terms of distance and/or binding energy", align='C', ln=1)
@@ -361,7 +375,24 @@ def create_report(res_dir, mutation, position_num, output="summary"):
         message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(mut, dis, bind)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
-    pdf.ln(8)  # linebreaks
+    pdf.ln(5)  # linebreaks
+
+    # box plots
+    if analysis == "dist":
+        box1 = "results_{}/Plots/box/{}_distance.png".format(res_dir, position_num)
+        pdf.image(box1, w=150)
+        pdf.ln(1000000)
+    elif analysis == "bind":
+        box1 = "results_{}/Plots/box/{}_binding.png".format(res_dir, position_num)
+        pdf.image(box1, w=150)
+        pdf.ln(1000000)
+    elif analysis == "all":
+        box1 = "results_{}/Plots/box/{}_distance.png".format(res_dir, position_num)
+        box2 = "results_{}/Plots/box/{}_binding.png".format(res_dir, position_num)
+        pdf.image(box1, w=150)
+        pdf.ln(5)
+        pdf.image(box2, w=150)
+        pdf.ln(1000000)
 
     # Plots
     pdf.set_font('Arial', 'B', size=12)
@@ -424,15 +455,16 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
             elif analysis == "all" and value.dist_diff.median() < less and value.bind_diff.median() < less:
                 mutation_dict[key] = value
                 count += 1
+                
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
         logging.info("{} mutations at position {} decrease {} by {}".format(count, position_num, analysis, less))
-        create_report(res_dir, mutation_dict, position_num, output)
+        create_report(res_dir, mutation_dict, position_num, output, analysis)
     else:
         logging.warning("No mutations at position {} decrease {} by {}".format(position_num, analysis, less))
 
 
-def consecutive_analysis(file_name, dpi=1000, distance=30, trajectory=10, output="summary",
+def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output="summary",
                          res_dir=None, opt="dist", cpus=24, less=-0.1):
     """
     Creates all the plots for the different mutated positions
