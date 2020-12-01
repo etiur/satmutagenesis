@@ -17,7 +17,7 @@ plt.switch_backend('agg')
 def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
-    parser.add_argument("--in", required=True,
+    parser.add_argument("--inp", required=True,
                         help="Include a file or list with the path to the folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
@@ -37,7 +37,7 @@ def parse_args():
                         help="The threshold for the improvement")
     args = parser.parse_args()
 
-    return [args.pele, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse,
+    return [args.inp, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse,
             args.cpus, args.less]
 
 
@@ -466,8 +466,8 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
 
 
 def main():
-    pele, dpi, distance, trajectory, out, folder, analysis, cpus, less = parse_args()
-    consecutive_analysis(pele, dpi, distance, trajectory, out, folder, analysis, cpus, less)
+    inp, dpi, distance, trajectory, out, folder, analysis, cpus, less = parse_args()
+    consecutive_analysis(inp, dpi, distance, trajectory, out, folder, analysis, cpus, less)
 
 
 if __name__ == "__main__":
