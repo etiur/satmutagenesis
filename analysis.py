@@ -178,18 +178,18 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     plt.close("all")
 
 
-def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
+def pele_profile_single(key, mutation, res_dir, wild, types, position_num, dpi):
     """
     Creates a plot for a single mutation
     res_dir (str): name of the results folder
     wild (SimulationData): SimulationData object that stores data for the wild type protein
     types (str): Type of scatter plot - distance0.5, sasaLig or currentEnergy
     position_num (str): name for the folder to keep the images from the different mutations
-    mutations (tuple or list): A tuple or list that contains a name and a SimulationData object
+    mutation (SimulationData): A SimulationData object
+    key (str): name for the axis title and plot
     dpi (int): Quality of the plots
     """
     # Configuring the plot
-    key, mutation = mutations
     plt.ioff()
     sns.set(font_scale=1.2)
     sns.set_style("ticks")
@@ -201,7 +201,6 @@ def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
     cat = pd.concat([original, distance], axis=0)
     cat.index.name = "Type"
     cat.reset_index(inplace=True)
-
     # Creating the scatter plots
     if not os.path.exists("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types)):
         os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types))
@@ -213,7 +212,7 @@ def pele_profile_single(mutations, res_dir, wild, types, position_num, dpi):
     plt.close("all")
 
 
-def pele_profiles(res_dir, data_dict, position_num, types, dpi=800, cpus=24):
+def pele_profiles(res_dir, data_dict, position_num, types, dpi=800):
     """
     Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
     res_dir (str): Name of the results folder
@@ -222,23 +221,13 @@ def pele_profiles(res_dir, data_dict, position_num, types, dpi=800, cpus=24):
     type (str): distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
     dpi (int): Quality of the plots
     """
-    dic = data_dict.copy()
-    del dic["original"]
-    items = dic.items()
-
-    # parallelizing the function
-    # for i in items:
-    #     pele_profile_single(i, res_dir=res_dir, wild=data_dict["original"], types=types,
-    #                position_num=position_num, dpi=dpi)
-    p = mp.Pool(cpus)
-    func = partial(pele_profile_single, res_dir=res_dir, wild=data_dict["original"], types=types,
-                   position_num=position_num, dpi=dpi)
-    p.map(func, items)
-    p.close()
-    p.terminate()
+    for key, value in data_dict.items():
+        if "original" not in key:
+            pele_profile_single(key, value, res_dir=res_dir, wild=data_dict["original"],
+                                types=types, position_num=position_num, dpi=dpi)
 
 
-def all_profiles(res_dir, data_dict, position_num, dpi=800, cpus=24):
+def all_profiles(res_dir, data_dict, position_num, dpi=800):
     """
     Creates all the possible scatter plots for the same mutated position
     res_dir (str): Name of the results folder
@@ -248,7 +237,7 @@ def all_profiles(res_dir, data_dict, position_num, dpi=800, cpus=24):
     """
     types = ["distance0.5", "sasaLig", "currentEnergy"]
     for x in types:
-        pele_profiles(res_dir, data_dict, position_num, x, dpi, cpus)
+        pele_profiles(res_dir, data_dict, position_num, x, dpi)
 
 
 def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind):
@@ -469,7 +458,7 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
         end_data = datetime.now()
         box_plot(res_dir, data_dict, base, dpi)
         end_box = datetime.now()
-        all_profiles(res_dir, data_dict, base, dpi, cpus=cpus)
+        all_profiles(res_dir, data_dict, base, dpi)
         end_profiles = datetime.now()
         extract_all(res_dir, data_dict, folders, cpus=cpus)
         end_pdbs = datetime.now()
