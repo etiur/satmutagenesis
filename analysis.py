@@ -9,7 +9,6 @@ import re
 from fpdf import FPDF
 import logging
 import matplotlib.pyplot as plt
-from datetime import datetime
 import multiprocessing as mp
 from functools import partial
 plt.switch_backend('agg')
@@ -413,22 +412,22 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     mutation_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
-            if analysis == "distance" and value.dist_diff.median() < -abs(less):
+            if analysis == "distance" and value.dist_diff.median() < less:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "energy" and value.bind_diff.median() < -abs(less):
+            elif analysis == "energy" and value.bind_diff.median() < less:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "all" and value.dist_diff.median() < -abs(less) and value.bind_diff.median() < -abs(less):
+            elif analysis == "all" and value.dist_diff.median() < less and value.bind_diff.median() < less:
                 mutation_dict[key] = value
                 count += 1
 
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
-        logging.info("{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, -abs(less)))
+        logging.info("{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, less))
         create_report(res_dir, mutation_dict, position_num, output, analysis)
     else:
-        logging.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, -abs(less)))
+        logging.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, less))
 
 
 def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output="summary",
@@ -456,21 +455,11 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
     for folders in pele_folders:
         folders = folders.strip("\n")
         base = basename(folders)
-        beg_data = datetime.now()
         data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
-        end_data = datetime.now()
         box_plot(res_dir, data_dict, base, dpi)
-        end_box = datetime.now()
         all_profiles(res_dir, data_dict, base, dpi)
-        end_profiles = datetime.now()
         extract_all(res_dir, data_dict, folders, cpus=cpus)
-        end_pdbs = datetime.now()
         find_top_mutations(res_dir, data_dict, base, output, analysis=opt, less=less)
-        end_report = datetime.now()
-        with open("time_{}.txt".format(base), "w") as fi:
-            dic = {"data": end_data-beg_data, "box": end_box-end_data, "profiles": end_profiles-end_box,
-                   "pdbs": end_pdbs-end_profiles, "report": end_report-end_pdbs}
-            fi.write(str(dic))
 
 
 def main():
