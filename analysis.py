@@ -75,7 +75,7 @@ class SimulationData:
         self.dataframe = pd.concat(reports)
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.iloc[:len(self.dataframe)-99]
+        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 99]
 
         # for the PELE profiles
         self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
@@ -177,7 +177,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     plt.close("all")
 
 
-def pele_profile_single(key, mutation, res_dir, wild, types, position_num, dpi):
+def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi):
     """
     Creates a plot for a single mutation
     res_dir (str): name of the results folder
@@ -201,17 +201,17 @@ def pele_profile_single(key, mutation, res_dir, wild, types, position_num, dpi):
     cat.index.name = "Type"
     cat.reset_index(inplace=True)
     # Creating the scatter plots
-    if not os.path.exists("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types)):
-        os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, types))
-    ax = sns.relplot(x=types, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
-                         height=3.5, aspect=1.5, s=80, linewidth=0)
-    ax.set(title="{} scatter plot of binding energy vs {} ".format(key, types))
-    ax.savefig("results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, types,
-                                                                     key, types), dpi=dpi)
+    if not os.path.exists("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, type_)):
+        os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, type_))
+    ax = sns.relplot(x=type_, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
+                     height=3.5, aspect=1.5, s=80, linewidth=0)
+    ax.set(title="{} scatter plot of binding energy vs {} ".format(key, type_))
+    ax.savefig("results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, type_,
+                                                                 key, type_), dpi=dpi)
     plt.close("all")
 
 
-def pele_profiles(res_dir, data_dict, position_num, types, dpi=800):
+def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800):
     """
     Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
     res_dir (str): Name of the results folder
@@ -223,7 +223,7 @@ def pele_profiles(res_dir, data_dict, position_num, types, dpi=800):
     for key, value in data_dict.items():
         if "original" not in key:
             pele_profile_single(key, value, res_dir=res_dir, wild=data_dict["original"],
-                                types=types, position_num=position_num, dpi=dpi)
+                                type_=type_, position_num=position_num, dpi=dpi)
 
 
 def all_profiles(res_dir, data_dict, position_num, dpi=800):
@@ -235,8 +235,8 @@ def all_profiles(res_dir, data_dict, position_num, dpi=800):
     dpi (int): Quality of the plots
     """
     types = ["distance0.5", "sasaLig", "currentEnergy"]
-    for x in types:
-        pele_profiles(res_dir, data_dict, position_num, x, dpi)
+    for type_ in types:
+        pele_profiles(type_, res_dir, data_dict, position_num, dpi)
 
 
 def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind):
@@ -260,14 +260,14 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
     f_in = f_in[0]
     with open(f_in, 'r') as res_dirfile:
         file_content = res_dirfile.read()
-    trajectory_selected = re.search(r'MODEL\s+{}(.*?)ENDMDL'.format(int(step)+1), file_content, re.DOTALL)
+    trajectory_selected = re.search(r'MODEL\s+{}(.*?)ENDMDL'.format(int(step) + 1), file_content, re.DOTALL)
 
     # Output Snapshot
     traj = []
     path_ = "results_{}/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
     name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
     with open(os.path.join(path_, name), 'w') as f:
-        traj.append("MODEL     {}".format(int(step)+1))
+        traj.append("MODEL     {}".format(int(step) + 1))
         try:
             traj.append(trajectory_selected.group(1))
         except AttributeError:
@@ -371,9 +371,11 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         pdf.ln(3)
         pdf.cell(0, 10, "Plots {}".format(mut), ln=1)
         pdf.ln(3)
-        plot1 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "distance0.5", mut, "distance0.5")
+        plot1 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "distance0.5", mut,
+                                                                  "distance0.5")
         plot2 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "sasaLig", mut, "sasaLig")
-        plot3 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", mut, "currentEnergy")
+        plot3 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", mut,
+                                                                  "currentEnergy")
         pdf.image(plot1, w=180)
         pdf.ln(3)
         pdf.image(plot2, w=180)
@@ -383,13 +385,13 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         pdf.ln(1000000)  # page break
 
     # Top poses
+    pdf.set_font('Arial', 'B', size=12)
+    pdf.cell(0, 10, "Path to the top poses", align='C', ln=1)
+    pdf.set_font('Arial', size=10)
+    pdf.ln(5)
     for mut, key in mutation.items():
-        pdf.set_font('Arial', 'B', size=12)
-        pdf.cell(0, 10, "Path for the top poses", align='C', ln=1)
-        pdf.set_font('Arial', size=10)
-        pdf.ln(5)
         path = "results_{}/distances_{}/{}_pdbs".format(res_dir, position_num, mut)
-        pdf.cell(0, 10, "Top poses {}: {} ".format(mut, abspath(path)), ln=1)
+        pdf.cell(0, 10, "{}: {} ".format(mut, abspath(path)), ln=1)
         pdf.ln(5)
 
     # Output report
@@ -424,7 +426,8 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
-        logging.info("{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, less))
+        logging.info(
+            "{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, less))
         create_report(res_dir, mutation_dict, position_num, output, analysis)
     else:
         logging.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, less))
