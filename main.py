@@ -4,6 +4,7 @@ from pele_files import create_20sbatch
 from subprocess import call
 from os.path import abspath, basename
 import os
+import shlex
 
 
 def parse_args():
@@ -37,12 +38,15 @@ def parse_args():
             args.cu, args.multiple, args.seed, args.dir, args.nord]
 
 
-def submit(slurm_folder):
+def submit(slurm_folder, nord=False):
     """
     Given a folder submits the job to the supercomputer
     """
     for files in slurm_folder:
-        call(["sbatch", "{}".format(files)])
+        if not nord:
+            call(["sbatch", "{}".format(files)])
+        else:
+            os.system("bsub < {}".format(files))
 
 
 def side_function(input_, dir_=None):
@@ -98,7 +102,7 @@ def main():
     pdb_names = generate_mutations(input_, position, hydrogens=True, multiple=multiple)
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                   file_=pdb_names, cu=cu, seed=seed, nord=nord)
-    submit(slurm_files)
+    submit(slurm_files, nord)
     pele_folders(input_, pdb_names, dir_)
 
 

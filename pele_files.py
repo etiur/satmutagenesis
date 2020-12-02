@@ -110,8 +110,8 @@ class CreateLaunchFiles:
         with open(self.slurm, "w") as slurm:
             if not self.nord:  # If it is a slurm manager
                 lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n",
-                         "#SBATCH --output={}/{}.out\n".format(slurm_name[:-1], slurm_name),
-                         "#SBATCH --error={}/{}.err\n".format(slurm_name[:-1], slurm_name)]
+                         "#SBATCH --output={}.out\n".format(slurm_name),
+                         "#SBATCH --error={}.err\n".format(slurm_name)]
                 if self.test:
                     lines.append("#SBATCH --qos=debug\n")
                     self.cpus = 5
@@ -121,13 +121,15 @@ class CreateLaunchFiles:
 
             else:  # If it is a LSF manager
                 lines = ["#!/bin/bash\n", "#BSUB -J PELE\n",
-                         "#BSUB -oo {}/{}.out\n".format(slurm_name[:-1], slurm_name),
-                         "#BSUB -eo {}/{}.err\n".format(slurm_name[:-1], slurm_name)]
+                         "#BSUB -oo {}.out\n".format(slurm_name),
+                         "#BSUB -eo {}.err\n".format(slurm_name)]
                 if self.test:
                     lines.append("#BSUB -q debug\n")
                     self.cpus = 5
+                    lines.append("#BSUB -W 01:00\n")
                     lines.append("#BSUB -n {}\n\n".format(self.cpus))
                 else:
+                    lines.append("#BSUB -W 48:00\n")
                     lines.append("#BSUB -n {}\n\n".format(self.cpus))
 
             lines2 = ['module purge\n',
