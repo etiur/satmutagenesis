@@ -7,7 +7,7 @@ from os.path import basename
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
-    parser.add_argument("--folder", required=False,
+    parser.add_argument("--folder", required=True,
                         help="Include the folder where the pdb files are located")
     parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--ligname", required=True, help="The ligand residue name")
@@ -17,18 +17,21 @@ def parse_args():
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--cu", required=False, action="store_true")
-    parser.add_argument("--test", required=False, action="store_true")
+    parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
+    parser.add_argument("--test", required=False, action="store_true", help="Used if you want to run a test before")
+    parser.add_argument("--nord", required=False, action="store_true",
+                        help="used if LSF is the utility managing the jobs")
     parser.add_argument("--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
     args = parser.parse_args()
 
-    return args.folder, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.cu, args.seed
+    return [args.folder, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.cu,
+            args.seed, args.nord]
 
 
 class CreateLaunchFiles:
     def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24,
-                 test=False, initial=None, cu=False, seed=12345):
+                 test=False, initial=None, cu=False, seed=12345, nord=False):
         """
         input_ (str): PDB files path
         ligchain (str): the chain ID where the ligand is located
@@ -53,6 +56,7 @@ class CreateLaunchFiles:
         self.initial = initial
         self.cu = cu
         self.seed = seed
+        self.nord = nord
 
     def match_dist(self):
         """
@@ -75,7 +79,9 @@ class CreateLaunchFiles:
         with open(self.yaml, "w") as inp:
             lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
-                     "seed: {}\n".format(self.seed), "usesrun: true\n"]
+                     "seed: {}\n".format(self.seed)]
+            if not self.nord:
+                lines.append("usesrun: true\n")
             if yaml_name != "original":
                 lines.append("working_folder: {}/PELE_{}\n".format(yaml_name[:-1], yaml_name))
             else:
@@ -101,25 +107,42 @@ class CreateLaunchFiles:
             os.mkdir("slurm_files")
         self.slurm = "slurm_files/{}.sh".format(slurm_name)
         with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n",
-                     "#SBATCH --output={}/{}.out\n".format(slurm_name[:-1], slurm_name),
-                     "#SBATCH --error={}/{}.err\n".format(slurm_name[:-1], slurm_name)]
-            if self.test:
-                lines.append("#SBATCH --qos=debug\n")
-                self.cpus = 5
-            lines2 = ["#SBATCH --ntasks={}\n\n".format(self.cpus), 'module purge\n',
+            if not self.nord:  # If it is a slurm manager
+                lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n",
+                         "#SBATCH --output={}/{}.out\n".format(slurm_name[:-1], slurm_name),
+                         "#SBATCH --error={}/{}.err\n".format(slurm_name[:-1], slurm_name)]
+                if self.test:
+                    lines.append("#SBATCH --qos=debug\n")
+                    self.cpus = 5
+                    lines.append("#SBATCH --ntasks={}\n\n".format(self.cpus))
+                else:
+                    lines.append("#SBATCH --ntasks={}\n\n".format(self.cpus))
+
+            else:  # If it is a LSF manager
+                lines = ["#!/bin/bash\n", "#BSUB -J PELE\n",
+                         "#BSUB -oo {}/{}.out\n".format(slurm_name[:-1], slurm_name),
+                         "#BSUB -eo {}/{}.err\n".format(slurm_name[:-1], slurm_name)]
+                if self.test:
+                    lines.append("#BSUB -q debug\n")
+                    self.cpus = 5
+                    lines.append("#BSUB -n {}\n\n".format(self.cpus))
+                else:
+                    lines.append("#BSUB -n {}\n\n".format(self.cpus))
+
+            lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
                       'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
                       'export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n', 'module load impi\n',
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n',
                       '/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(
                           self.yaml)]
+
             lines.extend(lines2)
             slurm.writelines(lines)
 
 
 def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False, initial=None,
-                    cu=False, seed=12345):
+                    cu=False, seed=12345, nord=False):
     """
     creates for each of the mutants the yaml and slurm files
     ligchain (str): the chain ID where the ligand is located
@@ -145,7 +168,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         name = basename(files)
         name = name.replace(".pdb", "")
         run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
-                                initial=initial, cu=cu, seed=seed)
+                                initial=initial, cu=cu, seed=seed, nord=nord)
         run.match_dist()
         run.input_creation(name)
         run.slurm_creation(name)
@@ -155,8 +178,9 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
 
 
 def main():
-    folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed = parse_args()
-    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, file_=folder, test=test, cu=cu, seed=seed)
+    folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord = parse_args()
+    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2,
+                                  cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord)
 
     return slurm_files
 

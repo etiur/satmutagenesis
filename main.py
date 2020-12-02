@@ -20,9 +20,12 @@ def parse_args():
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--test", required=False, action="store_true")
-    parser.add_argument("--cu", required=False, action="store_true")
-    parser.add_argument("--multiple", required=False, action="store_true")
+    parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
+    parser.add_argument("--test", required=False, action="store_true", help="Used if you want to run a test before")
+    parser.add_argument("--nord", required=False, action="store_true",
+                        help="used if LSF is the utility managing the jobs")
+    parser.add_argument("--multiple", required=False, action="store_true",
+                        help="if you want to mutate 2 residue in the same pdb")
     parser.add_argument("--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
     parser.add_argument("--dir", required=False,
@@ -31,7 +34,7 @@ def parse_args():
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir]
+            args.cu, args.multiple, args.seed, args.dir, args.nord]
 
 
 def submit(slurm_folder):
@@ -90,11 +93,11 @@ def pele_folders(input_, file_list, dir_=None):
 
 
 def main():
-    input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_ = parse_args()
+    input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord = parse_args()
     input_ = side_function(input_, dir_)
     pdb_names = generate_mutations(input_, position, hydrogens=True, multiple=multiple)
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
-                                  file_=pdb_names, cu=cu, seed=seed)
+                                  file_=pdb_names, cu=cu, seed=seed, nord=nord)
     submit(slurm_files)
     pele_folders(input_, pdb_names, dir_)
 
