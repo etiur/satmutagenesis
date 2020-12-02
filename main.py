@@ -4,7 +4,6 @@ from pele_files import create_20sbatch
 from subprocess import call
 from os.path import abspath, basename
 import os
-import shlex
 
 
 def parse_args():
