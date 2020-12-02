@@ -11,6 +11,7 @@ import logging
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
+from helper import isiterable
 plt.switch_backend('agg')
 
 
@@ -437,7 +438,7 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
     """
     Creates all the plots for the different mutated positions
     res_dir (str): Name for the results folder
-    file_name (str, list): A file or list that contains the path to the folders where the PELE simulations are in
+    file_name (str, iterable): A file or an iterable that contains the path to the PELE simulations folders
     dpi (int): The quality of the plots
     distance (int): how many points are used for the box plots
     trajectory (int): how many top pdbs are extracted from the trajectories
@@ -446,10 +447,10 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
     if os.path.exists(file_name):
         with open("{}".format(file_name), "r") as pele:
             pele_folders = pele.readlines()
-    elif type(file_name) == list:
+    elif isiterable(file_name):
         pele_folders = file_name[:]
     else:
-        raise OSError("No file or list passed")
+        raise OSError("No file or iterable passed")
 
     if not res_dir:
         res_dir = pele_folders[0].strip("\n")

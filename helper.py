@@ -45,3 +45,12 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
 
     return after
 
+
+def isiterable(p_object):
+    if type(p_object) == str or type(p_object) == dict:
+        return False
+    try:
+        iter(p_object)
+    except TypeError:
+        return False
+    return True

@@ -1,6 +1,6 @@
 import argparse
 import os
-from helper import map_atom_string
+from helper import map_atom_string, isiterable
 from os.path import basename
 
 
@@ -118,8 +118,8 @@ class CreateLaunchFiles:
             slurm.writelines(lines)
 
 
-def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, test=False, initial=None,
-                    file_=None, cu=False, seed=12345):
+def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False, initial=None,
+                    cu=False, seed=12345):
     """
     creates for each of the mutants the yaml and slurm files
     ligchain (str): the chain ID where the ligand is located
@@ -129,17 +129,17 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, cpus=24, test=False, initia
     cpus (str or int): how many cpus do you want to use
     test (boolean): Setting the simulation to test mode
     initial (file): The initial PDB file before the modification by pmx
-    file_ (list or folder): A list of the location of the different pdb files or a folder where the files are located
+    file_ (iterable or folder): An iterable of the location of the different pdb files or a name of the folder
     cu (boolean): Set it to true if there are coppers in the system
     seed (int): A seed number to make the simulations reproducible
     """
     slurm_files = []
     if os.path.exists(file_):
         file_list = list(filter(lambda x: ".pdb" in x, os.listdir(file_)))
-    elif type(file_) == list:
+    elif isiterable(file_):
         file_list = file_[:]
     else:
-        raise OSError("No directory or list passed")
+        raise OSError("No directory or iterable passed")
     # Create the launching files
     for files in file_list:
         name = basename(files)
