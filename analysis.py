@@ -143,7 +143,6 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     if not os.path.exists("results_{}/Plots/box".format(res_dir)):
         os.makedirs("results_{}/Plots/box".format(res_dir))
     # create a dataframe with only the distance differences for each simulation
-    plt.ioff()
     plot_dict_dist = {}
     plot_dict_bind = {}
     for key, value in data_dict.items():
@@ -189,7 +188,6 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi):
     dpi (int): Quality of the plots
     """
     # Configuring the plot
-    plt.ioff()
     sns.set(font_scale=1.2)
     sns.set_style("ticks")
     sns.set_context("paper")
@@ -205,10 +203,11 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi):
         os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, type_))
     ax = sns.relplot(x=type_, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
                      height=3.5, aspect=1.5, s=80, linewidth=0)
+
     ax.set(title="{} scatter plot of binding energy vs {} ".format(key, type_))
     ax.savefig("results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, type_,
                                                                  key, type_), dpi=dpi)
-    plt.close("all")
+    plt.close(ax.fig)
 
 
 def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800):
