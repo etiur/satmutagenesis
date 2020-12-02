@@ -43,6 +43,7 @@ class CreateLaunchFiles:
         initial (file): The initial PDB file before the modification by pmx
         cu (boolean): Set it to true if there are coppers in the system
         seed (int): A seed number to make the simulations reproducible
+        nord (boolean): True if the system is managed by LSF
         """
         self.input = input_
         self.ligchain = ligchain
@@ -155,6 +156,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
     file_ (iterable or folder): An iterable of the location of the different pdb files or a name of the folder
     cu (boolean): Set it to true if there are coppers in the system
     seed (int): A seed number to make the simulations reproducible
+    nord (boolean): True if the system is managed by LSF
     """
     slurm_files = []
     if os.path.exists(file_):
