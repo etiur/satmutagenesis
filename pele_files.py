@@ -159,7 +159,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
     nord (boolean): True if the system is managed by LSF
     """
     slurm_files = []
-    if os.path.exists(file_):
+    if os.path.exists(str(file_)):
         file_list = list(filter(lambda x: ".pdb" in x, os.listdir(file_)))
     elif isiterable(file_):
         file_list = file_[:]

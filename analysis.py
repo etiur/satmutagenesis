@@ -444,7 +444,7 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
     trajectory (int): how many top pdbs are extracted from the trajectories
     output (str): name of the output file for the pdfs
     """
-    if os.path.exists(file_name):
+    if os.path.exists(str(file_name)):
         with open("{}".format(file_name), "r") as pele:
             pele_folders = pele.readlines()
     elif isiterable(file_name):
