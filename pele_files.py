@@ -108,29 +108,14 @@ class CreateLaunchFiles:
             os.mkdir("slurm_files")
         self.slurm = "slurm_files/{}.sh".format(slurm_name)
         with open(self.slurm, "w") as slurm:
-            if not self.nord:  # If it is a slurm manager
-                lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n",
-                         "#SBATCH --output={}.out\n".format(slurm_name),
-                         "#SBATCH --error={}.err\n".format(slurm_name)]
-                if self.test:
-                    lines.append("#SBATCH --qos=debug\n")
-                    self.cpus = 5
-                    lines.append("#SBATCH --ntasks={}\n\n".format(self.cpus))
-                else:
-                    lines.append("#SBATCH --ntasks={}\n\n".format(self.cpus))
-
-            else:  # If it is a LSF manager
-                lines = ["#!/bin/bash\n", "#BSUB -J PELE\n",
-                         "#BSUB -oo {}.out\n".format(slurm_name),
-                         "#BSUB -eo {}.err\n".format(slurm_name)]
-                if self.test:
-                    lines.append("#BSUB -q debug\n")
-                    self.cpus = 5
-                    lines.append("#BSUB -W 01:00\n")
-                    lines.append("#BSUB -n {}\n\n".format(self.cpus))
-                else:
-                    lines.append("#BSUB -W 48:00\n")
-                    lines.append("#BSUB -n {}\n\n".format(self.cpus))
+            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(slurm_name),
+                     "#SBATCH --error={}.err\n".format(slurm_name)]
+            if self.test:
+                lines.append("#SBATCH --qos=debug\n")
+                self.cpus = 5
+                lines.append("#SBATCH --ntasks={}\n\n".format(self.cpus))
+            else:
+                lines.append("#SBATCH --ntasks={}\n\n".format(self.cpus))
 
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
@@ -139,6 +124,36 @@ class CreateLaunchFiles:
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n',
                       '/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {}\n'.format(
                           self.yaml)]
+
+            lines.extend(lines2)
+            slurm.writelines(lines)
+
+    def slurm_nord(self, slurm_name):
+        """
+        Create slurm files for PELE in LSF managed systems
+        slurm_name (str): Name of the file created
+        """
+        if not os.path.exists("slurm_files"):
+            os.mkdir("slurm_files")
+        self.slurm = "slurm_files/{}.sh".format(slurm_name)
+        with open(self.slurm, "w") as slurm:
+            lines = ["#!/bin/bash\n", "#BSUB -J PELE\n", "#BSUB -oo {}.out\n".format(slurm_name),
+                     "#BSUB -eo {}.err\n".format(slurm_name)]
+            if self.test:
+                lines.append("#BSUB -q debug\n")
+                self.cpus = 5
+                lines.append("#BSUB -W 01:00\n")
+                lines.append("#BSUB -n {}\n\n".format(self.cpus))
+            else:
+                lines.append("#BSUB -W 48:00\n")
+                lines.append("#BSUB -n {}\n\n".format(self.cpus))
+
+            lines2 = ['module purge\n',
+                      'module load intel gcc openmpi/1.8.1 boost/1.63.0 python/2.7.3 MKL/11.3 GTK+3/3.2.4\n',
+                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/1.2.3/:/gpfs/projects/bsc72/adaptiveSampling/bin_nord/v1.6.2/::/gpfs/projects/bsc72/PELEPlatform/external_deps/:$PYTHONPATH\n',
+                      'export PYTHONPATH=/gpfs/projects/bsc72/lib/site-packages_mn3:$PYTHONPATH\n',
+                      'export MPLBACKEND=Agg\n', 'export OMPI_MCA_coll_hcoll_enable=0\n', 'export OMPI_MCA_mtl=^mxm'
+                      'python -m pele_platform.main {}\n'.format(self.yaml)]
 
             lines.extend(lines2)
             slurm.writelines(lines)
@@ -175,7 +190,10 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
                                 initial=initial, cu=cu, seed=seed, nord=nord)
         run.match_dist()
         run.input_creation(name)
-        run.slurm_creation(name)
+        if not nord:
+            run.slurm_creation(name)
+        else:
+            run.slurm_nord(name)
         slurm_files.append(run.slurm)
 
     return slurm_files
