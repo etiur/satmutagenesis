@@ -34,12 +34,12 @@ def parse_args():
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--less", required=False, default=-0.1, type=float,
+    parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse,
-            args.cpus, args.less]
+            args.cpus, args.thres]
 
 
 class SimulationData:
@@ -399,7 +399,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     return output
 
 
-def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", less=-0.1):
+def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=-0.1):
     """
     Finds those mutations that decreases the binding distance and binding energy and create a report
     res_dir (str): Name of the results folder
@@ -414,27 +414,27 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     mutation_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
-            if analysis == "distance" and value.dist_diff.median() < less:
+            if analysis == "distance" and value.dist_diff.median() < thres:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "energy" and value.bind_diff.median() < less:
+            elif analysis == "energy" and value.bind_diff.median() < thres:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "all" and value.dist_diff.median() < less and value.bind_diff.median() < less:
+            elif analysis == "all" and value.dist_diff.median() < thres and value.bind_diff.median() < thres:
                 mutation_dict[key] = value
                 count += 1
 
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
         logging.info(
-            "{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, less))
+            "{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, thres))
         create_report(res_dir, mutation_dict, position_num, output, analysis)
     else:
-        logging.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, less))
+        logging.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
 
 
 def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output="summary",
-                         res_dir=None, opt="distance", cpus=24, less=-0.1):
+                         res_dir=None, opt="distance", cpus=24, thres=-0.1):
     """
     Creates all the plots for the different mutated positions
     res_dir (str): Name for the results folder
@@ -462,12 +462,12 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
         box_plot(res_dir, data_dict, base, dpi)
         all_profiles(res_dir, data_dict, base, dpi)
         extract_all(res_dir, data_dict, folders, cpus=cpus)
-        find_top_mutations(res_dir, data_dict, base, output, analysis=opt, less=less)
+        find_top_mutations(res_dir, data_dict, base, output, analysis=opt, thres=thres)
 
 
 def main():
-    inp, dpi, distance, trajectory, out, folder, analysis, cpus, less = parse_args()
-    consecutive_analysis(inp, dpi, distance, trajectory, out, folder, analysis, cpus, less)
+    inp, dpi, distance, trajectory, out, folder, analysis, cpus, thres = parse_args()
+    consecutive_analysis(inp, dpi, distance, trajectory, out, folder, analysis, cpus, thres)
 
 
 if __name__ == "__main__":
