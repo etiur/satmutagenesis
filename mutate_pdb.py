@@ -44,7 +44,7 @@ class Mutagenesis:
         self.folder = folder
         self.chain_id = None
 
-    def mutate(self, residue, new_aa, bbdep, hydrogens):
+    def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         if len(new_aa) == 1:
             new_aa = _aacids_dic[new_aa]
         phi = residue.get_phi()
