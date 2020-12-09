@@ -30,11 +30,13 @@ def parse_args():
                         help="Include the seed number to make the simulation reproducible")
     parser.add_argument("--dir", required=False,
                         help="The name of the folder for all the simulations")
+    parser.add_argument("--pdb_dir", required=False, default="pdb_files",
+                        help="The name for the mutated pdb folder")
 
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir, args.nord]
+            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir]
 
 
 def submit(slurm_folder, nord=False):
@@ -96,9 +98,9 @@ def pele_folders(input_, file_list, dir_=None):
 
 
 def main():
-    input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord = parse_args()
+    input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir = parse_args()
     input_ = side_function(input_, dir_)
-    pdb_names = generate_mutations(input_, position, hydrogens=True, multiple=multiple)
+    pdb_names = generate_mutations(input_, position, hydrogens=True, multiple=multiple, folder=pdb_dir)
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                   file_=pdb_names, cu=cu, seed=seed, nord=nord)
     submit(slurm_files, nord)
