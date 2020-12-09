@@ -105,11 +105,13 @@ class Mutagenesis:
         self.mutate(aa_init, new_aa, self.rotamers, hydrogens=hydrogens)
         # writing into a pdb
         if len(new_aa) == 1:
-            output = "{}{}{}.pdb".format(aa_name, self.position + 1, new_aa)
+            new = new_aa
         elif self._invert_aa.get(new_aa):
-            output = "{}{}{}.pdb".format(aa_name, self.position + 1, self._invert_aa[new_aa])
+            new = self._invert_aa[new_aa]
         else:
             raise Exception("Not recognized aminoacid")
+        
+        output = "{}{}{}.pdb".format(aa_name, self.position + 1, new)
         file_ = "{}/{}".format(self.folder, output)
         self.model.write(file_)
 
