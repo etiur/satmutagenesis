@@ -154,8 +154,10 @@ class Mutagenesis:
         with open(prep_pdb, "w") as prep:
             prep.writelines(prep_lines)
 
-    def accelerated_insert(self):
+    def accelerated_insert(self, file_list=None):
         pros = []
+        if file_list:
+            self.final_pdbs = file_list
         for prep_pdb in self.final_pdbs:
             p = Process(target=self.insert_atomtype, args=(prep_pdb,))
             p.start()

@@ -101,7 +101,7 @@ class CreateLaunchFiles:
 
     def slurm_creation(self, slurm_name):
         """
-        Creates the slurm running files for PELE
+        Creates the slurm running files for PELE in sbatch managed systems
         slurm_name (str): Name for the batch file
         """
         if not os.path.exists("slurm_files"):
