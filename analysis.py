@@ -2,7 +2,7 @@ from glob import glob
 import pandas as pd
 import seaborn as sns
 import argparse
-from os.path import basename, dirname, abspath
+from os.path import basename, dirname, abspath, isdir, isfile, join
 import os
 import sys
 import re
@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--folder", required=False,
-                        help="Name of the results folder")
+                        help="Name of the plots folder")
     parser.add_argument("--analyse", required=False, choices=("energy", "distance", "all"), default="distance",
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=24, type=int,
@@ -434,35 +434,39 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
 
 def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output="summary",
-                         res_dir=None, opt="distance", cpus=24, thres=-0.1):
+                         plot_dir=None, opt="distance", cpus=24, thres=-0.1):
     """
     Creates all the plots for the different mutated positions
     res_dir (str): Name for the results folder
-    file_name (str, iterable): A file or an iterable that contains the path to the PELE simulations folders
+    file_name (str, iterable, folder): A file, an iterable that contains the path to the PELE simulations folders or
+    the path to the folders where the simulations are stored --> it is equivalent to dirname(iterable[0])
     dpi (int): The quality of the plots
     distance (int): how many points are used for the box plots
     trajectory (int): how many top pdbs are extracted from the trajectories
     output (str): name of the output file for the pdfs
     """
-    if os.path.exists(str(file_name)):
+    if isfile(str(file_name)):
         with open("{}".format(file_name), "r") as pele:
             pele_folders = pele.readlines()
+    elif isdir(str(file_name)):
+        pele_folders = list(filter(isdir, os.listdir(file_name)))
+        pele_folders = [join(file_name, folder) for folders in pele_folders]
     elif isiterable(file_name):
         pele_folders = file_name[:]
     else:
-        raise OSError("No file or iterable passed")
+        raise Exception("No file or iterable passed")
 
-    if not res_dir:
-        res_dir = pele_folders[0].strip("\n")
-        res_dir = basename(dirname(res_dir)).replace("mutations_", "")
+    if not plot_dir:
+        plot_dir = pele_folders[0].strip("\n")
+        plot_dir = basename(dirname(plot_dir)).replace("mutations_", "")
     for folders in pele_folders:
         folders = folders.strip("\n")
         base = basename(folders)
         data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
-        box_plot(res_dir, data_dict, base, dpi)
-        all_profiles(res_dir, data_dict, base, dpi)
-        extract_all(res_dir, data_dict, folders, cpus=cpus)
-        find_top_mutations(res_dir, data_dict, base, output, analysis=opt, thres=thres)
+        box_plot(plot_dir, data_dict, base, dpi)
+        all_profiles(plot_dir, data_dict, base, dpi)
+        extract_all(plot_dir, data_dict, folders, cpus=cpus)
+        find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres)
 
 
 def main():

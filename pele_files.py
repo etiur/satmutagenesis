@@ -1,7 +1,7 @@
 import argparse
 import os
 from helper import map_atom_string, isiterable
-from os.path import basename
+from os.path import basename, join
 
 
 def parse_args():
@@ -179,12 +179,13 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
     nord (boolean): True if the system is managed by LSF
     """
     slurm_files = []
-    if os.path.exists(str(file_)):
+    if os.path.isdir(str(file_)):
         file_list = list(filter(lambda x: ".pdb" in x, os.listdir(file_)))
+        file_list = [join(file_, files) for files in file_list]
     elif isiterable(file_):
         file_list = file_[:]
     else:
-        raise OSError("No directory or iterable passed")
+        raise Exception("No directory or iterable passed")
     # Create the launching files
     for files in file_list:
         name = basename(files)
