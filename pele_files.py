@@ -1,7 +1,7 @@
 import argparse
 import os
 from helper import map_atom_string, isiterable
-from os.path import basename, join
+from os.path import basename, join, isfile, isdir
 
 
 def parse_args():
@@ -173,21 +173,26 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
     cpus (str or int): how many cpus do you want to use
     test (boolean): Setting the simulation to test mode
     initial (file): The initial PDB file before the modification by pmx
-    file_ (iterable or folder): An iterable of the location of the different pdb files or a name of the folder
+    file_ (iterable, folder or a file): An iterable of the location of the different pdb files, a name of the folder
+    or a file of the path to the different pdb files
     cu (boolean): Set it to true if there are coppers in the system
     seed (int): A seed number to make the simulations reproducible
     nord (boolean): True if the system is managed by LSF
     """
     slurm_files = []
-    if os.path.isdir(str(file_)):
+    if isdir(str(file_)):
         file_list = list(filter(lambda x: ".pdb" in x, os.listdir(file_)))
         file_list = [join(file_, files) for files in file_list]
+    elif isfile(str(file_)):
+        with open("{}".format(file_), "r") as pdb:
+            file_list = pdb.readlines()
     elif isiterable(file_):
         file_list = file_[:]
     else:
         raise Exception("No directory or iterable passed")
     # Create the launching files
     for files in file_list:
+        files = files.strip("\n")
         name = basename(files)
         name = name.replace(".pdb", "")
         run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
