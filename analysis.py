@@ -22,9 +22,9 @@ def parse_args():
                         help="Include a file or list with the path to the folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--distance", required=False, default=30, type=int,
+    parser.add_argument("--box", required=False, default=30, type=int,
                         help="Set how many data points are used for the boxplot")
-    parser.add_argument("--trajectory", required=False, default=10, type=int,
+    parser.add_argument("--traj", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
@@ -38,7 +38,7 @@ def parse_args():
                         help="The threshold for the improvement")
     args = parser.parse_args()
 
-    return [args.inp, args.dpi, args.distance, args.trajectory, args.out, args.folder, args.analyse,
+    return [args.inp, args.dpi, args.box, args.traj, args.out, args.folder, args.analyse,
             args.cpus, args.thres]
 
 
@@ -106,7 +106,7 @@ class SimulationData:
         self.bind_diff = self.binding - original_binding
 
 
-def analyse_all(folders=".", distance=30, trajectory=10):
+def analyse_all(folders=".", box=30, traj=10):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
     folders (str): path to the different PELE simulation folders to be analyzed
@@ -117,14 +117,14 @@ def analyse_all(folders=".", distance=30, trajectory=10):
     data_dict = {}
     if len(folders.split("/")) > 1:
         mutation_dir = dirname(folders)
-        original = SimulationData("{}/PELE_original".format(mutation_dir), points=distance, pdb=trajectory)
+        original = SimulationData("{}/PELE_original".format(mutation_dir), points=box, pdb=traj)
     else:
         original = SimulationData("PELE_original")
     original.filtering()
     data_dict["original"] = original
     for folder in glob("{}/PELE_*".format(folders)):
         name = basename(folder)
-        data = SimulationData(folder, points=distance, pdb=trajectory)
+        data = SimulationData(folder, points=box, pdb=traj)
         data.filtering()
         data.set_distance(original.distance)
         data.set_binding(original.binding)
@@ -433,7 +433,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
         logging.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
 
 
-def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output="summary",
+def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
                          plot_dir=None, opt="distance", cpus=24, thres=-0.1):
     """
     Creates all the plots for the different mutated positions
@@ -450,7 +450,7 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
             pele_folders = pele.readlines()
     elif isdir(str(file_name)):
         pele_folders = list(filter(isdir, os.listdir(file_name)))
-        pele_folders = [join(file_name, folder) for folders in pele_folders]
+        pele_folders = [join(file_name, folder) for folder in pele_folders]
     elif isiterable(file_name):
         pele_folders = file_name[:]
     else:
@@ -462,7 +462,7 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
     for folders in pele_folders:
         folders = folders.strip("\n")
         base = basename(folders)
-        data_dict = analyse_all(folders, distance=distance, trajectory=trajectory)
+        data_dict = analyse_all(folders, box=box, traj=traj)
         box_plot(plot_dir, data_dict, base, dpi)
         all_profiles(plot_dir, data_dict, base, dpi)
         extract_all(plot_dir, data_dict, folders, cpus=cpus)
@@ -470,8 +470,8 @@ def consecutive_analysis(file_name, dpi=800, distance=30, trajectory=10, output=
 
 
 def main():
-    inp, dpi, distance, trajectory, out, folder, analysis, cpus, thres = parse_args()
-    consecutive_analysis(inp, dpi, distance, trajectory, out, folder, analysis, cpus, thres)
+    inp, dpi, box, traj, out, folder, analysis, cpus, thres = parse_args()
+    consecutive_analysis(inp, dpi, box, traj, out, folder, analysis, cpus, thres)
 
 
 if __name__ == "__main__":

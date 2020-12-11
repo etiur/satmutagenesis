@@ -110,7 +110,7 @@ class Mutagenesis:
             new = self._invert_aa[new_aa]
         else:
             raise Exception("Not recognized aminoacid")
-        
+
         output = "{}{}{}.pdb".format(aa_name, self.position + 1, new)
         file_ = "{}/{}".format(self.folder, output)
         self.model.write(file_)
