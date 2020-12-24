@@ -94,7 +94,7 @@ class Mutagenesis:
 
         return self.final_pdbs
 
-    def single_mutagenesis(self, new_aa, hydrogens=True):
+    def single_mutagenesis(self, new_aa, hydrogens=True, mode=0):
         """
         Create single mutations
         new_aa: The aa to mutate to in 3 letter code or 1 letter code
@@ -109,9 +109,12 @@ class Mutagenesis:
         elif self._invert_aa.get(new_aa):
             new = self._invert_aa[new_aa]
         else:
-            raise Exception("Not recognized aminoacid")
-
-        output = "{}{}{}.pdb".format(aa_name, self.position + 1, new)
+            raise Exception("Aminoacid not recognized")
+        if not mode:
+            output = "{}{}{}.pdb".format(aa_name, self.position + 1, new)
+        else:
+            name = basename(self.input).replace("pdb", "")
+            output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, new)
         file_ = "{}/{}".format(self.folder, output)
         self.model.write(file_)
 
