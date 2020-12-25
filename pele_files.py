@@ -59,7 +59,7 @@ class CreateLaunchFiles:
         self.seed = seed
         self.nord = nord
 
-    def match_dist(self):
+    def _match_dist(self):
         """
         match the user coordinates to pmx PDB coordinates
         """
@@ -74,6 +74,7 @@ class CreateLaunchFiles:
         create the .yaml input files for PELE
         yaml_name (str): Name for the input file for the simulation
         """
+        self._match_dist()
         if not os.path.exists("yaml_files"):
             os.mkdir("yaml_files")
         self.yaml = "yaml_files/{}.yaml".format(yaml_name)
@@ -197,7 +198,6 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         name = name.replace(".pdb", "")
         run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
                                 initial=initial, cu=cu, seed=seed, nord=nord)
-        run.match_dist()
         run.input_creation(name)
         if not nord:
             run.slurm_creation(name)
