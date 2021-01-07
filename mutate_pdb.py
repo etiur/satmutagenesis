@@ -17,10 +17,12 @@ def parse_args():
     parser.add_argument("--position", required=True, nargs="+",
                         help="Include one or more chain IDs and positions --> ID:position")
     parser.add_argument("--multiple", required=False, action="store_true")
+    parser.add_argument("--hydrogen", required=False, action="store_false")
     parser.add_argument("--folder", required=False, default="pdb_files", help="The folder for the pdb_files")
+    parser.add_argument("--consec", required=False, action="store_true")
     # arguments = vars(parser.parse_args())
     args = parser.parse_args()
-    return args.input, args.position, args.multiple, args.folder
+    return args.input, args.position, args.hydrogen, args.multiple, args.folder, args.consec
 
 
 class Mutagenesis:
@@ -53,14 +55,14 @@ class Mutagenesis:
         new_r = select_best_rotamer(self.model, rotamers)
         self.model.replace_residue(residue, new_r)
 
-    def _check_coords(self, mode=0):
+    def _check_coords(self):
         """
         map the user coordinates with pmx coordinates
         mode (0/1): Acts as a switch, 0 if it is the first round of mutation, 1 if it is the second more rounds
         """
         if not os.path.exists(self.folder):
             os.mkdir(self.folder)
-        if not mode:
+        if not os.path.exists("{}/original.pdb".format(self.folder)):
             self.model.write("{}/original.pdb".format(self.folder))
             self.final_pdbs.append("{}/original.pdb".format(self.folder))
 
@@ -72,15 +74,14 @@ class Mutagenesis:
             if chain_.id == self.chain_id:
                 self.chain = chain_
 
-    def saturated_mutagenesis(self, hydrogens=True, mode=0, name=None, count=0):
+    def saturated_mutagenesis(self, hydrogens=True, mode=0, name=None):
         """
         Generate all the other 19 mutations
         hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
         mode (0/1): Acts as a switch, 0 if only 1 mutation per PDB, 1 if 2 mutations per PDB
         name (str): Only used when mode set to 1
-        count (int): 0 if it is the fist round of mutation, 1 for the second or more rounds
         """
-        self._check_coords(mode=count)
+        self._check_coords()
         aa_init = self.chain.residues[self.position]
         aa_name = self._invert_aa[aa_init.resname]
         for new_aa in self.residues:
@@ -96,15 +97,14 @@ class Mutagenesis:
 
         return self.final_pdbs
 
-    def single_mutagenesis(self, new_aa, hydrogens=True, mode=0, count=0):
+    def single_mutagenesis(self, new_aa, hydrogens=True, mode=0):
         """
         Create single mutations
         new_aa: The aa to mutate to in 3 letter code or 1 letter code
         hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
-        count (int): 0 if it is the fist mutation, 1 for the second or more mutations
         mode (int): 0 if it is just 1 mutation per PDB, 1 if there are more than one mutations
         """
-        self._check_coords(mode=count)
+        self._check_coords()
         aa_init = self.chain.residues[self.position]
         aa_name = self._invert_aa[aa_init.resname]
         self.mutate(aa_init, new_aa, self.rotamers, hydrogens=hydrogens)
@@ -176,31 +176,32 @@ class Mutagenesis:
             p.join()
 
 
-def generate_mutations(input_, position, hydrogens=True, multiple=False, folder="pdb_files"):
+def generate_mutations(input_, position, hydrogens=True, multiple=False, folder="pdb_files", consec=False):
     """
     To generate up to 2 mutations per pdb
     input (str): Input pdb to be used to generate the mutations
     position (list): [chain ID:position] of the residue, for example [A:139,..]
     hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
     multiple (boolean): Specify if to mutate 2 positions at the same pdb
+    consec (boolean): Consecutively mutate the PDB file for several rounds
     """
     count = 0
     pdbs = []
     # Perform single saturated mutations
     for mutation in position:
         run = Mutagenesis(input_, mutation, folder)
-        if not count and not os.path.exists("pdb_files/original.pdb"):
-            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens, count=0)
+        if not consec:
+            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
         else:
-            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens, count=1)
+            name =basename(input_).replace(".pdb", "")
+            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens, mode=1, name=name)
         pdbs.extend(final_pdbs)
         run.accelerated_insert()
         # Mutate in a second position for each of the single mutations
         if multiple and not count and len(position) == 2:
             for files in final_pdbs:
-                name = basename(files)
+                name = basename(files).replace(".pdb", "")
                 if name != "original.pdb":
-                    name = name.replace(".pdb", "")
                     run_ = Mutagenesis(files, position[1], folder)
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens, mode=1, name=name)
                     pdbs.extend(final_pdbs_2)
@@ -212,8 +213,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
 
 
 def main():
-    input_, position, multiple, folder = parse_args()
-    output = generate_mutations(input_, position, multiple, folder)
+    input_, position, hydrogen, multiple, folder, consec = parse_args()
+    output = generate_mutations(input_, position, hydrogen, multiple, folder, consec)
 
     return output
 
