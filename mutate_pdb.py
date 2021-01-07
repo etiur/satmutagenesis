@@ -74,7 +74,7 @@ class Mutagenesis:
             if chain_.id == self.chain_id:
                 self.chain = chain_
 
-    def saturated_mutagenesis(self, hydrogens=True, mode=0, name=None):
+    def saturated_mutagenesis(self, hydrogens=True, mode=0):
         """
         Generate all the other 19 mutations
         hydrogens (boolean): Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
@@ -91,7 +91,9 @@ class Mutagenesis:
                 if not mode:
                     output = "{}{}{}.pdb".format(aa_name, self.position + 1, self._invert_aa[new_aa])
                 else:
+                    name = basename(self.input).replace("pdb", "")
                     output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, self._invert_aa[new_aa])
+
                 self.model.write("{}/{}".format(self.folder, output))
                 self.final_pdbs.append("{}/{}".format(self.folder, output))
 
@@ -193,8 +195,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
         if not consec:
             final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
         else:
-            name =basename(input_).replace(".pdb", "")
-            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens, mode=1, name=name)
+            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens, mode=1)
         pdbs.extend(final_pdbs)
         run.accelerated_insert()
         # Mutate in a second position for each of the single mutations
@@ -203,7 +204,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
                 name = basename(files).replace(".pdb", "")
                 if name != "original.pdb":
                     run_ = Mutagenesis(files, position[1], folder)
-                    final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens, mode=1, name=name)
+                    final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens, mode=1)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
 
