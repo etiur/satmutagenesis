@@ -82,11 +82,11 @@ class Mutagenesis:
         name (str): Only used when mode set to 1
         """
         self._check_coords()
-        aa_init = self.chain.residues[self.position]
-        aa_name = self._invert_aa[aa_init.resname]
+        aa_init_resname = self.chain.residues[self.position].resname
+        aa_name = self._invert_aa[aa_init_resname]
         for new_aa in self.residues:
-            if new_aa != aa_init.resname:
-                self.mutate(aa_init, new_aa, self.rotamers, hydrogens=hydrogens)
+            if new_aa != aa_init_resname:
+                self.mutate(self.chain.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
                 # writing into a pdb
                 if not mode:
                     output = "{}{}{}.pdb".format(aa_name, self.position + 1, self._invert_aa[new_aa])
@@ -107,9 +107,9 @@ class Mutagenesis:
         mode (int): 0 if it is just 1 mutation per PDB, 1 if there are more than one mutations
         """
         self._check_coords()
-        aa_init = self.chain.residues[self.position]
-        aa_name = self._invert_aa[aa_init.resname]
-        self.mutate(aa_init, new_aa, self.rotamers, hydrogens=hydrogens)
+        aa_init_resname = self.chain.residues[self.position].resname
+        aa_name = self._invert_aa[aa_init_resname]
+        self.mutate(self.chain.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
         # writing into a pdb
         if len(new_aa) == 1:
             new = new_aa
