@@ -119,7 +119,7 @@ def analyse_all(folders=".", box=30, traj=10):
         mutation_dir = dirname(folders)
         original = SimulationData("{}/PELE_original".format(mutation_dir), points=box, pdb=traj)
     else:
-        original = SimulationData("PELE_original")
+        original = SimulationData("PELE_original", points=box, pdb=traj)
     original.filtering()
     data_dict["original"] = original
     for folder in glob("{}/PELE_*".format(folders)):
