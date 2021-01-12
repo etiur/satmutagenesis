@@ -33,18 +33,19 @@ class CreateLaunchFiles:
     def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24,
                  test=False, initial=None, cu=False, seed=12345, nord=False):
         """
-        input_ (str): PDB files path
-        ligchain (str): the chain ID where the ligand is located
-        ligname (str): the residue name of the ligand in the PDB
-        atom1 (str): atom of the residue to follow in this format --> chain ID:position:atom name
-        atom2 (str): atom of the ligand to follow in this format --> chain ID:position:atom name
-        cpus (str or int): How many cpus do you want to use
-        test (boolean): Setting the simulation to test mode
-        initial (file): The initial PDB file before the modification by pmx
-        cu (boolean): Set it to true if there are coppers in the system
-        seed (int): A seed number to make the simulations reproducible
-        nord (boolean): True if the system is managed by LSF
+        :param input_: (str) PDB files path
+        :param ligchain: (str) the chain ID where the ligand is located
+        :param ligname: (str) the residue name of the ligand in the PDB
+        :param atom1: (str) atom of the residue to follow in this format --> chain ID:position:atom name
+        :param atom2: (str) atom of the ligand to follow in this format --> chain ID:position:atom name
+        :param cpus: (str or int) How many cpus do you want to use
+        :param test: (bool) Setting the simulation to test mode
+        :param initial: (file) The initial PDB file before the modification by pmx
+        :param cu: (bool) Set it to true if there are coppers in the system
+        :param seed: (int) A seed number to make the simulations reproducible
+        :param nord: (bool) True if the system is managed by LSF
         """
+
         self.input = input_
         self.ligchain = ligchain
         self.ligname = ligname
@@ -72,7 +73,7 @@ class CreateLaunchFiles:
     def input_creation(self, yaml_name):
         """
         create the .yaml input files for PELE
-        yaml_name (str): Name for the input file for the simulation
+        :param yaml_name: (str) Name for the input file for the simulation
         """
         self._match_dist()
         if not os.path.exists("yaml_files"):
@@ -103,7 +104,7 @@ class CreateLaunchFiles:
     def slurm_creation(self, slurm_name):
         """
         Creates the slurm running files for PELE in sbatch managed systems
-        slurm_name (str): Name for the batch file
+        :param slurm_name: (str) Name for the batch file
         """
         if not os.path.exists("slurm_files"):
             os.mkdir("slurm_files")
@@ -132,7 +133,7 @@ class CreateLaunchFiles:
     def slurm_nord(self, slurm_name):
         """
         Create slurm files for PELE in LSF managed systems
-        slurm_name (str): Name of the file created
+        :param slurm_name: (str) Name of the file created
         """
         if not os.path.exists("slurm_files"):
             os.mkdir("slurm_files")
@@ -167,18 +168,19 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
                     cu=False, seed=12345, nord=False):
     """
     creates for each of the mutants the yaml and slurm files
-    ligchain (str): the chain ID where the ligand is located
-    ligname (str): the residue name of the ligand in the PDB
-    atom1 (str): atom of the residue to follow  --> chain ID:position:atom name
-    atom2 (str): atom of the ligand to follow  --> chain ID:position:atom name
-    cpus (str or int): how many cpus do you want to use
-    test (boolean): Setting the simulation to test mode
-    initial (file): The initial PDB file before the modification by pmx
-    file_ (iterable, folder or a file): An iterable of the location of the different pdb files, a name of the folder
+    :param ligchain: (str) the chain ID where the ligand is located
+    :param ligname: (str) the residue name of the ligand in the PDB
+    :param atom1: (str) atom of the residue to follow  --> chain ID:position:atom name
+    :param atom2: (str) atom of the ligand to follow  --> chain ID:position:atom name
+    :param file_: (iterable, dir or a file) An iterable of the location of the different pdb files, a name of the folder
     or a file of the path to the different pdb files
-    cu (boolean): Set it to true if there are coppers in the system
-    seed (int): A seed number to make the simulations reproducible
-    nord (boolean): True if the system is managed by LSF
+    :param cpus: (str or int) how many cpus do you want to use
+    :param test: (bool) Setting the simulation to test mode
+    :param initial: (file) The initial PDB file before the modification by pmx
+    :param cu: (bool): Set it to true if there are coppers in the system
+    :param seed: (int) A seed number to make the simulations reproducible
+    :param nord: (bool) True if the system is managed by LSF
+    :return: (list) A list of the files generated
     """
     slurm_files = []
     if isdir(str(file_)):

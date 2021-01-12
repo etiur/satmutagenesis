@@ -55,8 +55,9 @@ def submit(slurm_folder, nord=False):
 def side_function(input_, dir_=None):
     """
     Put all the necessary previous steps here
-    input_ (str): The wild type PDB file path
-    dir_ (str): Name of the folder ofr the simulations
+    :param input_: (str) The wild type PDB file path
+    :param dir_: (str) Name of the folder ofr the simulations
+    :return: (str) The new path of the input
     """
     input_ = abspath(input_)
     if not dir_:
@@ -74,9 +75,9 @@ def side_function(input_, dir_=None):
 def pele_folders(input_, file_list, dir_=None):
     """
     Creates a file with the names of the different folders where the pele simulations are contained
-    input_ (str): The wild type PDB file pat
-    file_list (list): list of pdb files created during the saturated mutagenesis
-    dir_ (str): Name of the folder ofr the simulations
+    :param input_: (str) The wild type PDB file pat
+    :param file_list: (list) list of pdb files created during the saturated mutagenesis
+    :param dir_: (str) Name of the folder ofr the simulations
     """
     os.chdir("../")
     if not dir_:
