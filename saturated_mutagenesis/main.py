@@ -44,6 +44,14 @@ def parse_args():
 def submit(slurm_folder, nord=False):
     """
     Given a folder submits the job to the supercomputer
+
+    parameters
+    ___________
+
+    slurm_folder: list[path]
+         A list of the slurm files path's
+    nord: bool, optional
+         True if it will run on NORD
     """
     for files in slurm_folder:
         if not nord:
@@ -55,9 +63,18 @@ def submit(slurm_folder, nord=False):
 def side_function(input_, dir_=None):
     """
     Put all the necessary previous steps here
-    :param input_: (str) The wild type PDB file path
-    :param dir_: (str) Name of the folder ofr the simulations
-    :return: (str) The new path of the input
+
+    parameters
+    ___________
+    input_: str
+          The wild type PDB file path
+    dir_: str, optional
+         Name of the folder ofr the simulations
+
+    Returns
+    _______
+    input_: str
+        The new path of the input
     """
     input_ = abspath(input_)
     if not dir_:
@@ -75,9 +92,15 @@ def side_function(input_, dir_=None):
 def pele_folders(input_, file_list, dir_=None):
     """
     Creates a file with the names of the different folders where the pele simulations are contained
-    :param input_: (str) The wild type PDB file pat
-    :param file_list: (list) list of pdb files created during the saturated mutagenesis
-    :param dir_: (str) Name of the folder ofr the simulations
+
+    parameters
+    ___________
+    input_: str
+         The wild type PDB file path
+    file_list: list[path]
+         list of pdb files path created during the saturated mutagenesis
+    dir_: str, optional
+         Name of the folder ofr the simulations
     """
     os.chdir("../")
     if not dir_:

@@ -29,9 +29,14 @@ class Mutagenesis:
 
     def __init__(self, model, position, folder="pdb_files"):
         """
-        :param model: (str) path to the PDB file
-        :param position: (str) chain ID:position of the residue, for example A:132
-        :param folder: (str): The folder where the pdbs are written
+        parameters
+        ___________
+        model: str
+           path to the PDB file
+        position: str
+           chain ID:position of the residue, for example A:132
+        folder: str
+           The folder where the pdbs are written
         """
         self.model = Model(model)
         self.input = model
@@ -49,10 +54,16 @@ class Mutagenesis:
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
         Mutate the wild type residue to a new residue
-        :param residue: (pmx object) The residue has to be an pmx object
-        :param new_aa: (str) a 3 letter or 1 letter coe to represent the new residue
-        :param bbdep: A database that can be interpreted by pmx
-        :param hydrogens: (bool) A boolean, leave it to True because False cause problems with cysteine
+        parameters
+        ___________
+        residue: pmx object
+            The residue has to be an pmx object
+        new_aa: str
+            A 3 letter or 1 letter coe to represent the new residue
+        bbdep:
+            A database that can be interpreted by pmx
+        hydrogens: bool, optional
+            A boolean, leave it to True because False cause problems with cysteine
         """
         if len(new_aa) == 1:
             new_aa = _aacids_dic[new_aa]
@@ -83,9 +94,18 @@ class Mutagenesis:
     def saturated_mutagenesis(self, hydrogens=True, mode=0):
         """
         Generate all the other 19 mutations
-        :param hydrogens: (bool) Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
-        :param mode: (0/1) Acts as a switch, 0 if only 1 mutation per PDB, 1 if 2 mutations per PDB
-        :return: (list) A list of the new files
+
+        parameters
+        ___________
+        hydrogens: bool, optional
+            Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
+        mode: 0/1, optional
+            Acts as a switch, 0 if only 1 mutation per PDB, 1 if 2 mutations per PDB
+
+        Returns
+        _______
+         final_pdbs: list[path]
+            A list of the new files
         """
 
         self._check_coords()
@@ -109,10 +129,19 @@ class Mutagenesis:
     def single_mutagenesis(self, new_aa, hydrogens=True, mode=0):
         """
         Create single mutations
-        :param new_aa: (str) The aa to mutate to, in 3 letter code or 1 letter code
-        :param hydrogens: (bool) Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
-        :param mode: (0/1) 0 if it is just 1 mutation per PDB, 1 if there are more than one mutations
-        :return: (str) The name of the new pdb file
+        parameters
+        ___________
+        new_aa: str
+           The aa to mutate to, in 3 letter code or 1 letter code
+        hydrogens: bool, optional
+           Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
+        mode: 0/1, optional
+           0 if it is just 1 mutation per PDB, 1 if there are more than one mutations
+
+        Returns
+        ______
+        file_: str
+           The name of the new pdb file
         """
         self._check_coords()
         aa_init_resname = self.chain.residues[self.position].resname
@@ -138,7 +167,10 @@ class Mutagenesis:
     def insert_atomtype(self, prep_pdb):
         """
         modifies the pmx PDB files to include the atom type
-        :param prep_pdb: (file) PDB files to modify
+        parameters
+        ___________
+        prep_pdb: path
+           PDB files to modify
         """
         # read in user input
         with open(self.input, "r") as initial:
@@ -177,7 +209,11 @@ class Mutagenesis:
     def accelerated_insert(self, file_list=None):
         """
         Paralelizes the insert atomtype function
-        :param file_list: (list) optional if you want to include another list
+
+        parameters
+        ___________
+        file_list: list[path]
+           optional if you want to include another list
         """
         pros = []
         if file_list:
@@ -193,13 +229,26 @@ class Mutagenesis:
 def generate_mutations(input_, position, hydrogens=True, multiple=False, folder="pdb_files", consec=False):
     """
     To generate up to 2 mutations per pdb
-    :param input_: (str) Input pdb to be used to generate the mutations
-    :param position: (list) [chain ID:position] of the residue, for example [A:139,..]
-    :param hydrogens: (bool) Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
-    :param multiple: (bool) Specify if to mutate 2 positions at the same pdb
-    :param folder: (str) The name of the folder where the new PDb files will be stored
-    :param consec: (bool) Consecutively mutate the PDB file for several rounds
-    :return: (list) The list of all generated pdbs
+
+    parameters
+    ___________
+    input_: str
+        Input pdb to be used to generate the mutations
+    position: list[str]
+        [chain ID:position] of the residue, for example [A:139,..]
+    hydrogens: bool, optional
+        Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
+    multiple: bool, optional
+        Specify if to mutate 2 positions at the same pdb
+    folder: str, optional
+        The name of the folder where the new PDb files will be stored
+    consec: bool, optional
+        Consecutively mutate the PDB file for several rounds
+
+    Returns
+    ________
+    pdbs: list[paths]
+        The list of all generated pdbs' path
     """
     count = 0
     pdbs = []
