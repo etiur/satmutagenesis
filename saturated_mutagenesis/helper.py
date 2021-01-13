@@ -2,19 +2,19 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
     """
     Maps the chain ID and residue number of the original PDb file to the PDB file after pmx
 
-    parameters
+    Parameters
     ___________
     atom_string: str
-       The positions to map
+        The positions to map
     initial_pdb: str
-       The original PDB
+        The original PDB
     prep_pdb: str
-       The changed PDB
+        The changed PDB
 
     Return
     _______
     after: str
-       The new atom string or position
+        The new atom string or position
     """
     # read in user input
     with open(initial_pdb, "r") as initial:
@@ -67,15 +67,15 @@ def isiterable(p_object):
     """
     Test if the parameter is an iterable or a file
 
-    parameters
+    Parameters
     ___________
     p_object: object
-       Any object
+        Any object
 
     Returns
     _______
     True: bool
-       Returns true if the conditions are met
+        Returns true if the conditions are met
     """
     if type(p_object) == str or type(p_object) == dict:
         return False

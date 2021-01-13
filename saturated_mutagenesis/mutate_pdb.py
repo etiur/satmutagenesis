@@ -26,10 +26,14 @@ def parse_args():
 
 
 class Mutagenesis:
-
+    """
+    To perform mutations on PDB files
+    """
     def __init__(self, model, position, folder="pdb_files"):
         """
-        parameters
+        Initialize the Mutagenesis object
+
+        Parameters
         ___________
         model: str
            path to the PDB file
@@ -54,7 +58,8 @@ class Mutagenesis:
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
         Mutate the wild type residue to a new residue
-        parameters
+
+        Parameters
         ___________
         residue: pmx object
             The residue has to be an pmx object
@@ -95,7 +100,7 @@ class Mutagenesis:
         """
         Generate all the other 19 mutations
 
-        parameters
+        Parameters
         ___________
         hydrogens: bool, optional
             Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
@@ -107,7 +112,6 @@ class Mutagenesis:
          final_pdbs: list[path]
             A list of the new files
         """
-
         self._check_coords()
         aa_init_resname = self.chain.residues[self.position].resname
         aa_name = self._invert_aa[aa_init_resname]
@@ -129,19 +133,20 @@ class Mutagenesis:
     def single_mutagenesis(self, new_aa, hydrogens=True, mode=0):
         """
         Create single mutations
-        parameters
+
+        Parameters
         ___________
         new_aa: str
-           The aa to mutate to, in 3 letter code or 1 letter code
+            The aa to mutate to, in 3 letter code or 1 letter code
         hydrogens: bool, optional
-           Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
+            Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
         mode: 0/1, optional
-           0 if it is just 1 mutation per PDB, 1 if there are more than one mutations
+            0 if it is just 1 mutation per PDB, 1 if there are more than one mutations
 
         Returns
         ______
         file_: str
-           The name of the new pdb file
+            The name of the new pdb file
         """
         self._check_coords()
         aa_init_resname = self.chain.residues[self.position].resname
@@ -167,10 +172,11 @@ class Mutagenesis:
     def insert_atomtype(self, prep_pdb):
         """
         modifies the pmx PDB files to include the atom type
-        parameters
+
+        Parameters
         ___________
         prep_pdb: path
-           PDB files to modify
+            PDB files to modify
         """
         # read in user input
         with open(self.input, "r") as initial:
@@ -210,10 +216,10 @@ class Mutagenesis:
         """
         Paralelizes the insert atomtype function
 
-        parameters
+        Parameters
         ___________
         file_list: list[path]
-           optional if you want to include another list
+            optional if you want to include another list
         """
         pros = []
         if file_list:
@@ -230,7 +236,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
     """
     To generate up to 2 mutations per pdb
 
-    parameters
+    Parameters
     ___________
     input_: str
         Input pdb to be used to generate the mutations

@@ -43,9 +43,14 @@ def parse_args():
 
 
 class SimulationData:
+    """
+    A class to store data from the simulations
+    """
     def __init__(self, folder, points=30, pdb=10):
         """
-        parameters
+        Initialize the SimulationData Object
+
+        Parameters
         ___________
         folder: str
             path to the simulation folder
@@ -105,28 +110,46 @@ class SimulationData:
             self.binding = self.binding.iloc[0]
 
     def set_distance(self, original_distance):
+        """
+        Set the distance difference
+
+        Parameters
+        __________
+        original_distance: int
+            The distrance for the wild type
+
+        """
         self.dist_diff = self.distance - original_distance
 
     def set_binding(self, original_binding):
+        """
+        Set the binding energy difference
+
+        Parameters
+        __________
+        original_binding: int
+            The binding energy for the wild type
+        """
         self.bind_diff = self.binding - original_binding
 
 
 def analyse_all(folders=".", box=30, traj=10):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
-    parameters
+
+    Parameters
     ___________
     folders: str, optional
-       path to the different PELE simulation folders to be analyzed
+        path to the different PELE simulation folders to be analyzed
     box: int, optional
-       How many points to use for the box plots
+        How many points to use for the box plots
     traj: int, optional
-       How many snapshots to extract from the trajectories
+        How many snapshots to extract from the trajectories
 
     Returns
     _______
     data_dict: dict
-       Dictionary of SimulationData objects
+        Dictionary of SimulationData objects
     """
     data_dict = {}
     if len(folders.split("/")) > 1:
@@ -150,16 +173,17 @@ def analyse_all(folders=".", box=30, traj=10):
 def box_plot(res_dir, data_dict, position_num, dpi=800):
     """
     Creates a box plot of the 19 mutations from the same position
-    parameters
+
+    Parameters
     ___________
     res_dir: str
-       name of the results folder
+        name of the results folder
     data_dict: dict
-       A dictionary that contains SimulationData objects from the simulation folders
+        A dictionary that contains SimulationData objects from the simulation folders
     position_num: str
-       Position at the which the mutations occurred
+        Position at the which the mutations occurred
     dpi: int, optional
-       The quality of the plots produced
+        The quality of the plots produced
     """
     if not os.path.exists("results_{}/Plots/box".format(res_dir)):
         os.makedirs("results_{}/Plots/box".format(res_dir))
@@ -201,22 +225,22 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     """
     Creates a plot for a single mutation
 
-    parameters
+    Parameters
     ___________
     key: str
-       name for the axis title and plot
+        name for the axis title and plot
     mutation: SimulationData
-       A SimulationData object
+        A SimulationData object
     res_dir: str
-       name of the results folder
+        name of the results folder
     wild: SimulationData
-       SimulationData object that stores data for the wild type protein
+        SimulationData object that stores data for the wild type protein
     type_: str
-       Type of scatter plot - distance0.5, sasaLig or currentEnergy
+        Type of scatter plot - distance0.5, sasaLig or currentEnergy
     position_num: str
-       name for the folder to keep the images from the different mutations
+        name for the folder to keep the images from the different mutations
     dpi: int, optional
-       Quality of the plots
+        Quality of the plots
     """
     # Configuring the plot
     sns.set(font_scale=1.2)
@@ -244,18 +268,19 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
 def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800):
     """
     Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
-    parameters
+
+    Parameters
     ___________
     type_: str
-       distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
+        distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot
     res_dir: str
-       Name of the results folder
+        Name of the results folder
     data_dict: dict
-       A dictionary that contains SimulationData objects from the 19 simulation folders
+        A dictionary that contains SimulationData objects from the 19 simulation folders
     position_num: str
-       name for the folders where you want the scatter plot go in
+        Name for the folders where you want the scatter plot go in
     dpi: int, optional
-       Quality of the plots
+        Quality of the plots
     """
     for key, value in data_dict.items():
         if "original" not in key:
@@ -266,16 +291,17 @@ def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800):
 def all_profiles(res_dir, data_dict, position_num, dpi=800):
     """
     Creates all the possible scatter plots for the same mutated position
-    parameters
+
+    Parameters
     ___________
     res_dir: str
-       Name of the results folder for the output
+        Name of the results folder for the output
     data_dict: dict
-       A dictionary that contains SimulationData objects from the simulation folders
+        A dictionary that contains SimulationData objects from the simulation folders
     position_num: str
-       name for the folders where you want the scatter plot go in
+        name for the folders where you want the scatter plot go in
     dpi: int, optional
-       Quality of the plots
+        Quality of the plots
     """
     types = ["distance0.5", "sasaLig", "currentEnergy"]
     for type_ in types:
@@ -286,25 +312,24 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
     """
     Extracts PDB files from trajectories
 
-    parameters
+    Parameters
     ___________
-
     res_dir: str
-       Name of the results folder where to store the output
+        Name of the results folder where to store the output
     simulation_folder: str
-       Path to the simulation folder
+        Path to the simulation folder
     f_id: str
-       trajectory file ID
+        trajectory file ID
     position_num: str
-       The folder name for the output of this function for the different simulations
+        The folder name for the output of this function for the different simulations
     mutation: str
-       The folder name for the output of this function for one of the simulations
+        The folder name for the output of this function for one of the simulations
     step: int
-       The step in the trajectory you want to keep
+        The step in the trajectory you want to keep
     dist: float
-       The distance between ligand and protein (used as name for the result file - not essential)
+        The distance between ligand and protein (used as name for the result file - not essential)
     bind: float
-       The binding energy between ligand and protein (used as name for the result file - not essential)
+        The binding energy between ligand and protein (used as name for the result file - not essential)
     """
     if not os.path.exists("results_{}/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
         os.makedirs("results_{}/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
@@ -336,7 +361,7 @@ def extract_10_pdb_single(info, res_dir, data_dict):
     """
     Extracts the top 10 distances for one mutation
 
-    parameters
+    Parameters
     ___________
     info: iterable
        An iterable with the variables simulation_folder, position_num and mutation
@@ -359,7 +384,7 @@ def extract_all(res_dir, data_dict, folders, cpus=24):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
 
-    parameters
+    Parameters
     ___________
     res_dir: str
        name of the results folder
@@ -389,7 +414,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     """
     Create pdf files with the plots of chosen mutations and the path to the
 
-    parameters
+    Parameters
     ___________
     res_dir: str
        Name of the results folder
@@ -486,7 +511,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     """
     Finds those mutations that decreases the binding distance and binding energy and creates a report
 
-    parameters
+    Parameters
     ___________
     res_dir: str
        Name of the results folder
@@ -531,7 +556,7 @@ def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
     """
     Creates all the plots for the different mutated positions
 
-    parameters
+    Parameters
     ___________
     file_name : str, iterable, directory
        A file, an iterable that contains the path to the PELE simulations folders or

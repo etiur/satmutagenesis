@@ -45,13 +45,12 @@ def submit(slurm_folder, nord=False):
     """
     Given a folder submits the job to the supercomputer
 
-    parameters
-    ___________
-
+    Parameters
+    __________
     slurm_folder: list[path]
-         A list of the slurm files path's
+        A list of the slurm files path's
     nord: bool, optional
-         True if it will run on NORD
+        True if it will run on NORD
     """
     for files in slurm_folder:
         if not nord:
@@ -64,12 +63,12 @@ def side_function(input_, dir_=None):
     """
     Put all the necessary previous steps here
 
-    parameters
+    Parameters
     ___________
     input_: str
-          The wild type PDB file path
+        The wild type PDB file path
     dir_: str, optional
-         Name of the folder ofr the simulations
+        Name of the folder ofr the simulations
 
     Returns
     _______
@@ -93,14 +92,14 @@ def pele_folders(input_, file_list, dir_=None):
     """
     Creates a file with the names of the different folders where the pele simulations are contained
 
-    parameters
+    Parameters
     ___________
     input_: str
-         The wild type PDB file path
+        The wild type PDB file path
     file_list: list[path]
-         list of pdb files path created during the saturated mutagenesis
+        list of pdb files path created during the saturated mutagenesis
     dir_: str, optional
-         Name of the folder ofr the simulations
+        Name of the folder ofr the simulations
     """
     os.chdir("../")
     if not dir_:

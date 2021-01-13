@@ -30,10 +30,15 @@ def parse_args():
 
 
 class CreateLaunchFiles:
+    """
+    Creates the 2 necessary files for the pele simulations
+    """
     def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24,
                  test=False, initial=None, cu=False, seed=12345, nord=False):
         """
-        parameters
+        Initialize the CreateLaunchFiles object
+
+        Parameters
         ___________
         input_: str
             PDB files path
@@ -86,7 +91,8 @@ class CreateLaunchFiles:
     def input_creation(self, yaml_name):
         """
         create the .yaml input files for PELE
-        parameters
+
+        Parameters
         ___________
         yaml_name: str
             Name for the input file for the simulation
@@ -121,7 +127,7 @@ class CreateLaunchFiles:
         """
         Creates the slurm running files for PELE in sbatch managed systems
 
-        parameters
+        Parameters
         ___________
         slurm_name: str
             Name for the batch file
@@ -154,7 +160,7 @@ class CreateLaunchFiles:
         """
         Create slurm files for PELE in LSF managed systems
 
-        parameters
+        Parameters
         ___________
         slurm_name: str
             Name of the file created
@@ -192,7 +198,8 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
                     cu=False, seed=12345, nord=False):
     """
     creates for each of the mutants the yaml and slurm files
-    parameters
+
+    Parameters
     ___________
     ligchain: str
         the chain ID where the ligand is located
@@ -221,7 +228,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
     Returns
     _______
     slurm_files: list[path]
-       A list of the files generated
+        A list of the files generated
     """
     slurm_files = []
     if isdir(str(file_)):
