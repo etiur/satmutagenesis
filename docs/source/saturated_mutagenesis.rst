@@ -9,7 +9,7 @@ analysis module
     :show-inheritance:
     :special-members: __init__
 
-helper module
+helper functions
 ------------------------------------
 
 .. automodule:: saturated_mutagenesis.helper
@@ -17,7 +17,7 @@ helper module
     :show-inheritance:
     :special-members: __init__
 
-main module
+main script
 ----------------------------------
 
 .. automodule:: saturated_mutagenesis.main
@@ -33,7 +33,7 @@ mutate\_pdb module
     :show-inheritance:
     :special-members: __init__
 
-pele\_files module
+pele\_files generator
 -----------------------------------------
 
 .. automodule:: saturated_mutagenesis.pele_files
