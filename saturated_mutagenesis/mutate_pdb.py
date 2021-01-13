@@ -16,10 +16,12 @@ def parse_args():
     parser.add_argument("--input", required=True, help="Include PDB file's path")
     parser.add_argument("--position", required=True, nargs="+",
                         help="Include one or more chain IDs and positions --> ID:position")
-    parser.add_argument("--multiple", required=False, action="store_true")
-    parser.add_argument("--hydrogen", required=False, action="store_false")
+    parser.add_argument("--multiple", required=False, action="store_true",
+                        help="if you want to mutate 2 residue in the same pdb")
+    parser.add_argument("--hydrogen", required=False, action="store_false", help="leave it to default")
     parser.add_argument("--folder", required=False, default="pdb_files", help="The folder for the pdb_files")
-    parser.add_argument("--consec", required=False, action="store_true")
+    parser.add_argument("--consec", required=False, action="store_true",
+                        help="Consecutively mutate the PDB file for several rounds")
     # arguments = vars(parser.parse_args())
     args = parser.parse_args()
     return args.input, args.position, args.hydrogen, args.multiple, args.folder, args.consec

@@ -32,8 +32,9 @@ def parse_args():
                         help="The name of the folder for all the simulations")
     parser.add_argument("--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("--hydrogen", required=False, action="store_false")
-    parser.add_argument("--consec", required=False, action="store_true")
+    parser.add_argument("--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("--consec", required=False, action="store_true",
+                        help="Consecutively mutate the PDB file for several rounds")
 
     args = parser.parse_args()
 
