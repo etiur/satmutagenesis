@@ -33,7 +33,7 @@ mutate\_pdb module
     :show-inheritance:
     :special-members: __init__
 
-pele\_files generator
+pele\_files module
 -----------------------------------------
 
 .. automodule:: saturated_mutagenesis.pele_files

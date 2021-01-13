@@ -7,6 +7,12 @@ Saturated Mutagenesis Package
 .. note::
    pmx is written in python 2.7
    
+User's guide
+-----------------
+.. toctree::
+   :maxdepth: 2
+   
+   manual
 
 API documentation
 -----------------

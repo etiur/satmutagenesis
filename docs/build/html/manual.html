@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How to use how to use the main script &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
+  <title>The manual &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
   
 
   
@@ -38,7 +38,9 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="saturated_mutagenesis" href="saturated_mutagenesis.html" />
+    <link rel="prev" title="Saturated Mutagenesis Package" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -83,7 +85,13 @@
               
             
             
-              <ul>
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The manual</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+</ul>
+</li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="saturated_mutagenesis.html">saturated_mutagenesis</a></li>
 </ul>
 
@@ -133,7 +141,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>How to use how to use the main script</li>
+      <li>The manual</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -152,8 +160,51 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-use-how-to-use-the-main-script">
-<h1>How to use how to use the main script<a class="headerlink" href="#how-to-use-how-to-use-the-main-script" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="the-manual">
+<h1>The manual<a class="headerlink" href="#the-manual" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line">The main usage of <code class="docutils literal notranslate"><span class="pre">saturated_mutagenesis</span></code> is to mutate a given position within a protein to all the other 19 aminoacids and to facilitate their analysis through PELE simulations by automating the file creation and simulation launching all together.</div>
+<div class="line">As a results, it outputs 19 PDBs + 1 PDB for the wildtype and the correspoding files for the PELE simulations in marenostrum or NORD, then it launches the files in these HPCs</div>
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">After the download from the <a class="reference external" href="https://github.com/etiur/saturated_mutagenesis">repository</a> you can readily use the main.py through the command line to generate the different files and lanch them.</div>
+<div class="line">Let’s see the necessary arguments</div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python saturated_mutagenesis.main --help
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: main.py [-h] --input INPUT --position POSITION [POSITION ...]
+           --ligchain LIGCHAIN --ligname LIGNAME --atom1 ATOM1 --atom2
+           ATOM2 [--cpus CPUS] [--cu] [--test] [--nord] [--multiple]
+           [--seed SEED] [--dir DIR] [--pdb_dir PDB_DIR] [--hydrogen]
+           [--consec]
+
+Generate the mutant PDB and the corresponding running files
+
+optional arguments:
+    -h, --help            show this help message and exit
+    --input INPUT         Include PDB file&#39;s path
+    --position POSITION [POSITION ...]
+                    Include one or more chain IDs and positions -&gt; chain ID:position
+    --ligchain LIGCHAIN   Include the chain ID of the ligand
+    --ligname LIGNAME     The ligand residue name
+    --atom1 ATOM1         atom of the residue to follow in this format -&gt; chain ID:position:atom name
+    --atom2 ATOM2         atom of the ligand to follow in this format -&gt; chain ID:position:atom name
+    --cpus CPUS           Include the number of cpus desired
+    --cu                  used if there are copper in the system
+    --test                Used if you want to run a test before
+    --nord                used if LSF is the utility managing the jobs
+    --multiple            if you want to mutate 2 residue in the same pdb
+    --seed SEED           Include the seed number to make the simulation reproducible
+    --dir DIR             The name of the folder for all the simulations
+    --pdb_dir PDB_DIR     The name for the mutated pdb folder
+    --hydrogen            leave it to default
+    --consec              Consecutively mutate the PDB file for several rounds
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -161,6 +212,10 @@
            
           </div>
           <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="saturated_mutagenesis.html" class="btn btn-neutral float-right" title="saturated_mutagenesis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Saturated Mutagenesis Package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
 
   <hr/>
 

@@ -1,19 +1,19 @@
-The manual for the Saturated Mutageneis
-*****************************************
+The manual
+***********
 
-| The main usage of ``saturated_mutagenesis`` is to mutate a given position within a protein to all the other 19 aminoacids, termed **saturated mutagenesis** and to facilitate their analysis through PELE simulations. 
-| As a results it outputs 19 PDBs + 1 PDB for the wildtype and the correspoding files for the PELE simulations in marenostrum or NORD 
+| The main usage of ``saturated_mutagenesis`` is to mutate a given position within a protein to all the other 19 aminoacids and to facilitate their analysis through PELE simulations by automating the file creation and simulation launching all together. 
+| As a results, it outputs 19 PDBs + 1 PDB for the wildtype and the correspoding files for the PELE simulations in marenostrum or NORD, then it launches the files in these HPCs
 
-Simple explanation
+Introduction
 ===================
-| After the download from the `repository <https://github.com/etiur/saturated_mutagenesis>`_ you can readily use the main.py through the command line to generate the different mutations and simulation files.
+| After the download from the `repository <https://github.com/etiur/saturated_mutagenesis>`_ you can readily use the main.py through the command line to generate the different files and lanch them.
 | Let's see the necessary arguments
 
 .. code-block:: bash
 
     $ python saturated_mutagenesis.main --help
 
-.. code-block::
+.. code-block:: bash
 
     usage: main.py [-h] --input INPUT --position POSITION [POSITION ...]
                --ligchain LIGCHAIN --ligname LIGNAME --atom1 ATOM1 --atom2
