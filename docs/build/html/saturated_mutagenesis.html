@@ -1,0 +1,899 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>saturated_mutagenesis &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Saturated Mutagenesis Package" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Saturated Mutagenesis
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">saturated_mutagenesis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.analysis">analysis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.helper">helper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.main">main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.mutate_pdb">mutate_pdb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.pele_files">pele_files module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Saturated Mutagenesis</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>saturated_mutagenesis</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/saturated_mutagenesis.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="saturated-mutagenesis">
+<h1>saturated_mutagenesis<a class="headerlink" href="#saturated-mutagenesis" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-saturated_mutagenesis.analysis">
+<span id="analysis-module"></span><h2>analysis module<a class="headerlink" href="#module-saturated_mutagenesis.analysis" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="saturated_mutagenesis.analysis.SimulationData">
+<em class="property">class </em><code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">SimulationData</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to store data from the simulations</p>
+<dl class="method">
+<dt id="saturated_mutagenesis.analysis.SimulationData.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the SimulationData Object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>folder</strong> (<em>str</em>) – path to the simulation folder</li>
+<li><strong>points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points to consider for the boxplots</li>
+<li><strong>pdb</strong> (<em>int</em><em>, </em><em>optional</em>) – how many pdbs to extract from the trajectories</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.analysis.SimulationData.filtering">
+<code class="descname">filtering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData.filtering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a dataframe from all the reports in a PELE simulation folder with the best 20% binding energies
+and a Series with the 100 best ligand distances</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.analysis.SimulationData.set_binding">
+<code class="descname">set_binding</code><span class="sig-paren">(</span><em>original_binding</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData.set_binding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the binding energy difference</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>original_binding</strong> (<em>int</em>) – The binding energy for the wild type</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.analysis.SimulationData.set_distance">
+<code class="descname">set_distance</code><span class="sig-paren">(</span><em>original_distance</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData.set_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the distance difference</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>original_distance</strong> (<em>int</em>) – The distrance for the wild type</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.all_profiles">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">all_profiles</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.all_profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates all the possible scatter plots for the same mutated position</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>res_dir</strong> (<em>str</em>) – Name of the results folder for the output</li>
+<li><strong>data_dict</strong> (<em>dict</em>) – A dictionary that contains SimulationData objects from the simulation folders</li>
+<li><strong>position_num</strong> (<em>str</em>) – name for the folders where you want the scatter plot go in</li>
+<li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Quality of the plots</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.analyse_all">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">analyse_all</code><span class="sig-paren">(</span><em>folders='.'</em>, <em>box=30</em>, <em>traj=10</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.analyse_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyse all the 19 simulations folders and build SimulationData objects for each of them</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>folders</strong> (<em>str</em><em>, </em><em>optional</em>) – path to the different PELE simulation folders to be analyzed</li>
+<li><strong>box</strong> (<em>int</em><em>, </em><em>optional</em>) – How many points to use for the box plots</li>
+<li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – How many snapshots to extract from the trajectories</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data_dict</strong> – Dictionary of SimulationData objects</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.box_plot">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">box_plot</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.box_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a box plot of the 19 mutations from the same position</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>res_dir</strong> (<em>str</em>) – name of the results folder</li>
+<li><strong>data_dict</strong> (<em>dict</em>) – A dictionary that contains SimulationData objects from the simulation folders</li>
+<li><strong>position_num</strong> (<em>str</em>) – Position at the which the mutations occurred</li>
+<li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The quality of the plots produced</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.consecutive_analysis">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">consecutive_analysis</code><span class="sig-paren">(</span><em>file_name</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>cpus=24</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.consecutive_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates all the plots for the different mutated positions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_name</strong> (<em>str</em><em>, </em><em>iterable</em><em>, </em><em>directory</em>) – A file, an iterable that contains the path to the PELE simulations folders or
+the path to the folders where the simulations are stored –&gt; it is equivalent to dirname(iterable[0])</li>
+<li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The quality of the plots</li>
+<li><strong>box</strong> (<em>int</em><em>, </em><em>optional</em>) – how many points are used for the box plots</li>
+<li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – how many top pdbs are extracted from the trajectories</li>
+<li><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the output file for the pdfs</li>
+<li><strong>plot_dir</strong> (<em>str</em>) – Name for the results folder</li>
+<li><strong>opt</strong> (<em>str</em><em>, </em><em>optional</em>) – choose if to analyse distance, binding or all</li>
+<li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – How many cpus to use to extract the top pdbs</li>
+<li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – The threshold for the mutations to be included in the pdf</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.create_report">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">create_report</code><span class="sig-paren">(</span><em>res_dir</em>, <em>mutation</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.create_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create pdf files with the plots of chosen mutations and the path to the</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>res_dir</strong> (<em>str</em>) – Name of the results folder</li>
+<li><strong>mutation</strong> (<em>dict</em>) – A dictionary of SimulationData objects {mutations: [distances, binding energies]}</li>
+<li><strong>position_num</strong> (<em>str</em>) – part of the path to the plots, the position that was mutated</li>
+<li><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – The pdf filename without the extension</li>
+<li><strong>analysis</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of the analysis (distance, binding or all)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>name</strong> – The path of the pdf file</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.extract_10_pdb_single">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">extract_10_pdb_single</code><span class="sig-paren">(</span><em>info</em>, <em>res_dir</em>, <em>data_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.extract_10_pdb_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the top 10 distances for one mutation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>info</strong> (<em>iterable</em>) – An iterable with the variables simulation_folder, position_num and mutation</li>
+<li><strong>res_dir</strong> (<em>str</em>) – Name of the results folder</li>
+<li><strong>data_dict</strong> (<em>dict</em>) – A dictionary that contains SimulationData objects from the simulation folders</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.extract_all">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">extract_all</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>folders</em>, <em>cpus=24</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.extract_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the top 10 distances for the 19 mutations at the same position</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>res_dir</strong> (<em>str</em>) – name of the results folder</li>
+<li><strong>data_dict</strong> (<em>dict</em>) – A dictionary that contains SimulationData objects from the 19 simulation folders</li>
+<li><strong>folders</strong> (<em>str</em>) – Path to the folder that has all the simulations at the same position</li>
+<li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – How many cpus to paralelize the function</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.extract_snapshot_from_pdb">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">extract_snapshot_from_pdb</code><span class="sig-paren">(</span><em>res_dir</em>, <em>simulation_folder</em>, <em>f_id</em>, <em>position_num</em>, <em>mutation</em>, <em>step</em>, <em>dist</em>, <em>bind</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.extract_snapshot_from_pdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts PDB files from trajectories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>res_dir</strong> (<em>str</em>) – Name of the results folder where to store the output</li>
+<li><strong>simulation_folder</strong> (<em>str</em>) – Path to the simulation folder</li>
+<li><strong>f_id</strong> (<em>str</em>) – trajectory file ID</li>
+<li><strong>position_num</strong> (<em>str</em>) – The folder name for the output of this function for the different simulations</li>
+<li><strong>mutation</strong> (<em>str</em>) – The folder name for the output of this function for one of the simulations</li>
+<li><strong>step</strong> (<em>int</em>) – The step in the trajectory you want to keep</li>
+<li><strong>dist</strong> (<em>float</em>) – The distance between ligand and protein (used as name for the result file - not essential)</li>
+<li><strong>bind</strong> (<em>float</em>) – The binding energy between ligand and protein (used as name for the result file - not essential)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.find_top_mutations">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">find_top_mutations</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.find_top_mutations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds those mutations that decreases the binding distance and binding energy and creates a report</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>res_dir</strong> (<em>str</em>) – Name of the results folder</li>
+<li><strong>data_dict</strong> (<em>dict</em>) – A dictionary of SimulationData objects that holds information for all mutations</li>
+<li><strong>position_num</strong> (<em>str</em>) – The position that was mutated</li>
+<li><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the reports created</li>
+<li><strong>analysis</strong> (<em>str</em><em>, </em><em>optional</em>) – Choose between (“distance”, “binding” or “all”) to specify how to filter the mutations to keep</li>
+<li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – Set the threshold for those mutations to be included in the pdf</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.pele_profile_single">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">pele_profile_single</code><span class="sig-paren">(</span><em>key</em>, <em>mutation</em>, <em>res_dir</em>, <em>wild</em>, <em>type_</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.pele_profile_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a plot for a single mutation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> (<em>str</em>) – name for the axis title and plot</li>
+<li><strong>mutation</strong> (<a class="reference internal" href="#saturated_mutagenesis.analysis.SimulationData" title="saturated_mutagenesis.analysis.SimulationData"><em>SimulationData</em></a>) – A SimulationData object</li>
+<li><strong>res_dir</strong> (<em>str</em>) – name of the results folder</li>
+<li><strong>wild</strong> (<a class="reference internal" href="#saturated_mutagenesis.analysis.SimulationData" title="saturated_mutagenesis.analysis.SimulationData"><em>SimulationData</em></a>) – SimulationData object that stores data for the wild type protein</li>
+<li><strong>type</strong> (<em>str</em>) – Type of scatter plot - distance0.5, sasaLig or currentEnergy</li>
+<li><strong>position_num</strong> (<em>str</em>) – name for the folder to keep the images from the different mutations</li>
+<li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Quality of the plots</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.analysis.pele_profiles">
+<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">pele_profiles</code><span class="sig-paren">(</span><em>type_</em>, <em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.pele_profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>type</strong> (<em>str</em>) – distance0.5, sasaLig or currentEnergy - different possibilities for the scatter plot</li>
+<li><strong>res_dir</strong> (<em>str</em>) – Name of the results folder</li>
+<li><strong>data_dict</strong> (<em>dict</em>) – A dictionary that contains SimulationData objects from the 19 simulation folders</li>
+<li><strong>position_num</strong> (<em>str</em>) – Name for the folders where you want the scatter plot go in</li>
+<li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Quality of the plots</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-saturated_mutagenesis.helper">
+<span id="helper-module"></span><h2>helper module<a class="headerlink" href="#module-saturated_mutagenesis.helper" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="saturated_mutagenesis.helper.isiterable">
+<code class="descclassname">saturated_mutagenesis.helper.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>p_object</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.helper.isiterable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if the parameter is an iterable or a file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>p_object</strong> (<em>object</em>) – Any object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>True</strong> – Returns true if the conditions are met</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.helper.map_atom_string">
+<code class="descclassname">saturated_mutagenesis.helper.</code><code class="descname">map_atom_string</code><span class="sig-paren">(</span><em>atom_string</em>, <em>initial_pdb</em>, <em>prep_pdb</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.helper.map_atom_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maps the chain ID and residue number of the original PDb file to the PDB file after pmx</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>atom_string</strong> (<em>str</em>) – The positions to map</li>
+<li><strong>initial_pdb</strong> (<em>str</em>) – The original PDB</li>
+<li><strong>prep_pdb</strong> (<em>str</em>) – The changed PDB</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>after</strong> – The new atom string or position</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-saturated_mutagenesis.main">
+<span id="main-module"></span><h2>main module<a class="headerlink" href="#module-saturated_mutagenesis.main" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="saturated_mutagenesis.main.pele_folders">
+<code class="descclassname">saturated_mutagenesis.main.</code><code class="descname">pele_folders</code><span class="sig-paren">(</span><em>input_</em>, <em>file_list</em>, <em>dir_=None</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.main.pele_folders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a file with the names of the different folders where the pele simulations are contained</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input</strong> (<em>str</em>) – The wild type PDB file path</li>
+<li><strong>file_list</strong> (<em>list</em><em>[</em><em>path</em><em>]</em>) – list of pdb files path created during the saturated mutagenesis</li>
+<li><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the folder ofr the simulations</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.main.side_function">
+<code class="descclassname">saturated_mutagenesis.main.</code><code class="descname">side_function</code><span class="sig-paren">(</span><em>input_</em>, <em>dir_=None</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.main.side_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put all the necessary previous steps here</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input</strong> (<em>str</em>) – The wild type PDB file path</li>
+<li><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the folder ofr the simulations</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>input_</strong> – The new path of the input</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.main.submit">
+<code class="descclassname">saturated_mutagenesis.main.</code><code class="descname">submit</code><span class="sig-paren">(</span><em>slurm_folder</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.main.submit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a folder submits the job to the supercomputer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>slurm_folder</strong> (<em>list</em><em>[</em><em>path</em><em>]</em>) – A list of the slurm files path’s</li>
+<li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if it will run on NORD</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-saturated_mutagenesis.mutate_pdb">
+<span id="mutate-pdb-module"></span><h2>mutate_pdb module<a class="headerlink" href="#module-saturated_mutagenesis.mutate_pdb" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis">
+<em class="property">class </em><code class="descclassname">saturated_mutagenesis.mutate_pdb.</code><code class="descname">Mutagenesis</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis" title="Permalink to this definition">¶</a></dt>
+<dd><p>To perform mutations on PDB files</p>
+<dl class="method">
+<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Mutagenesis object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>model</strong> (<em>str</em>) – path to the PDB file</li>
+<li><strong>position</strong> (<em>str</em>) – chain ID:position of the residue, for example A:132</li>
+<li><strong>folder</strong> (<em>str</em>) – The folder where the pdbs are written</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.accelerated_insert">
+<code class="descname">accelerated_insert</code><span class="sig-paren">(</span><em>file_list=None</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.accelerated_insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Paralelizes the insert atomtype function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_list</strong> (<em>list</em><em>[</em><em>path</em><em>]</em>) – optional if you want to include another list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.insert_atomtype">
+<code class="descname">insert_atomtype</code><span class="sig-paren">(</span><em>prep_pdb</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.insert_atomtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>modifies the pmx PDB files to include the atom type</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>prep_pdb</strong> (<em>path</em>) – PDB files to modify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.mutate">
+<code class="descname">mutate</code><span class="sig-paren">(</span><em>residue</em>, <em>new_aa</em>, <em>bbdep</em>, <em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.mutate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mutate the wild type residue to a new residue</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>residue</strong> (<em>pmx object</em>) – The residue has to be an pmx object</li>
+<li><strong>new_aa</strong> (<em>str</em>) – A 3 letter or 1 letter coe to represent the new residue</li>
+<li><strong>bbdep</strong> – A database that can be interpreted by pmx</li>
+<li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean, leave it to True because False cause problems with cysteine</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.saturated_mutagenesis">
+<code class="descname">saturated_mutagenesis</code><span class="sig-paren">(</span><em>hydrogens=True</em>, <em>mode=0</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.saturated_mutagenesis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate all the other 19 mutations</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS</li>
+<li><strong>mode</strong> (<em>0/1</em><em>, </em><em>optional</em>) – Acts as a switch, 0 if only 1 mutation per PDB, 1 if 2 mutations per PDB</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>final_pdbs</strong> – A list of the new files</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list[path]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.single_mutagenesis">
+<code class="descname">single_mutagenesis</code><span class="sig-paren">(</span><em>new_aa</em>, <em>hydrogens=True</em>, <em>mode=0</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.single_mutagenesis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create single mutations</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>new_aa</strong> (<em>str</em>) – The aa to mutate to, in 3 letter code or 1 letter code</li>
+<li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS</li>
+<li><strong>mode</strong> (<em>0/1</em><em>, </em><em>optional</em>) – 0 if it is just 1 mutation per PDB, 1 if there are more than one mutations</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>file_</strong> – The name of the new pdb file</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.mutate_pdb.generate_mutations">
+<code class="descclassname">saturated_mutagenesis.mutate_pdb.</code><code class="descname">generate_mutations</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>hydrogens=True</em>, <em>multiple=False</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.generate_mutations" title="Permalink to this definition">¶</a></dt>
+<dd><p>To generate up to 2 mutations per pdb</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input</strong> (<em>str</em>) – Input pdb to be used to generate the mutations</li>
+<li><strong>position</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – [chain ID:position] of the residue, for example [A:139,..]</li>
+<li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS</li>
+<li><strong>multiple</strong> (<em>bool</em><em>, </em><em>optional</em>) – Specify if to mutate 2 positions at the same pdb</li>
+<li><strong>folder</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the folder where the new PDb files will be stored</li>
+<li><strong>consec</strong> (<em>bool</em><em>, </em><em>optional</em>) – Consecutively mutate the PDB file for several rounds</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pdbs</strong> – The list of all generated pdbs’ path</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list[paths]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-saturated_mutagenesis.pele_files">
+<span id="pele-files-module"></span><h2>pele_files module<a class="headerlink" href="#module-saturated_mutagenesis.pele_files" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles">
+<em class="property">class </em><code class="descclassname">saturated_mutagenesis.pele_files.</code><code class="descname">CreateLaunchFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the 2 necessary files for the pele simulations</p>
+<dl class="method">
+<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the CreateLaunchFiles object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input</strong> (<em>str</em>) – PDB files path</li>
+<li><strong>ligchain</strong> (<em>str</em>) – the chain ID where the ligand is located</li>
+<li><strong>ligname</strong> (<em>str</em>) – the residue name of the ligand in the PDB</li>
+<li><strong>atom1</strong> (<em>str</em>) – atom of the residue to follow in this format –&gt; chain ID:position:atom name</li>
+<li><strong>atom2</strong> (<em>str</em>) – atom of the ligand to follow in this format –&gt; chain ID:position:atom name</li>
+<li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – How many cpus do you want to use</li>
+<li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
+<li><strong>initial</strong> (<em>file</em><em>, </em><em>optional</em>) – The initial PDB file before the modification by pmx</li>
+<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
+<li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
+<li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles.input_creation">
+<code class="descname">input_creation</code><span class="sig-paren">(</span><em>yaml_name</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles.input_creation" title="Permalink to this definition">¶</a></dt>
+<dd><p>create the .yaml input files for PELE</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>yaml_name</strong> (<em>str</em>) – Name for the input file for the simulation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles.slurm_creation">
+<code class="descname">slurm_creation</code><span class="sig-paren">(</span><em>slurm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles.slurm_creation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the slurm running files for PELE in sbatch managed systems</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>slurm_name</strong> (<em>str</em>) – Name for the batch file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles.slurm_nord">
+<code class="descname">slurm_nord</code><span class="sig-paren">(</span><em>slurm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles.slurm_nord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create slurm files for PELE in LSF managed systems</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>slurm_name</strong> (<em>str</em>) – Name of the file created</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="saturated_mutagenesis.pele_files.create_20sbatch">
+<code class="descclassname">saturated_mutagenesis.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>file_</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates for each of the mutants the yaml and slurm files</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ligchain</strong> (<em>str</em>) – the chain ID where the ligand is located</li>
+<li><strong>ligname</strong> (<em>str</em>) – the residue name of the ligand in the PDB</li>
+<li><strong>atom1</strong> (<em>str</em>) – atom of the residue to follow  –&gt; chain ID:position:atom name</li>
+<li><strong>atom2</strong> (<em>str</em>) – atom of the ligand to follow  –&gt; chain ID:position:atom name</li>
+<li><strong>file</strong> (<em>iterable</em><em>, </em><em>dir</em><em> or </em><em>a file</em>) – An iterable of the location of the different pdb files, a name of the folder
+or a file of the path to the different pdb files</li>
+<li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – how many cpus do you want to use</li>
+<li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
+<li><strong>initial</strong> (<em>file</em><em>, </em><em>optional</em>) – The initial PDB file before the modification by pmx if the residue number are changed</li>
+<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
+<li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
+<li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>slurm_files</strong> – A list of the files generated</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list[path]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="index.html" class="btn btn-neutral float-left" title="Saturated Mutagenesis Package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Ruite.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
