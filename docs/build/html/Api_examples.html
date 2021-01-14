@@ -1,0 +1,302 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>The API guide &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="saturated_mutagenesis" href="saturated_mutagenesis.html" />
+    <link rel="prev" title="The creation of files for PELE simulations" href="pele_files.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Saturated Mutagenesis
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="manual.html">The manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutate_pdb.html">The generation of mutations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of files for PELE simulations</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The API guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-mutate-pdb-module">The mutate_pdb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-pele-files-module">The pele_files module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-analysis">The Analysis</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="saturated_mutagenesis.html">saturated_mutagenesis</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Saturated Mutagenesis</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>The API guide</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/Api_examples.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="the-api-guide">
+<h1>The API guide<a class="headerlink" href="#the-api-guide" title="Permalink to this headline">¶</a></h1>
+<p>Now let’s see how to use the python API instead of the command line</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mutate_pdb</span> <span class="kn">import</span> <span class="n">Mutagenesis</span><span class="p">,</span> <span class="n">generate_mutations</span>
+<span class="kn">from</span> <span class="nn">pele_files</span> <span class="kn">import</span> <span class="n">CreateLaunchFiles</span><span class="p">,</span> <span class="n">create_20sbatch</span>
+<span class="kn">from</span> <span class="nn">analysis</span> <span class="kn">import</span> <span class="n">SimulationData</span><span class="p">,</span> <span class="n">analyse_all</span><span class="p">,</span> <span class="n">box_plot</span><span class="p">,</span> <span class="n">all_profiles</span><span class="p">,</span> <span class="n">extract_all</span><span class="p">,</span> <span class="n">find_top_mutations</span><span class="p">,</span> <span class="n">consecutive_analysis</span>
+</pre></div>
+</div>
+<div class="section" id="the-mutate-pdb-module">
+<h2>The mutate_pdb module<a class="headerlink" href="#the-mutate-pdb-module" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Mutagenesis</span></code> is a simple class to perform saturated mutagenesis or single mutagenesis</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="o">=</span> <span class="n">Mutagenesis</span><span class="p">(</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;A:145&quot;</span><span class="p">,</span> <span class="s2">&quot;pdb_files&quot;</span><span class="p">)</span> <span class="c1">#Arguments are PDB, Chain ID:position num and the name of a folder for the output</span>
+<span class="n">pdbs</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">saturated_mutagenesis</span><span class="p">(</span><span class="n">hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">run</span><span class="o">.</span><span class="n">accelerated_insert</span><span class="p">()</span> <span class="c1"># The pmx package removes the last column of the PDB file so it needs to be reinserted</span>
+
+<span class="n">run</span> <span class="o">=</span> <span class="n">Mutagenesis</span><span class="p">(</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;A:145&quot;</span><span class="p">,</span> <span class="s2">&quot;pdb_files&quot;</span><span class="p">)</span>
+<span class="n">new_aa</span> <span class="o">=</span> <span class="s2">&quot;CYS&quot;</span>
+<span class="n">file_</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">single_mutagnesis</span><span class="p">(</span><span class="n">new_aa</span><span class="p">,</span> <span class="n">hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1">#we don&#39;t need the accelerated insert in this case, since it is a single mutation</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">generate_mutations</span></code> is function that uses the class to mutate at several positions at once, 20 X 20 mutations or consecutively mutate at several positions.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pdbs</span> <span class="o">=</span> <span class="n">generate_mutations</span><span class="p">(</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;A:145&quot;</span><span class="p">,</span> <span class="n">hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="s2">&quot;pdb_files&quot;</span><span class="p">,</span> <span class="n">consec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line">The <em>multiple</em> argument is used when we want to perform 20 X 20 mutations</div>
+<div class="line">The <em>consec</em> argument is used when you select 1 of the mutations of the first round of mutagenesis to start a second round, it will preserve the name of the PDB.</div>
+</div>
+</div>
+<div class="section" id="the-pele-files-module">
+<h2>The pele_files module<a class="headerlink" href="#the-pele-files-module" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">`CreateLaunchFiles</span></code> is a class that can generate the .yaml and the .sh files for the PELE simulations for a single PDB system.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="o">=</span> <span class="n">CreateLaunchFiles</span><span class="p">(</span><span class="n">input_</span><span class="o">=</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="n">ligchain</span><span class="o">=</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="n">ligname</span><span class="o">=</span><span class="s2">&quot;ligand&quot;</span><span class="p">,</span> <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;C:1:CU&quot;</span><span class="p">,</span>
+<span class="n">atom2</span><span class="o">=</span><span class="s2">&quot;L:1:N1&quot;</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12345</span><span class="p">,</span> <span class="n">nord</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">run</span><span class="o">.</span><span class="n">input_creation</span><span class="p">(</span><span class="s2">&quot;yaml_name&quot;</span><span class="p">)</span>
+<span class="n">run</span><span class="o">.</span><span class="n">slurm_creation</span><span class="p">(</span><span class="s2">&quot;slurm_name&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">create_20sbatch</span></code> is a function that uses the class to create the pele files for more than 1 PDBs, it acceps directories, files or iterables, for instance the list of pdbs generated by generate_mutations</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pdbs</span> <span class="o">=</span> <span class="n">generate_mutations</span><span class="p">(</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;A:145&quot;</span><span class="p">,</span> <span class="n">hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="s2">&quot;pdb_files&quot;</span><span class="p">,</span> <span class="n">consec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">slurm_files</span> <span class="o">=</span> <span class="n">create_20sbatch</span><span class="p">(</span><span class="n">ligchain</span><span class="o">=</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="n">ligname</span><span class="o">=</span><span class="s2">&quot;ligand&quot;</span><span class="p">,</span> <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;C:1:CU&quot;</span><span class="p">,</span> <span class="n">atom2</span><span class="o">=</span><span class="s2">&quot;L:1:N1&quot;</span><span class="p">,</span> <span class="n">file_</span><span class="o">=</span> <span class="n">pdbs</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">cu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12345</span><span class="p">,</span> <span class="n">nord</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-analysis">
+<h2>The Analysis<a class="headerlink" href="#the-analysis" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">The main script combines the 2 functions from before and automatically submits the created slurm files as jobs to the HPCs in marenostrum or in Nord.</div>
+<div class="line">But the returned simulations must be analyzed to see if any of the mutations has improved the binding energy, the distance of both of the metrics in relation to the wild type, which is where the Analysis modules comes into play.</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">SimulationData</span></code> is a class that stores data of the simulation, it contains the binding energies and the distance in angstroms of the ligand and the protein</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">SimulationData</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="s2">&quot;PELE_simulation&quot;</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">pdb</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="c1"># points are how many data points to consider for binding energies and the distance analysis, and pdb is how many best trajectories to extract</span>
+<span class="n">data</span><span class="o">.</span><span class="n">filtering</span><span class="p">()</span> <span class="c1">#Takes the previous arguments and performs the filtering process to keep the top 30 data points</span>
+<span class="n">data</span><span class="o">.</span><span class="n">set_distance</span><span class="p">(</span><span class="n">original_distance</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">set_binding</span><span class="p">(</span><span class="n">original_binding_energy</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">analyse_all</span></code> is the function that uses the class to store the simulation data from the 20 simulations (19 for the mutations + 1 for the wildtype) and returns a dictionary</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_dict</span> <span class="o">=</span> <span class="n">analyse_all</span><span class="p">(</span><span class="n">folders</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">box</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">traj</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">box_plot</span></code> takes as the argument the <em>data_dict</em> to generate a box plot of all the distance and binding energy variations of the 19 mutations</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">box_plot</span><span class="p">(</span><span class="n">res_dir</span><span class="o">=</span><span class="s2">&quot;analysis_dir&quot;</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">position_num</span><span class="o">=</span><span class="s2">&quot;T165&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span> <span class="c1"># the position_num is an argument used to give name to the different plots, the default is the residue anem and position</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">all_profiles</span></code> is a function that creates scatter plots, the same as those created after the PELE simulations but the mutations are superimposed with the wildtype. Again it takes as argument <em>data_dict</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">all_profiles</span><span class="p">(</span><span class="n">res_dir</span><span class="o">=</span><span class="s2">&quot;analysis_dir&quot;</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">position_num</span><span class="o">=</span><span class="s2">&quot;T165&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">extract_all</span></code> is a function that extracts, of all the simulation steps from a mutation, the top 10 steps in terms of ligand-protein binding distance. The function takes as argument data_dict to extract from all the mutations.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">extract_all</span><span class="p">(</span><span class="n">res_dir</span><span class="o">=</span><span class="s2">&quot;analysis_dir&quot;</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">folders</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span> <span class="c1"># the folders if the same argument for the folder sin analyse_all</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">find_top_mutations</span></code> is a function that searches within the data_dict to find those mutations that improves on a chosen metric (energy, distance or both) with an increment superior to a predetermined threshold, as a results it creates a report with all the plots generated for those mutations in a PDF file.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">find_top_mutations</span><span class="p">(</span><span class="n">res_dir</span><span class="o">=</span><span class="s2">&quot;analysis_dir&quot;</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">position_num</span><span class="o">=</span><span class="s2">&quot;T165&quot;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;summary&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="n">thres</span><span class="o">=-</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">consecutive_analysis</span></code> is the function that gathers all of the previous functions and allows the analysis of more than 1 position.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">consecutive_analysis</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;path1&quot;</span><span class="p">,</span> <span class="s2">&quot;path2&quot;</span><span class="p">,</span> <span class="s2">&quot;path3&quot;</span><span class="p">],</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">box</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">traj</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;summary&quot;</span><span class="p">,</span> <span class="n">plot_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">thres</span><span class="o">=-</span><span class="mf">0.1</span><span class="p">)</span> <span class="c1"># file_name argument can accept an iterable, directory or a file that contains the path to the folders where the different pele simulations are stored.</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="saturated_mutagenesis.html" class="btn btn-neutral float-right" title="saturated_mutagenesis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pele_files.html" class="btn btn-neutral float-left" title="The creation of files for PELE simulations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Ruite.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

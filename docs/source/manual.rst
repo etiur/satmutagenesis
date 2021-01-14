@@ -1,7 +1,7 @@
 The manual
 ***********
 
-| The main usage of ``saturated_mutagenesis`` is to mutate a given position within a protein to all the other 19 aminoacids and to facilitate their analysis through PELE simulations by automating the file creation and simulation launching all together. 
+| The main usage of ``saturated_mutagenesis`` is to mutate a given position within a protein to all the other 19 aminoacids and to facilitate their analysis and the effects on protein-ligand interactions through PELE simulations by automating the file creation and simulation launching all together. 
 | As a results, it outputs 19 PDBs + 1 PDB for the wildtype and the correspoding files for the PELE simulations in marenostrum or NORD, then it launches the files in these HPCs
 
 Introduction
