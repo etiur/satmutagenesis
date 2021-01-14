@@ -8,7 +8,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
     parser.add_argument("--folder", required=True,
-                        help="Include the folder where the pdb files are located")
+                        help="An iterable of the path to different pdb files, a name of the folder or a file of the "
+                             "path to the different pdb files")
     parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--ligname", required=True, help="The ligand residue name")
     parser.add_argument("--atom1", required=True,
@@ -210,7 +211,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
     atom2: str
         atom of the ligand to follow  --> chain ID:position:atom name
     file_: iterable, dir or a file
-        An iterable of the location of the different pdb files, a name of the folder
+        An iterable of the path to different pdb files, a name of the folder
         or a file of the path to the different pdb files
     cpus: int, optional
         how many cpus do you want to use

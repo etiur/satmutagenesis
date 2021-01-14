@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--thres", required=False, default=-0.1, type=float,
-                        help="The threshold for the improvement")
+                        help="The threshold for the improvement which will affect what will be included in the summary")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.box, args.traj, args.out, args.folder, args.analyse,
