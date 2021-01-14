@@ -6,7 +6,7 @@ The manual
 
 Introduction
 ===================
-| After the download from the `repository <https://github.com/etiur/saturated_mutagenesis>`_ you can readily use the main.py through the command line to generate the different files and lanch them.
+| After the download from the `repository <https://github.com/etiur/saturated_mutagenesis>`_ you can readily use the main.py through the command line to generate the different files and lanch them on marenostrum or Nord.
 | Let's see the necessary arguments
 
 .. code-block:: bash
@@ -24,22 +24,69 @@ Introduction
     Generate the mutant PDB and the corresponding running files
 
     optional arguments:
-        -h, --help            show this help message and exit
+        -h, --help            Show this help message and exit
         --input INPUT         Include PDB file's path
         --position POSITION [POSITION ...]
-                        Include one or more chain IDs and positions -> chain ID:position
+                              Include one or more chain IDs and positions -> chain ID:position
         --ligchain LIGCHAIN   Include the chain ID of the ligand
         --ligname LIGNAME     The ligand residue name
-        --atom1 ATOM1         atom of the residue to follow in this format -> chain ID:position:atom name
-        --atom2 ATOM2         atom of the ligand to follow in this format -> chain ID:position:atom name
+        --atom1 ATOM1         Atom of the residue to follow in this format -> chain ID:position:atom name
+        --atom2 ATOM2         Atom of the ligand to follow in this format -> chain ID:position:atom name
         --cpus CPUS           Include the number of cpus desired
-        --cu                  used if there are copper in the system
+        --cu                  Used if there are copper in the system
         --test                Used if you want to run a test before
         --nord                used if LSF is the utility managing the jobs
         --multiple            if you want to mutate 2 residue in the same pdb
         --seed SEED           Include the seed number to make the simulation reproducible
         --dir DIR             The name of the folder for all the simulations
         --pdb_dir PDB_DIR     The name for the mutated pdb folder
-        --hydrogen            leave it to default
+        --hydrogen            Leave it to default
         --consec              Consecutively mutate the PDB file for several rounds
         
+The first 6 arguments are necessary and the rest are optional, for example:
+
+.. code-block:: bash
+
+    $ python -m saturated_mutagenesis.main --input PK2_F454T.pdb --position A:454 --ligchain 'L' --ligname 'ANL' --atom1 "C:1:CU" --atom2 "L:1:N1" --cu --test
+
+
+Analysis
+=========
+Once the simulation has been lanched, wait until the results from the simulations are generated and then you can start the analysis with the ``analysis module`` in the command line.
+
+.. code-block:: bash
+
+    $ python -m saturated_mutagenesis.analysis --help
+    
+.. code-block:: bash
+
+    usage: analysis.py [-h] --inp INP [--dpi DPI] [--box BOX] [--traj TRAJ]
+                   [--out OUT] [--folder FOLDER]
+                   [--analyse {energy,distance,all}] [--cpus CPUS]
+                   [--thres THRES]
+
+    Analyse the different PELE simulations and create plots
+
+    optional arguments:
+        -h, --help            Show this help message and exit
+        --inp INP             Include a file or list with the path to the folders
+                              with PELE simulations inside
+        --dpi DPI             Set the quality of the plots
+        --box BOX             Set how many data points are used for the boxplot
+        --traj TRAJ           Set how many PDBs are extracted from the trajectories
+        --out OUT             Name of the summary file created at the end of the
+                              analysis
+        --folder FOLDER       Name of the plots folder
+        --analyse {energy,distance,all}
+                              The metric to measure the improvement of the system
+        --cpus CPUS           Include the number of cpus desired
+        --thres THRES         The threshold for the improvement which will affect
+                              what will be included in the summary
+                              
+| Given a input file with the path to the folders where the PELE simulation results are stored, which is generated automatically by the main script, it will search within the       folders and generate several plots by comparing the mutations with the wildtype. 
+| Then it will create a summary in **PDF format** with all the best mutations according to user defined threshold and metric of choice (energy, distance or both).
+
+.. code-block:: bash
+
+    $ python analysis.py --inp folder_names.txt
+

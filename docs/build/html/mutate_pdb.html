@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>The Saturated Mutagenesis Package &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
+  <title>The generation of mutations &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
   
 
   
@@ -39,7 +39,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="The manual" href="manual.html" /> 
+    <link rel="next" title="The creation of files for PELE simulations" href="pele_files.html" />
+    <link rel="prev" title="The manual" href="manual.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -53,7 +54,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> Saturated Mutagenesis
+            <a href="index.html" class="icon icon-home"> Saturated Mutagenesis
           
 
           
@@ -84,9 +85,9 @@
               
             
             
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="manual.html">The manual</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mutate_pdb.html">The generation of mutations</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The generation of mutations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of files for PELE simulations</a></li>
 </ul>
 <ul>
@@ -106,7 +107,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">Saturated Mutagenesis</a>
+          <a href="index.html">Saturated Mutagenesis</a>
         
       </nav>
 
@@ -137,15 +138,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>The Saturated Mutagenesis Package</li>
+      <li>The generation of mutations</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/mutate_pdb.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -158,40 +159,36 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="the-saturated-mutagenesis-package">
-<h1>The Saturated Mutagenesis Package<a class="headerlink" href="#the-saturated-mutagenesis-package" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="the-generation-of-mutations">
+<h1>The generation of mutations<a class="headerlink" href="#the-generation-of-mutations" title="Permalink to this headline">¶</a></h1>
+<p>Now let’s look at the individual scripts starting with the mutate_pdb.py which can be used if you only want to generate the PDB files of the mutations. It outputs 19 PDBs + 1 PDB for the wildtype.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m saturated_mutagenesis.mutate_pdb --help
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: mutate_pdb.py [-h] --input INPUT --position POSITION [POSITION ...]
+                 [--multiple] [--hydrogen] [--folder FOLDER] [--consec]
+
+Performs saturated mutagenesis given a PDB file
+
+optional arguments:
+    -h, --help            show this help message and exit
+    --input INPUT         Include PDB file&#39;s path
+    --position POSITION [POSITION ...]
+                          Include one or more chain IDs and positions --&gt;
+                          ID:position
+    --multiple            if you want to mutate 2 residue in the same pdb
+    --hydrogen            leave it to default
+    --folder FOLDER       The folder for the pdb_files
+    --consec              Consecutively mutate the PDB file for several rounds
+</pre></div>
+</div>
+<p>There are 2 necessary arguments, input or the wildtype PDB file and the position or positions to mutate, for example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$  python -m saturated_mutagenesis.mutate_pdb --input PK2_F454T.pdb --position A:454 A:135
+</pre></div>
+</div>
 <div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">saturated_mutagenesis</span></code> is a python package, wrappped around the <a class="reference external" href="https://github.com/deGrootLab/pmx">pmx package</a>, that performs mutations on proteins.</div>
-<div class="line">Given a position of a residue within a protein, it mutates to all the other 19 aminoacids and subsequently, it will create the files necessary for the PELE simulations.</div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">pmx is written in python 2.7</p>
-</div>
-<div class="section" id="user-s-guide">
-<h2>User’s guide<a class="headerlink" href="#user-s-guide" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="manual.html">The manual</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mutate_pdb.html">The generation of mutations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of files for PELE simulations</a></li>
-</ul>
-</div>
-</div>
-<div class="section" id="api-documentation">
-<h2>API documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="saturated_mutagenesis.html">saturated_mutagenesis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="saturated_mutagenesis.html#module-saturated_mutagenesis.analysis">analysis module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="saturated_mutagenesis.html#module-saturated_mutagenesis.helper">helper functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="saturated_mutagenesis.html#module-saturated_mutagenesis.main">main script</a></li>
-<li class="toctree-l2"><a class="reference internal" href="saturated_mutagenesis.html#module-saturated_mutagenesis.mutate_pdb">mutate_pdb module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="saturated_mutagenesis.html#module-saturated_mutagenesis.pele_files">pele_files module</a></li>
-</ul>
-</li>
-</ul>
-</div>
+<div class="line">If the flag <code class="docutils literal notranslate"><span class="pre">--multiple</span></code> is present and there are 2 positions to mutate to, it will generate 400 PDBs as a result of the combination of 20 X 20 mutations.</div>
+<div class="line">If the flag <code class="docutils literal notranslate"><span class="pre">--consec</span></code> is present, it means that you have mutated 20 residues the first time, and you are selecting 1 of those 20 mutations to start the second round fo mutations. The flag preserves the name of the PDB file so you know from which PDB file it came from the second mutation.</div>
 </div>
 </div>
 
@@ -201,7 +198,8 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="manual.html" class="btn btn-neutral float-right" title="The manual" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pele_files.html" class="btn btn-neutral float-right" title="The creation of files for PELE simulations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="manual.html" class="btn btn-neutral float-left" title="The manual" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

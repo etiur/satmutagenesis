@@ -1,8 +1,8 @@
-Saturated Mutagenesis Package
-******************************
+The Saturated Mutagenesis Package
+**********************************
 
 | ``saturated_mutagenesis`` is a python package, wrappped around the `pmx package <https://github.com/deGrootLab/pmx>`_, that performs mutations on proteins.
-| Given a position of a residue, it mutates to the other 19 aminoacids and will create all the files necessary for the PELE simulations.
+| Given a position of a residue within a protein, it mutates to all the other 19 aminoacids and subsequently, it will create the files necessary for the PELE simulations.
 
 .. note::
    pmx is written in python 2.7
@@ -10,9 +10,11 @@ Saturated Mutagenesis Package
 User's guide
 -----------------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    manual
+   mutate_pdb
+   pele_files
 
 API documentation
 -----------------
