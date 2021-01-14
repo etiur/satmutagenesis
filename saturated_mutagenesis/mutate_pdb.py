@@ -168,6 +168,7 @@ class Mutagenesis:
             output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, new)
         file_ = "{}/{}".format(self.folder, output)
         self.model.write(file_)
+        self.insert_atomtype(file_)
 
         return file_
 

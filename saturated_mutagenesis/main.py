@@ -69,7 +69,7 @@ def side_function(input_, dir_=None):
     input_: str
         The wild type PDB file path
     dir_: str, optional
-        Name of the folder ofr the simulations
+        Name of the folder for the simulations
 
     Returns
     _______
