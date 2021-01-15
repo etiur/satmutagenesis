@@ -1,4 +1,4 @@
-| **About** | [![License]](https://img.shields.io/badge/License-MIT-blue.svg) [![Python](https://img.shields.io/badge/python-2.7%20-blue.svg)
+| **About** | [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-2.7%20-blue.svg)
 | :------ | :------- |
 
 # Saturated_Mutagenesis
