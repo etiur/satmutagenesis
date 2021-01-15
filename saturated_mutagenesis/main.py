@@ -1,3 +1,13 @@
+"""
+This script is designed to run saturated_mutagenesis through the command-line.
+"""
+
+__author__ = "Ruite Xiang"
+__license__ = "MIT"
+__maintainer__ = "Ruite Xiang"
+__email__ = "ruite.xiang@bsc.es"
+
+
 import argparse
 from mutate_pdb import generate_mutations
 from pele_files import create_20sbatch
