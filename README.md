@@ -1,4 +1,4 @@
-| **About** | [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-2.7%20-blue.svg)
+| **About** | [![License]](https://img.shields.io/badge/License-MIT-blue.svg)(LICENSE) [![Python](https://img.shields.io/badge/python-2.7%20-blue.svg)
 | :------ | :------- |
 
 # Saturated_Mutagenesis
@@ -9,9 +9,9 @@ Given a position of a residue within a protein system:
 2. Then, it will create the files necessary for the PELE simulations the .yaml and the .sh files for each of the protein systems.
 
 ## Software requirements
-* [numpy]https://numpy.org/)
+* [numpy](https://numpy.org/)
 * [scipy](https://www.scipy.org/)
 * [matplotlib](https://matplotlib.org/)
-* [pmx] (https://pypi.org/project/pmx/)
-* [seaborn] (https://seaborn.pydata.org/)
-* [fpdf] (https://pyfpdf.readthedocs.io/en/latest/#installation)
+* [pmx](https://pypi.org/project/pmx/)
+* [seaborn](https://seaborn.pydata.org/)
+* [fpdf](https://pyfpdf.readthedocs.io/en/latest/#installation)
