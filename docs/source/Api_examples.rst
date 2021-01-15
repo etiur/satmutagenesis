@@ -51,8 +51,8 @@ The pele_files module
     slurm_files = create_20sbatch(ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", file_= pdbs, cpus=24, test=False, initial=None,
                     cu=False, seed=12345, nord=False)
 
-The Analysis
-================
+The Analysis module
+====================
 | The main script combines the 2 functions from before and automatically submits the created slurm files as jobs to the HPCs in marenostrum or in Nord.
 | But the returned simulations must be analyzed to see if any of the mutations has improved the binding energy, the distance of both of the metrics in relation to the wild type, which is where the Analysis modules comes into play.
 
