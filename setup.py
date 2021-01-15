@@ -14,5 +14,4 @@ setup(name="saturated_mutagenesis-etiur", author="Ruite Xiang", author_email="ru
                    "Intended Audience :: Science/Research",
                    "Natural Language :: English",
                    "Environment :: Console",
-                   "Development Status :: 1 - Planning",
-                   ])
+                   "Development Status :: 1 - Planning"])
