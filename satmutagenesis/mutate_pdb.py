@@ -166,7 +166,7 @@ class Mutagenesis:
             new = self._invert_aa[new_aa]
         else:
             raise Exception("Aminoacid not recognized")
-        
+
         if self.consec:
             name = basename(self.input).replace("pdb", "")
             output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, new)
