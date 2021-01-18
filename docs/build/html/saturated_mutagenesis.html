@@ -526,6 +526,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </div>
 <div class="section" id="module-saturated_mutagenesis.main">
 <span id="main-script"></span><h2>main script<a class="headerlink" href="#module-saturated_mutagenesis.main" title="Permalink to this headline">¶</a></h2>
+<p>This script is designed to run saturated_mutagenesis through the command-line.</p>
 <dl class="function">
 <dt id="saturated_mutagenesis.main.pele_folders">
 <code class="descclassname">saturated_mutagenesis.main.</code><code class="descname">pele_folders</code><span class="sig-paren">(</span><em>input_</em>, <em>file_list</em>, <em>dir_=None</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.main.pele_folders" title="Permalink to this definition">¶</a></dt>
@@ -592,11 +593,11 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <span id="mutate-pdb-module"></span><h2>mutate_pdb module<a class="headerlink" href="#module-saturated_mutagenesis.mutate_pdb" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis">
-<em class="property">class </em><code class="descclassname">saturated_mutagenesis.mutate_pdb.</code><code class="descname">Mutagenesis</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">saturated_mutagenesis.mutate_pdb.</code><code class="descname">Mutagenesis</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis" title="Permalink to this definition">¶</a></dt>
 <dd><p>To perform mutations on PDB files</p>
 <dl class="method">
 <dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the Mutagenesis object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -606,6 +607,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <li><strong>model</strong> (<em>str</em>) – path to the PDB file</li>
 <li><strong>position</strong> (<em>str</em>) – chain ID:position of the residue, for example A:132</li>
 <li><strong>folder</strong> (<em>str</em>) – The folder where the pdbs are written</li>
+<li><strong>consec</strong> (<em>bool</em>) – If this is the second round of mutation</li>
 </ul>
 </td>
 </tr>
