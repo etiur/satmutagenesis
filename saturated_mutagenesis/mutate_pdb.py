@@ -31,7 +31,7 @@ class Mutagenesis:
     """
     To perform mutations on PDB files
     """
-    def __init__(self, model, position, folder="pdb_files"):
+    def __init__(self, model, position, folder="pdb_files", consec=False):
         """
         Initialize the Mutagenesis object
 
@@ -43,6 +43,8 @@ class Mutagenesis:
            chain ID:position of the residue, for example A:132
         folder: str
            The folder where the pdbs are written
+        consec: bool
+           If this is the second round of mutation
         """
         self.model = Model(model)
         self.input = model
@@ -56,6 +58,7 @@ class Mutagenesis:
         self._invert_aa = {v: k for k, v in _aacids_dic.items()}
         self.folder = folder
         self.chain_id = None
+        self.consec = consec
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
@@ -89,6 +92,8 @@ class Mutagenesis:
         if not os.path.exists("{}/original.pdb".format(self.folder)):
             self.model.write("{}/original.pdb".format(self.folder))
             self.final_pdbs.append("{}/original.pdb".format(self.folder))
+        if self.consec:
+            self.final_pdbs.remove("{}/original.pdb")
 
         after = map_atom_string(self.coords, self.input, "{}/original.pdb".format(self.folder))
         self.chain_id = after.split(":")[0]
