@@ -103,7 +103,7 @@ class Mutagenesis:
             if chain_.id == self.chain_id:
                 self.chain = chain_
 
-    def saturated_mutagenesis(self, hydrogens=True, mode=0):
+    def saturated_mutagenesis(self, hydrogens=True):
         """
         Generate all the other 19 mutations
 
@@ -126,18 +126,18 @@ class Mutagenesis:
             if new_aa != aa_init_resname:
                 self.mutate(self.chain.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
                 # writing into a pdb
-                if not mode:
-                    output = "{}{}{}.pdb".format(aa_name, self.position + 1, self._invert_aa[new_aa])
-                else:
+                if self.consec:
                     name = basename(self.input).replace("pdb", "")
                     output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, self._invert_aa[new_aa])
+                else:
+                    output = "{}{}{}.pdb".format(aa_name, self.position + 1, self._invert_aa[new_aa])
 
                 self.model.write("{}/{}".format(self.folder, output))
                 self.final_pdbs.append("{}/{}".format(self.folder, output))
 
         return self.final_pdbs
 
-    def single_mutagenesis(self, new_aa, hydrogens=True, mode=0):
+    def single_mutagenesis(self, new_aa, hydrogens=True):
         """
         Create single mutations
 
@@ -166,11 +166,13 @@ class Mutagenesis:
             new = self._invert_aa[new_aa]
         else:
             raise Exception("Aminoacid not recognized")
-        if not mode:
-            output = "{}{}{}.pdb".format(aa_name, self.position + 1, new)
-        else:
+        
+        if self.consec:
             name = basename(self.input).replace("pdb", "")
             output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, new)
+        else:
+            output = "{}{}{}.pdb".format(aa_name, self.position + 1, new)
+
         file_ = "{}/{}".format(self.folder, output)
         self.model.write(file_)
         self.insert_atomtype(file_)
@@ -268,11 +270,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
     pdbs = []
     # Perform single saturated mutations
     for mutation in position:
-        run = Mutagenesis(input_, mutation, folder)
-        if not consec:
-            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
-        else:
-            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens, mode=1)
+        run = Mutagenesis(input_, mutation, folder, consec)
+        final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
         pdbs.extend(final_pdbs)
         run.accelerated_insert()
         # Mutate in a second position for each of the single mutations
@@ -280,8 +279,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
             for files in final_pdbs:
                 name = basename(files).replace(".pdb", "")
                 if name != "original.pdb":
-                    run_ = Mutagenesis(files, position[1], folder)
-                    final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens, mode=1)
+                    run_ = Mutagenesis(files, position[1], folder, consec)
+                    final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
 
