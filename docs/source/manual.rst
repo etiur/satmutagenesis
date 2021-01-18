@@ -11,7 +11,7 @@ Introduction
 
 .. code-block:: bash
 
-    $ python saturated_mutagenesis.main --help
+    $ python -m saturated_mutagenesis --help
 
 .. code-block:: bash
 
