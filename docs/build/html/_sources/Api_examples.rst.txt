@@ -4,9 +4,9 @@ Now let's see how to use the python API instead of the command line
 
 .. code-block:: python
     
-    from mutate_pdb import Mutagenesis, generate_mutations
-    from pele_files import CreateLaunchFiles, create_20sbatch
-    from analysis import SimulationData, analyse_all, box_plot, all_profiles, extract_all, find_top_mutations, consecutive_analysis
+    from saturated_mutagenesis.mutate_pdb import Mutagenesis, generate_mutations
+    from saturated_mutagenesis.pele_files import CreateLaunchFiles, create_20sbatch
+    from saturated_mutagenesis.analysis import SimulationData, analyse_all, box_plot, all_profiles, extract_all, find_top_mutations, consecutive_analysis
     
 The mutate_pdb module
 ======================

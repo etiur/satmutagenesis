@@ -94,7 +94,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">saturated_mutagenesis</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.analysis">analysis module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.helper">helper functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.main">main script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main-script">main script</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.mutate_pdb">mutate_pdb module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.pele_files">pele_files module</a></li>
 </ul>
@@ -524,70 +524,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 </div>
-<div class="section" id="module-saturated_mutagenesis.main">
-<span id="main-script"></span><h2>main script<a class="headerlink" href="#module-saturated_mutagenesis.main" title="Permalink to this headline">¶</a></h2>
-<p>This script is designed to run saturated_mutagenesis through the command-line.</p>
-<dl class="function">
-<dt id="saturated_mutagenesis.main.pele_folders">
-<code class="descclassname">saturated_mutagenesis.main.</code><code class="descname">pele_folders</code><span class="sig-paren">(</span><em>input_</em>, <em>file_list</em>, <em>dir_=None</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.main.pele_folders" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a file with the names of the different folders where the pele simulations are contained</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input</strong> (<em>str</em>) – The wild type PDB file path</li>
-<li><strong>file_list</strong> (<em>list</em><em>[</em><em>path</em><em>]</em>) – list of pdb files path created during the saturated mutagenesis</li>
-<li><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the folder ofr the simulations</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="saturated_mutagenesis.main.side_function">
-<code class="descclassname">saturated_mutagenesis.main.</code><code class="descname">side_function</code><span class="sig-paren">(</span><em>input_</em>, <em>dir_=None</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.main.side_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Put all the necessary previous steps here</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input</strong> (<em>str</em>) – The wild type PDB file path</li>
-<li><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the folder for the simulations</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>input_</strong> – The new path of the input</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="saturated_mutagenesis.main.submit">
-<code class="descclassname">saturated_mutagenesis.main.</code><code class="descname">submit</code><span class="sig-paren">(</span><em>slurm_folder</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.main.submit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a folder submits the job to the supercomputer</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>slurm_folder</strong> (<em>list</em><em>[</em><em>path</em><em>]</em>) – A list of the slurm files path’s</li>
-<li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if it will run on NORD</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<div class="section" id="main-script">
+<h2>main script<a class="headerlink" href="#main-script" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-saturated_mutagenesis.mutate_pdb">
 <span id="mutate-pdb-module"></span><h2>mutate_pdb module<a class="headerlink" href="#module-saturated_mutagenesis.mutate_pdb" title="Permalink to this headline">¶</a></h2>
@@ -665,7 +603,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 
 <dl class="method">
 <dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.saturated_mutagenesis">
-<code class="descname">saturated_mutagenesis</code><span class="sig-paren">(</span><em>hydrogens=True</em>, <em>mode=0</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.saturated_mutagenesis" title="Permalink to this definition">¶</a></dt>
+<code class="descname">saturated_mutagenesis</code><span class="sig-paren">(</span><em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.saturated_mutagenesis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate all the other 19 mutations</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -689,7 +627,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 
 <dl class="method">
 <dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.single_mutagenesis">
-<code class="descname">single_mutagenesis</code><span class="sig-paren">(</span><em>new_aa</em>, <em>hydrogens=True</em>, <em>mode=0</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.single_mutagenesis" title="Permalink to this definition">¶</a></dt>
+<code class="descname">single_mutagenesis</code><span class="sig-paren">(</span><em>new_aa</em>, <em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.single_mutagenesis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create single mutations</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
