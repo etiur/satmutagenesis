@@ -67,9 +67,9 @@ class Mutagenesis:
         Parameters
         ___________
         residue: pmx object
-            The residue has to be an pmx object
+            The residue has to be a pmx object
         new_aa: str
-            A 3 letter or 1 letter coe to represent the new residue
+            A 3 letter or 1 letter code to represent the new residue
         bbdep:
             A database that can be interpreted by pmx
         hydrogens: bool, optional
@@ -88,7 +88,7 @@ class Mutagenesis:
         map the user coordinates with pmx coordinates
         """
         if not os.path.exists(self.folder):
-            os.mkdir(self.folder)
+            os.makedirs(self.folder)
         if not os.path.exists("{}/original.pdb".format(self.folder)):
             self.model.write("{}/original.pdb".format(self.folder))
             self.final_pdbs.append("{}/original.pdb".format(self.folder))
@@ -266,7 +266,6 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
     pdbs: list[paths]
         The list of all generated pdbs' path
     """
-    count = 0
     pdbs = []
     # Perform single saturated mutations
     for mutation in position:
@@ -275,7 +274,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
         pdbs.extend(final_pdbs)
         run.accelerated_insert()
         # Mutate in a second position for each of the single mutations
-        if multiple and not count and len(position) == 2:
+        if multiple and len(position) == 2:
             for files in final_pdbs:
                 name = basename(files).replace(".pdb", "")
                 if name != "original.pdb":
@@ -283,8 +282,6 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
-
-        count += 1
 
     return pdbs
 

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read().decode("UTF-8")
 
-setup(name="saturated_mutagenesis-etiur", author="Ruite Xiang", author_email="ruite.xiang@bsc.es",
+setup(name="samut", author="Ruite Xiang", author_email="ruite.xiang@bsc.es",
       description="Study the effects of mutations on Protein-Ligand interactions",
       url="https://github.com/etiur/saturated_mutagenesis", license="MIT", version="0.0.1",
       packages=find_packages(), python_requires=">=2.7, <3.0", long_description=long_description,

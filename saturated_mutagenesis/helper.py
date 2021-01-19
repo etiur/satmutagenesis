@@ -65,7 +65,7 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
 
 def isiterable(p_object):
     """
-    Test if the parameter is an iterable or a file
+    Test if the parameter is an iterable (not a string or a dict) or a file
 
     Parameters
     ___________

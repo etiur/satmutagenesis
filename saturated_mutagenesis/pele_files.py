@@ -210,7 +210,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         atom of the residue to follow  --> chain ID:position:atom name
     atom2: str
         atom of the ligand to follow  --> chain ID:position:atom name
-    file_: iterable, dir or a file
+    file_: iterable (not string or dict), dir or a file
         An iterable of the path to different pdb files, a name of the folder
         or a file of the path to the different pdb files
     cpus: int, optional

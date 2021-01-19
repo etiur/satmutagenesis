@@ -331,7 +331,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>res_dir</strong> (<em>str</em>) – Name of the results folder</li>
-<li><strong>mutation</strong> (<em>dict</em>) – A dictionary of SimulationData objects {mutations: [distances, binding energies]}</li>
+<li><strong>mutation</strong> (<em>dict</em>) – A dictionary of SimulationData objects {key: SimulationData}</li>
 <li><strong>position_num</strong> (<em>str</em>) – part of the path to the plots, the position that was mutated</li>
 <li><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – The pdf filename without the extension</li>
 <li><strong>analysis</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of the analysis (distance, binding or all)</li>
@@ -483,7 +483,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <dl class="function">
 <dt id="saturated_mutagenesis.helper.isiterable">
 <code class="descclassname">saturated_mutagenesis.helper.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>p_object</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.helper.isiterable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Test if the parameter is an iterable or a file</p>
+<dd><p>Test if the parameter is an iterable (not a string or a dict) or a file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -590,8 +590,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>residue</strong> (<em>pmx object</em>) – The residue has to be an pmx object</li>
-<li><strong>new_aa</strong> (<em>str</em>) – A 3 letter or 1 letter coe to represent the new residue</li>
+<li><strong>residue</strong> (<em>pmx object</em>) – The residue has to be a pmx object</li>
+<li><strong>new_aa</strong> (<em>str</em>) – A 3 letter or 1 letter code to represent the new residue</li>
 <li><strong>bbdep</strong> – A database that can be interpreted by pmx</li>
 <li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean, leave it to True because False cause problems with cysteine</li>
 </ul>
@@ -771,7 +771,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <li><strong>ligname</strong> (<em>str</em>) – the residue name of the ligand in the PDB</li>
 <li><strong>atom1</strong> (<em>str</em>) – atom of the residue to follow  –&gt; chain ID:position:atom name</li>
 <li><strong>atom2</strong> (<em>str</em>) – atom of the ligand to follow  –&gt; chain ID:position:atom name</li>
-<li><strong>file</strong> (<em>iterable</em><em>, </em><em>dir</em><em> or </em><em>a file</em>) – An iterable of the path to different pdb files, a name of the folder
+<li><strong>file</strong> (<em>iterable</em><em> (</em><em>not string</em><em> or </em><em>dict</em><em>)</em><em>, </em><em>dir</em><em> or </em><em>a file</em>) – An iterable of the path to different pdb files, a name of the folder
 or a file of the path to the different pdb files</li>
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – how many cpus do you want to use</li>
 <li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>

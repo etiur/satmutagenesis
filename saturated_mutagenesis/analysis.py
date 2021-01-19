@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--folder", required=False,
-                        help="Name of the plots folder")
+                        help="Path of the plots folder")
     parser.add_argument("--analyse", required=False, choices=("energy", "distance", "all"), default="distance",
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=24, type=int,
@@ -185,8 +185,8 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     dpi: int, optional
         The quality of the plots produced
     """
-    if not os.path.exists("results_{}/Plots/box".format(res_dir)):
-        os.makedirs("results_{}/Plots/box".format(res_dir))
+    if not os.path.exists("{}_results/Plots/box".format(res_dir)):
+        os.makedirs("{}_results/Plots/box".format(res_dir))
     # create a dataframe with only the distance differences for each simulation
     plot_dict_dist = {}
     plot_dict_bind = {}
@@ -208,7 +208,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
-    ax.savefig("results_{}/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
+    ax.savefig("{}_results/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
 
     # Binding energy Box plot
     ex = sns.catplot(data=data_bind, kind="box", palette="Accent", height=4.5, aspect=2.3)
@@ -217,7 +217,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     ex.set_xlabels("Mutations {}".format(position_num), fontsize=6)
     ex.set_xticklabels(fontsize=6)
     ex.set_yticklabels(fontsize=6)
-    ex.savefig("results_{}/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
+    ex.savefig("{}_results/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
     plt.close("all")
 
 
@@ -254,13 +254,13 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     cat.index.name = "Type"
     cat.reset_index(inplace=True)
     # Creating the scatter plots
-    if not os.path.exists("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, type_)):
-        os.makedirs("results_{}/Plots/scatter_{}_{}".format(res_dir, position_num, type_))
+    if not os.path.exists("{}_results/Plots/scatter_{}_{}".format(res_dir, position_num, type_)):
+        os.makedirs("{}_results/Plots/scatter_{}_{}".format(res_dir, position_num, type_))
     ax = sns.relplot(x=type_, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
                      height=3.5, aspect=1.5, s=80, linewidth=0)
 
     ax.set(title="{} scatter plot of binding energy vs {} ".format(key, type_))
-    ax.savefig("results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, type_,
+    ax.savefig("{}_results/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, type_,
                                                                  key, type_), dpi=dpi)
     plt.close(ax.fig)
 
@@ -331,8 +331,8 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
     bind: float
         The binding energy between ligand and protein (used as name for the result file - not essential)
     """
-    if not os.path.exists("results_{}/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
-        os.makedirs("results_{}/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
+    if not os.path.exists("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
+        os.makedirs("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
 
     f_in = glob("{}/output/0/*trajectory*_{}.*".format(simulation_folder, f_id))
     if len(f_in) == 0:
@@ -345,7 +345,7 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
 
     # Output Snapshot
     traj = []
-    path_ = "results_{}/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
+    path_ = "{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
     name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
     with open(os.path.join(path_, name), 'w') as f:
         traj.append("MODEL     {}".format(int(step) + 1))
@@ -419,7 +419,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     res_dir: str
        Name of the results folder
     mutation: dict
-       A dictionary of SimulationData objects {mutations: [distances, binding energies]}
+       A dictionary of SimulationData objects {key: SimulationData}
     position_num: str
        part of the path to the plots, the position that was mutated
     output: str, optional
@@ -442,10 +442,10 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.set_font('Arial', 'B', 14)
     pdf.cell(0, 10, "Best mutations in terms of distance and/or binding energy", align='C', ln=1)
     pdf.set_font('Arial', '', size=10)
-    for mut, key in mutation.items():
-        dis = key.dist_diff.median()
-        bind = key.bind_diff.median()
-        message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(mut, dis, bind)
+    for key, val in mutation.items():
+        dis = val.dist_diff.median()
+        bind = val.bind_diff.median()
+        message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
     pdf.ln(8)  # linebreaks
@@ -455,16 +455,16 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.cell(0, 10, "Box plot of {}".format(analysis), align='C', ln=1)
     pdf.ln(8)
     if analysis == "distance":
-        box1 = "results_{}/Plots/box/{}_distance.png".format(res_dir, position_num)
+        box1 = "{}_results/Plots/box/{}_distance.png".format(res_dir, position_num)
         pdf.image(box1, w=180)
         pdf.ln(1000000)
     elif analysis == "energy":
-        box1 = "results_{}/Plots/box/{}_binding.png".format(res_dir, position_num)
+        box1 = "{}_results/Plots/box/{}_binding.png".format(res_dir, position_num)
         pdf.image(box1, w=180)
         pdf.ln(1000000)
     elif analysis == "all":
-        box1 = "results_{}/Plots/box/{}_distance.png".format(res_dir, position_num)
-        box2 = "results_{}/Plots/box/{}_binding.png".format(res_dir, position_num)
+        box1 = "{}_results/Plots/box/{}_distance.png".format(res_dir, position_num)
+        box2 = "{}_results/Plots/box/{}_binding.png".format(res_dir, position_num)
         pdf.image(box1, w=180)
         pdf.ln(5)
         pdf.image(box2, w=180)
@@ -478,10 +478,10 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         pdf.ln(3)
         pdf.cell(0, 10, "Plots {}".format(mut), ln=1)
         pdf.ln(3)
-        plot1 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "distance0.5", mut,
+        plot1 = "{}_results/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "distance0.5", mut,
                                                                   "distance0.5")
-        plot2 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "sasaLig", mut, "sasaLig")
-        plot3 = "results_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", mut,
+        plot2 = "{}_results/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "sasaLig", mut, "sasaLig")
+        plot3 = "{}_results/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", mut,
                                                                   "currentEnergy")
         pdf.image(plot1, w=180)
         pdf.ln(3)
@@ -497,12 +497,12 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.set_font('Arial', size=10)
     pdf.ln(5)
     for mut, key in mutation.items():
-        path = "results_{}/distances_{}/{}_pdbs".format(res_dir, position_num, mut)
+        path = "{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mut)
         pdf.cell(0, 10, "{}: {} ".format(mut, abspath(path)), ln=1)
         pdf.ln(5)
 
     # Output report
-    name = "results_{}/{}_{}.pdf".format(res_dir, output, position_num)
+    name = "{}_results/{}_{}.pdf".format(res_dir, output, position_num)
     pdf.output(name, 'F')
     return name
 
@@ -527,7 +527,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
        Set the threshold for those mutations to be included in the pdf
     """
     # Find top mutations
-    logging.basicConfig(filename='results_{}/top_mutations.log'.format(res_dir), level=logging.DEBUG)
+    logging.basicConfig(filename='{}_results/top_mutations.log'.format(res_dir), level=logging.DEBUG)
     count = 0
     mutation_dict = {}
     for key, value in data_dict.items():
