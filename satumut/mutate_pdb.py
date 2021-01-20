@@ -11,19 +11,25 @@ from multiprocessing import Process
 
 # Argument parsers
 def parse_args():
-    parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
+    parser = argparse.ArgumentParser(description="Performs either single mutagenesis or "
+                                                 "saturated mutagenesis with the pmx module"
+                                                 "given a PDB file")
     # main required arguments
-    parser.add_argument("--input", required=True, help="Include PDB file's path")
-    parser.add_argument("--position", required=True, nargs="+",
+    parser.add_argument("-i","--input", required=True, help="Include PDB file's path")
+    parser.add_argument("-p","--position", required=True, nargs="+",
                         help="Include one or more chain IDs and positions --> ID:position")
-    parser.add_argument("--multiple", required=False, action="store_true",
+    parser.add_argument("-m","--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
-    parser.add_argument("--hydrogen", required=False, action="store_false", help="leave it to default")
-    parser.add_argument("--folder", required=False, default="pdb_files", help="The folder for the pdb_files")
-    parser.add_argument("--consec", required=False, action="store_true",
+    parser.add_argument("-h","--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-f"",--folder", required=False, default="pdb_files", help="The folder for the pdb_files")
+    parser.add_argument("-c","--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
-    # arguments = vars(parser.parse_args())
+    parser.add_argument("-s","--single_mutagenesis",required=False, default="",
+                        help="Specifiy the name of the residue that you want the "
+                             "original residue to be mutated to. Both 3 letter "
+                             "code and 1 letter code can be used.")
     args = parser.parse_args()
+
     return args.input, args.position, args.hydrogen, args.multiple, args.folder, args.consec
 
 
@@ -242,7 +248,7 @@ class Mutagenesis:
             p.join()
 
 
-def generate_mutations(input_, position, hydrogens=True, multiple=False, folder="pdb_files", consec=False):
+def generate_mutations(input_, position, hydrogens=True, multiple=False, folder="pdb_files", consec=False, single_mutagenesis=""):
     """
     To generate up to 2 mutations per pdb
 
@@ -257,7 +263,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
     multiple: bool, optional
         Specify if to mutate 2 positions at the same pdb
     folder: str, optional
-        The name of the folder where the new PDb files will be stored
+        The name of the folder where the new PDB files will be stored
     consec: bool, optional
         Consecutively mutate the PDB file for several rounds
 
@@ -267,10 +273,15 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
         The list of all generated pdbs' path
     """
     pdbs = []
-    # Perform single saturated mutations
+
     for mutation in position:
         run = Mutagenesis(input_, mutation, folder, consec)
-        final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
+        if len(single_mutagenesis) != 0:
+            # If the single_mutagenesis flag is used, execute this
+            final_pdb = run.single_mutagenesis(single_mutagenesis, hydrogens=hydrogens)
+        else:
+            # Else, perform single saturated mutations
+            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
         pdbs.extend(final_pdbs)
         run.accelerated_insert()
         # Mutate in a second position for each of the single mutations
@@ -287,8 +298,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
 
 
 def main():
-    input_, position, hydrogen, multiple, folder, consec = parse_args()
-    output = generate_mutations(input_, position, hydrogen, multiple, folder, consec)
+    input_, position, hydrogen, multiple, folder, consec, single_mutagenesis = parse_args()
+    output = generate_mutations(input_, position, hydrogen, multiple, folder, consec, single_mutagenesis)
 
     return output
 
