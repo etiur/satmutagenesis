@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(name="samut", author="Ruite Xiang", author_email="ruite.xiang@bsc.es",
       description="Study the effects of mutations on Protein-Ligand interactions",
-      url="https://github.com/etiur/saturated_mutagenesis", license="MIT", version="0.0.1",
+      url="https://github.com/etiur/satumut", license="MIT", version="0.0.1",
       packages=find_packages(), python_requires=">=2.7, <3.0", long_description=long_description,
       long_description_content_type="text/markdown",
       classifiers=["Programming Language :: Python :: 2.7",
