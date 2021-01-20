@@ -6,7 +6,7 @@ The manual
 
 Introduction
 ===================
-| After the download from the `repository <https://github.com/etiur/satumut>`_ you can readily use the main.py through the command line to generate the different files and lanch them on marenostrum or Nord.
+| After the download from the `repository <https://github.com/etiur/satumut>`_ you can readily use the pakcgae through the command line to generate the different files and lanch simulations on Marenostrum or Nord.
 | Let's see the necessary arguments
 
 .. code-block:: bash

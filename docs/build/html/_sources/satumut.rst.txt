@@ -1,9 +1,6 @@
 satumut
 ===============
 
-Submodules
-----------
-
 satumut.analysis module
 -----------------------
 
@@ -32,15 +29,6 @@ satumut.pele\_files module
 --------------------------
 
 .. automodule:: satumut.pele_files
-    :members:
-    :special-members: __init__
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: satumut
     :members:
     :special-members: __init__
     :show-inheritance:
