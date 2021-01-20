@@ -1,17 +1,17 @@
 The manual
 ***********
 
-| The main usage of ``saturated_mutagenesis`` is to mutate a given position within a protein to all the other 19 aminoacids and to facilitate their analysis and the effects on protein-ligand interactions through PELE simulations by automating the file creation and simulation launching all together. 
+| The main usage of ``satumut`` is to mutate a given position within a protein to all the other 19 aminoacids and to facilitate their analysis and the effects on protein-ligand interactions through PELE simulations by automating the file creation and simulation launching all together. 
 | As a results, it outputs 19 PDBs + 1 PDB for the wildtype and the correspoding files for the PELE simulations in marenostrum or NORD, then it launches the files in these HPCs
 
 Introduction
 ===================
-| After the download from the `repository <https://github.com/etiur/saturated_mutagenesis>`_ you can readily use the main.py through the command line to generate the different files and lanch them on marenostrum or Nord.
+| After the download from the `repository <https://github.com/etiur/satumut>`_ you can readily use the main.py through the command line to generate the different files and lanch them on marenostrum or Nord.
 | Let's see the necessary arguments
 
 .. code-block:: bash
 
-    $ python -m saturated_mutagenesis --help
+    $ python -m satumut --help
 
 .. code-block:: bash
 
@@ -47,7 +47,7 @@ The first 6 arguments are necessary and the rest are optional, for example:
 
 .. code-block:: bash
 
-    $ python -m saturated_mutagenesis.main --input PK2_F454T.pdb --position A:454 --ligchain 'L' --ligname 'ANL' --atom1 "C:1:CU" --atom2 "L:1:N1" --cu --test
+    $ python -m satumut --input PK2_F454T.pdb --position A:454 --ligchain 'L' --ligname 'ANL' --atom1 "C:1:CU" --atom2 "L:1:N1" --cu --test
 
 
 Analysis
@@ -56,7 +56,7 @@ Once the simulation has been lanched, wait until the results from the simulation
 
 .. code-block:: bash
 
-    $ python -m saturated_mutagenesis.analysis --help
+    $ python -m satumut.analysis --help
     
 .. code-block:: bash
 
@@ -88,5 +88,5 @@ Once the simulation has been lanched, wait until the results from the simulation
 
 .. code-block:: bash
 
-    $ python analysis.py --inp folder_names.txt
+    $ python -m satumut.analysis --inp folder_names.txt
 

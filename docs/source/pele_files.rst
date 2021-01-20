@@ -4,7 +4,7 @@ The second script is used when you have the PDB files and you want to generate t
 
 .. code-block:: bash
 
-    $ python -m saturated_mutagenesis.mutate_pdb --help
+    $ python -m satumut.mutate_pdb --help
 
 .. code-block:: bash
 
@@ -36,7 +36,7 @@ The ``--folder`` flag accepts folders where the PDB files are located, files con
 
 .. code-block:: bash
 
-    $ python -m saturated_mutagenesis.mutate_pdb --folder pdb_files --ligchain 'L' --ligname 'ANL' --atom1 "C:1:CU" --atom2 "L:1:N1" --cu --test
+    $ python -m satumut.mutate_pdb --folder pdb_files --ligchain 'L' --ligname 'ANL' --atom1 "C:1:CU" --atom2 "L:1:N1" --cu --test
     
 As a result, it will create the 2 files necessary to launch a PELE simulation in marenostrum or nord for each of the PDBs in the folder.
 

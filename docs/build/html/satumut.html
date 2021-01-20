@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>saturated_mutagenesis &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
+  <title>satumut &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
   
 
   
@@ -91,12 +91,13 @@
 <li class="toctree-l1"><a class="reference internal" href="Api_examples.html">The API guide</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">saturated_mutagenesis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.analysis">analysis module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.helper">helper functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#main-script">main script</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.mutate_pdb">mutate_pdb module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-saturated_mutagenesis.pele_files">pele_files module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">satumut</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-satumut.analysis">satumut.analysis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-satumut.helper">satumut.helper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-satumut.mutate_pdb">satumut.mutate_pdb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-satumut.pele_files">satumut.pele_files module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-satumut">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -147,13 +148,13 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>saturated_mutagenesis</li>
+      <li>satumut</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/saturated_mutagenesis.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/satumut.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -166,17 +167,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="saturated-mutagenesis">
-<h1>saturated_mutagenesis<a class="headerlink" href="#saturated-mutagenesis" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-saturated_mutagenesis.analysis">
-<span id="analysis-module"></span><h2>analysis module<a class="headerlink" href="#module-saturated_mutagenesis.analysis" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="satumut">
+<h1>satumut<a class="headerlink" href="#satumut" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-satumut.analysis">
+<span id="satumut-analysis-module"></span><h2>satumut.analysis module<a class="headerlink" href="#module-satumut.analysis" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="saturated_mutagenesis.analysis.SimulationData">
-<em class="property">class </em><code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">SimulationData</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.SimulationData">
+<em class="property">class </em><code class="descclassname">satumut.analysis.</code><code class="descname">SimulationData</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class to store data from the simulations</p>
 <dl class="method">
-<dt id="saturated_mutagenesis.analysis.SimulationData.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.SimulationData.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the SimulationData Object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -194,15 +198,15 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.analysis.SimulationData.filtering">
-<code class="descname">filtering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData.filtering" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.SimulationData.filtering">
+<code class="descname">filtering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.filtering" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs a dataframe from all the reports in a PELE simulation folder with the best 20% binding energies
 and a Series with the 100 best ligand distances</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.analysis.SimulationData.set_binding">
-<code class="descname">set_binding</code><span class="sig-paren">(</span><em>original_binding</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData.set_binding" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.SimulationData.set_binding">
+<code class="descname">set_binding</code><span class="sig-paren">(</span><em>original_binding</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.set_binding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the binding energy difference</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -215,8 +219,8 @@ and a Series with the 100 best ligand distances</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.analysis.SimulationData.set_distance">
-<code class="descname">set_distance</code><span class="sig-paren">(</span><em>original_distance</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.SimulationData.set_distance" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.SimulationData.set_distance">
+<code class="descname">set_distance</code><span class="sig-paren">(</span><em>original_distance</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.set_distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the distance difference</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -231,8 +235,8 @@ and a Series with the 100 best ligand distances</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.all_profiles">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">all_profiles</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.all_profiles" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.all_profiles">
+<code class="descclassname">satumut.analysis.</code><code class="descname">all_profiles</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.all_profiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates all the possible scatter plots for the same mutated position</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -251,8 +255,8 @@ and a Series with the 100 best ligand distances</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.analyse_all">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">analyse_all</code><span class="sig-paren">(</span><em>folders='.'</em>, <em>box=30</em>, <em>traj=10</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.analyse_all" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.analyse_all">
+<code class="descclassname">satumut.analysis.</code><code class="descname">analyse_all</code><span class="sig-paren">(</span><em>folders='.'</em>, <em>box=30</em>, <em>traj=10</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.analyse_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analyse all the 19 simulations folders and build SimulationData objects for each of them</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -276,8 +280,8 @@ and a Series with the 100 best ligand distances</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.box_plot">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">box_plot</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.box_plot" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.box_plot">
+<code class="descclassname">satumut.analysis.</code><code class="descname">box_plot</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.box_plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a box plot of the 19 mutations from the same position</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -296,8 +300,8 @@ and a Series with the 100 best ligand distances</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.consecutive_analysis">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">consecutive_analysis</code><span class="sig-paren">(</span><em>file_name</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>cpus=24</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.consecutive_analysis" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.consecutive_analysis">
+<code class="descclassname">satumut.analysis.</code><code class="descname">consecutive_analysis</code><span class="sig-paren">(</span><em>file_name</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>cpus=24</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.consecutive_analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates all the plots for the different mutated positions</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -322,8 +326,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.create_report">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">create_report</code><span class="sig-paren">(</span><em>res_dir</em>, <em>mutation</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.create_report" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.create_report">
+<code class="descclassname">satumut.analysis.</code><code class="descname">create_report</code><span class="sig-paren">(</span><em>res_dir</em>, <em>mutation</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.create_report" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create pdf files with the plots of chosen mutations and the path to the</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -349,8 +353,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.extract_10_pdb_single">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">extract_10_pdb_single</code><span class="sig-paren">(</span><em>info</em>, <em>res_dir</em>, <em>data_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.extract_10_pdb_single" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.extract_10_pdb_single">
+<code class="descclassname">satumut.analysis.</code><code class="descname">extract_10_pdb_single</code><span class="sig-paren">(</span><em>info</em>, <em>res_dir</em>, <em>data_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.extract_10_pdb_single" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts the top 10 distances for one mutation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -368,8 +372,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.extract_all">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">extract_all</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>folders</em>, <em>cpus=24</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.extract_all" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.extract_all">
+<code class="descclassname">satumut.analysis.</code><code class="descname">extract_all</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>folders</em>, <em>cpus=24</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.extract_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts the top 10 distances for the 19 mutations at the same position</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -388,8 +392,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.extract_snapshot_from_pdb">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">extract_snapshot_from_pdb</code><span class="sig-paren">(</span><em>res_dir</em>, <em>simulation_folder</em>, <em>f_id</em>, <em>position_num</em>, <em>mutation</em>, <em>step</em>, <em>dist</em>, <em>bind</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.extract_snapshot_from_pdb" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.extract_snapshot_from_pdb">
+<code class="descclassname">satumut.analysis.</code><code class="descname">extract_snapshot_from_pdb</code><span class="sig-paren">(</span><em>res_dir</em>, <em>simulation_folder</em>, <em>f_id</em>, <em>position_num</em>, <em>mutation</em>, <em>step</em>, <em>dist</em>, <em>bind</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.extract_snapshot_from_pdb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts PDB files from trajectories</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -412,8 +416,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.find_top_mutations">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">find_top_mutations</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.find_top_mutations" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.find_top_mutations">
+<code class="descclassname">satumut.analysis.</code><code class="descname">find_top_mutations</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.find_top_mutations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds those mutations that decreases the binding distance and binding energy and creates a report</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -434,8 +438,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.pele_profile_single">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">pele_profile_single</code><span class="sig-paren">(</span><em>key</em>, <em>mutation</em>, <em>res_dir</em>, <em>wild</em>, <em>type_</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.pele_profile_single" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.pele_profile_single">
+<code class="descclassname">satumut.analysis.</code><code class="descname">pele_profile_single</code><span class="sig-paren">(</span><em>key</em>, <em>mutation</em>, <em>res_dir</em>, <em>wild</em>, <em>type_</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.pele_profile_single" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a plot for a single mutation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -443,9 +447,9 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>key</strong> (<em>str</em>) – name for the axis title and plot</li>
-<li><strong>mutation</strong> (<a class="reference internal" href="#saturated_mutagenesis.analysis.SimulationData" title="saturated_mutagenesis.analysis.SimulationData"><em>SimulationData</em></a>) – A SimulationData object</li>
+<li><strong>mutation</strong> (<a class="reference internal" href="#satumut.analysis.SimulationData" title="satumut.analysis.SimulationData"><em>SimulationData</em></a>) – A SimulationData object</li>
 <li><strong>res_dir</strong> (<em>str</em>) – name of the results folder</li>
-<li><strong>wild</strong> (<a class="reference internal" href="#saturated_mutagenesis.analysis.SimulationData" title="saturated_mutagenesis.analysis.SimulationData"><em>SimulationData</em></a>) – SimulationData object that stores data for the wild type protein</li>
+<li><strong>wild</strong> (<a class="reference internal" href="#satumut.analysis.SimulationData" title="satumut.analysis.SimulationData"><em>SimulationData</em></a>) – SimulationData object that stores data for the wild type protein</li>
 <li><strong>type</strong> (<em>str</em>) – Type of scatter plot - distance0.5, sasaLig or currentEnergy</li>
 <li><strong>position_num</strong> (<em>str</em>) – name for the folder to keep the images from the different mutations</li>
 <li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Quality of the plots</li>
@@ -457,8 +461,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.analysis.pele_profiles">
-<code class="descclassname">saturated_mutagenesis.analysis.</code><code class="descname">pele_profiles</code><span class="sig-paren">(</span><em>type_</em>, <em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.analysis.pele_profiles" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.analysis.pele_profiles">
+<code class="descclassname">satumut.analysis.</code><code class="descname">pele_profiles</code><span class="sig-paren">(</span><em>type_</em>, <em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.pele_profiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -478,11 +482,11 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 </div>
-<div class="section" id="module-saturated_mutagenesis.helper">
-<span id="helper-functions"></span><h2>helper functions<a class="headerlink" href="#module-saturated_mutagenesis.helper" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-satumut.helper">
+<span id="satumut-helper-module"></span><h2>satumut.helper module<a class="headerlink" href="#module-satumut.helper" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="saturated_mutagenesis.helper.isiterable">
-<code class="descclassname">saturated_mutagenesis.helper.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>p_object</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.helper.isiterable" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.helper.isiterable">
+<code class="descclassname">satumut.helper.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>p_object</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.isiterable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test if the parameter is an iterable (not a string or a dict) or a file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -499,8 +503,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.helper.map_atom_string">
-<code class="descclassname">saturated_mutagenesis.helper.</code><code class="descname">map_atom_string</code><span class="sig-paren">(</span><em>atom_string</em>, <em>initial_pdb</em>, <em>prep_pdb</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.helper.map_atom_string" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.helper.map_atom_string">
+<code class="descclassname">satumut.helper.</code><code class="descname">map_atom_string</code><span class="sig-paren">(</span><em>atom_string</em>, <em>initial_pdb</em>, <em>prep_pdb</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.map_atom_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>Maps the chain ID and residue number of the original PDb file to the PDB file after pmx</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -524,18 +528,15 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 </div>
-<div class="section" id="main-script">
-<h2>main script<a class="headerlink" href="#main-script" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-saturated_mutagenesis.mutate_pdb">
-<span id="mutate-pdb-module"></span><h2>mutate_pdb module<a class="headerlink" href="#module-saturated_mutagenesis.mutate_pdb" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-satumut.mutate_pdb">
+<span id="satumut-mutate-pdb-module"></span><h2>satumut.mutate_pdb module<a class="headerlink" href="#module-satumut.mutate_pdb" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis">
-<em class="property">class </em><code class="descclassname">saturated_mutagenesis.mutate_pdb.</code><code class="descname">Mutagenesis</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.mutate_pdb.Mutagenesis">
+<em class="property">class </em><code class="descclassname">satumut.mutate_pdb.</code><code class="descname">Mutagenesis</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis" title="Permalink to this definition">¶</a></dt>
 <dd><p>To perform mutations on PDB files</p>
 <dl class="method">
-<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.mutate_pdb.Mutagenesis.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the Mutagenesis object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -554,8 +555,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.accelerated_insert">
-<code class="descname">accelerated_insert</code><span class="sig-paren">(</span><em>file_list=None</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.accelerated_insert" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.mutate_pdb.Mutagenesis.accelerated_insert">
+<code class="descname">accelerated_insert</code><span class="sig-paren">(</span><em>file_list=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.accelerated_insert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Paralelizes the insert atomtype function</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -568,8 +569,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.insert_atomtype">
-<code class="descname">insert_atomtype</code><span class="sig-paren">(</span><em>prep_pdb</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.insert_atomtype" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.mutate_pdb.Mutagenesis.insert_atomtype">
+<code class="descname">insert_atomtype</code><span class="sig-paren">(</span><em>prep_pdb</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.insert_atomtype" title="Permalink to this definition">¶</a></dt>
 <dd><p>modifies the pmx PDB files to include the atom type</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -582,8 +583,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.mutate">
-<code class="descname">mutate</code><span class="sig-paren">(</span><em>residue</em>, <em>new_aa</em>, <em>bbdep</em>, <em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.mutate" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.mutate_pdb.Mutagenesis.mutate">
+<code class="descname">mutate</code><span class="sig-paren">(</span><em>residue</em>, <em>new_aa</em>, <em>bbdep</em>, <em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.mutate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mutate the wild type residue to a new residue</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -602,8 +603,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.saturated_mutagenesis">
-<code class="descname">saturated_mutagenesis</code><span class="sig-paren">(</span><em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.saturated_mutagenesis" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.mutate_pdb.Mutagenesis.saturated_mutagenesis">
+<code class="descname">saturated_mutagenesis</code><span class="sig-paren">(</span><em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.saturated_mutagenesis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate all the other 19 mutations</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -626,8 +627,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.mutate_pdb.Mutagenesis.single_mutagenesis">
-<code class="descname">single_mutagenesis</code><span class="sig-paren">(</span><em>new_aa</em>, <em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.Mutagenesis.single_mutagenesis" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.mutate_pdb.Mutagenesis.single_mutagenesis">
+<code class="descname">single_mutagenesis</code><span class="sig-paren">(</span><em>new_aa</em>, <em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.single_mutagenesis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create single mutations</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -653,8 +654,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.mutate_pdb.generate_mutations">
-<code class="descclassname">saturated_mutagenesis.mutate_pdb.</code><code class="descname">generate_mutations</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>hydrogens=True</em>, <em>multiple=False</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.mutate_pdb.generate_mutations" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.mutate_pdb.generate_mutations">
+<code class="descclassname">satumut.mutate_pdb.</code><code class="descname">generate_mutations</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>hydrogens=True</em>, <em>multiple=False</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.generate_mutations" title="Permalink to this definition">¶</a></dt>
 <dd><p>To generate up to 2 mutations per pdb</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -681,15 +682,15 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 </div>
-<div class="section" id="module-saturated_mutagenesis.pele_files">
-<span id="pele-files-module"></span><h2>pele_files module<a class="headerlink" href="#module-saturated_mutagenesis.pele_files" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-satumut.pele_files">
+<span id="satumut-pele-files-module"></span><h2>satumut.pele_files module<a class="headerlink" href="#module-satumut.pele_files" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles">
-<em class="property">class </em><code class="descclassname">saturated_mutagenesis.pele_files.</code><code class="descname">CreateLaunchFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.pele_files.CreateLaunchFiles">
+<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateLaunchFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateLaunchFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the 2 necessary files for the pele simulations</p>
 <dl class="method">
-<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.pele_files.CreateLaunchFiles.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateLaunchFiles.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the CreateLaunchFiles object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -715,8 +716,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles.input_creation">
-<code class="descname">input_creation</code><span class="sig-paren">(</span><em>yaml_name</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles.input_creation" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.pele_files.CreateLaunchFiles.input_creation">
+<code class="descname">input_creation</code><span class="sig-paren">(</span><em>yaml_name</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateLaunchFiles.input_creation" title="Permalink to this definition">¶</a></dt>
 <dd><p>create the .yaml input files for PELE</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -729,8 +730,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles.slurm_creation">
-<code class="descname">slurm_creation</code><span class="sig-paren">(</span><em>slurm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles.slurm_creation" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.pele_files.CreateLaunchFiles.slurm_creation">
+<code class="descname">slurm_creation</code><span class="sig-paren">(</span><em>slurm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateLaunchFiles.slurm_creation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the slurm running files for PELE in sbatch managed systems</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -743,8 +744,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="method">
-<dt id="saturated_mutagenesis.pele_files.CreateLaunchFiles.slurm_nord">
-<code class="descname">slurm_nord</code><span class="sig-paren">(</span><em>slurm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.CreateLaunchFiles.slurm_nord" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.pele_files.CreateLaunchFiles.slurm_nord">
+<code class="descname">slurm_nord</code><span class="sig-paren">(</span><em>slurm_name</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateLaunchFiles.slurm_nord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create slurm files for PELE in LSF managed systems</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -759,8 +760,8 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="saturated_mutagenesis.pele_files.create_20sbatch">
-<code class="descclassname">saturated_mutagenesis.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>file_</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#saturated_mutagenesis.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
+<dt id="satumut.pele_files.create_20sbatch">
+<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>file_</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates for each of the mutants the yaml and slurm files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -792,6 +793,9 @@ or a file of the path to the different pdb files</li>
 </table>
 </dd></dl>
 
+</div>
+<div class="section" id="module-satumut">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-satumut" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 

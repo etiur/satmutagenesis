@@ -92,7 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Api_examples.html">The API guide</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="saturated_mutagenesis.html">saturated_mutagenesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="satumut.html">satumut</a></li>
 </ul>
 
             
@@ -163,7 +163,7 @@
   <div class="section" id="the-creation-of-files-for-pele-simulations">
 <h1>The creation of files for PELE simulations<a class="headerlink" href="#the-creation-of-files-for-pele-simulations" title="Permalink to this headline">¶</a></h1>
 <p>The second script is used when you have the PDB files and you want to generate the control files for lanching the PELE simulation for each of the PDBs.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m saturated_mutagenesis.mutate_pdb --help
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.mutate_pdb --help
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: pele_files.py <span class="o">[</span>-h<span class="o">]</span> --folder FOLDER --ligchain LIGCHAIN --ligname
@@ -192,7 +192,7 @@ optional arguments:
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">--folder</span></code> flag accepts folders where the PDB files are located, files containing the path to the different PDBs (one path per line) or lists of paths to the PDBs, for example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m saturated_mutagenesis.mutate_pdb --folder pdb_files --ligchain <span class="s1">&#39;L&#39;</span> --ligname <span class="s1">&#39;ANL&#39;</span> --atom1 <span class="s2">&quot;C:1:CU&quot;</span> --atom2 <span class="s2">&quot;L:1:N1&quot;</span> --cu --test
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.mutate_pdb --folder pdb_files --ligchain <span class="s1">&#39;L&#39;</span> --ligname <span class="s1">&#39;ANL&#39;</span> --atom1 <span class="s2">&quot;C:1:CU&quot;</span> --atom2 <span class="s2">&quot;L:1:N1&quot;</span> --cu --test
 </pre></div>
 </div>
 <p>As a result, it will create the 2 files necessary to launch a PELE simulation in marenostrum or nord for each of the PDBs in the folder.</p>
