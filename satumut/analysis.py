@@ -591,7 +591,7 @@ def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
 
     if not plot_dir:
         plot_dir = pele_folders[0].strip("\n")
-        plot_dir = basename(dirname(plot_dir)).replace("mutations_", "")
+        plot_dir = basename(dirname(plot_dir)).replace("_mutations", "")
     for folders in pele_folders:
         folders = folders.strip("\n")
         base = basename(folders)

@@ -92,9 +92,9 @@ def side_function(input_, dir_=None):
         base = base.replace(".pdb", "")
     else:
         base = dir_
-    if not os.path.exists("mutations_{}".format(base)):
-        os.mkdir("mutations_{}".format(base))
-    os.chdir("mutations_{}".format(base))
+    if not os.path.exists("{}_mutations".format(base)):
+        os.mkdir("{}_mutations".format(base))
+    os.chdir("{}_mutations".format(base))
 
     return input_
 
@@ -128,7 +128,7 @@ def pele_folders(input_, file_list, dir_=None):
             count += 1
         if name != "original" and hold != name[:-1]:
             hold = name[:-1]
-            folder.append("mutations_{}/{}\n".format(base, hold))
+            folder.append("{}_mutations/{}\n".format(base, hold))
     with open("dirnames_{}.txt".format(base), "w") as txt:
         txt.writelines(folder)
 
