@@ -2,7 +2,7 @@
 This module provides test of the mutate_pdb.py's functions
 """
 import pytest
-from saturated_mutagenesis.mutate_pdb import Mutagenesis, generate_mutations
+from ..mutate_pdb import Mutagenesis, generate_mutations
 import os
 from os.path import basename
 

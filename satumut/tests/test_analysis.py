@@ -2,13 +2,13 @@
 This module tests the analysis module
 """
 
-from saturated_mutagenesis.analysis import SimulationData, analyse_all, box_plot, all_profiles, extract_snapshot_from_pdb
-from saturated_mutagenesis.analysis import create_report, consecutive_analysis
+from ..analysis import SimulationData, analyse_all, box_plot, all_profiles, extract_snapshot_from_pdb
+from ..analysis import create_report, consecutive_analysis
 import pandas as pd
 import pytest
 import os
 import shutil
-from os.path import dirname
+
 
 class TestSimulationData:
     """
@@ -45,7 +45,9 @@ def test_boxplot(test_analyse_all):
     """
     box_plot("data/test/test", test_analyse_all, "test")
     assert os.path.exists("data/test/test_results/Plots/box/test_binding.png"), "the boxplot is not correct"
-    shutil.rmtree(dirname("data/test/test_results/"))
+    if os.path.exists("data/test/test_results"):
+        shutil.rmtree("data/test/test_results")
+
 
 def test_pele_profiles(test_analyse_all):
     """
@@ -54,7 +56,8 @@ def test_pele_profiles(test_analyse_all):
     all_profiles("data/test/test", test_analyse_all, "test")
     path = "data/test/test_results/Plots/scatter_test_distance0.5/{}_distance0.5.png"
     assert os.path.exists(path), "pele_profiles not correct"
-    shutil.rmtree("data/test/test_results")
+    if os.path.exists(path):
+        shutil.rmtree("data/test/test_results")
 
 
 def test_extract_snapshot():
@@ -65,7 +68,8 @@ def test_extract_snapshot():
     path_ = "{}_results/distances_{}/{}_pdbs".format("data/test/test", "test", "test")
     name = "traj{}_step{}_dist{}_bind{}.pdb".format(1, 10, -12, -3)
     assert os.path.exists(os.path.join(path_, name)), "the trajectories has not been created"
-    shutil.rmtree("data/test/test_results")
+    if os.path.exists(path_):
+        shutil.rmtree("data/test/test_results")
 
 
 def test_create_report(test_analyse_all):
@@ -74,6 +78,7 @@ def test_create_report(test_analyse_all):
     """
     summary = create_report("data/test/plot", test_analyse_all, "test")
     assert os.path.exists(summary), "the summary has not been created"
-    shutil.rmtree("data/test/test_results")
+    if os.path.exists(summary):
+        shutil.rmtree("data/test/test_results")
 
 

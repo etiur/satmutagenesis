@@ -2,7 +2,7 @@
 This module tests the pele files module
 """
 
-from saturated_mutagenesis.pele_files import CreateLaunchFiles, create_20sbatch
+from ..pele_files import CreateLaunchFiles, create_20sbatch
 import pytest
 import shutil
 from os.path import basename, dirname
