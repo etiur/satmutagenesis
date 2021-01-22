@@ -20,8 +20,8 @@ def parse_args():
                         help="Include one or more chain IDs and positions --> ID:position")
     parser.add_argument("-m","--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
-    parser.add_argument("-h","--hydrogen", required=False, action="store_false", help="leave it to default")
-    parser.add_argument("-f"",--folder", required=False, default="pdb_files", help="The folder for the pdb_files")
+    parser.add_argument("-hy","--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-f","--folder", required=False, default="pdb_files", help="The folder for the pdb_files")
     parser.add_argument("-c","--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-s","--single_mutagenesis",required=False, default="",
@@ -30,7 +30,7 @@ def parse_args():
                              "code and 1 letter code can be used.")
     args = parser.parse_args()
 
-    return args.input, args.position, args.hydrogen, args.multiple, args.folder, args.consec
+    return args.input, args.position, args.hydrogen, args.multiple, args.folder, args.consec, args.single_mutagenesis
 
 
 class Mutagenesis:
@@ -278,12 +278,13 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
         run = Mutagenesis(input_, mutation, folder, consec)
         if len(single_mutagenesis) != 0:
             # If the single_mutagenesis flag is used, execute this
-            final_pdb = run.single_mutagenesis(single_mutagenesis, hydrogens=hydrogens)
+            final_pdbs = run.single_mutagenesis(single_mutagenesis, hydrogens=hydrogens)
         else:
             # Else, perform single saturated mutations
             final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
         pdbs.extend(final_pdbs)
-        run.accelerated_insert()
+        if len(single_mutagenesis) == 0:
+            run.accelerated_insert()
         # Mutate in a second position for each of the single mutations
         if multiple and len(position) == 2:
             for files in final_pdbs:
