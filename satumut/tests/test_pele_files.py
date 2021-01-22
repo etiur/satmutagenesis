@@ -33,7 +33,7 @@ class TestCreateFiles:
 
     def test_slurm(self, data_p):
         """
-        A function thats tests the slurm_creation function
+        A function that tests the slurm_creation function
         """
         data_p.slurm_creation("test")
         assert basename(data_p.slurm).split(".")[1] == "sh", "the file has the wrong format"
