@@ -32,7 +32,7 @@ def test_analyse_all():
     """
     Test the analyse_all function
     """
-    data_dict = analyse_all("data/test/PELE/")
+    data_dict = analyse_all("data/test/PELE/T454")
     assert type(data_dict) == dict, "data_dict not a dictionary"
     assert isinstance(data_dict["original"], (pd.DataFrame, pd.Series)), "There is no dataframe in the dictionary"
 
@@ -76,7 +76,7 @@ def test_create_report(test_analyse_all):
     """
     To test the create report function
     """
-    summary = create_report("data/test/plot", test_analyse_all, "test")
+    summary = create_report("data/test/plot", test_analyse_all, "T454")
     assert os.path.exists(summary), "the summary has not been created"
     if os.path.exists(summary):
         shutil.rmtree("data/test/test_results")

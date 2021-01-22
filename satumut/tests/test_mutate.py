@@ -62,8 +62,8 @@ def test_generate_mutations():
     Tests the generate mutations from the mutate_pdb module
     """
     pdbs = generate_mutations("data/test/PK2_F454T.pdb", "A:135", folder = "data/test")
-    assert len(pdbs) >= 19, "failure to geberate all the files"
-    assert basename(pdbs[0]).split(".")[1] == "pdb", "the file a wrong format"
+    assert len(pdbs) >= 19, "failure to generate all the files"
+    assert basename(pdbs[0]).split(".")[1] == "pdb", "the file has a wrong format"
     for f in pdbs:
         if os.path.isfile(f):
             os.remove(f)
