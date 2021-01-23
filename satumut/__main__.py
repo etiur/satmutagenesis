@@ -14,6 +14,8 @@ from pele_files import create_20sbatch
 from subprocess import call
 from os.path import abspath, basename
 import os
+from multiprocessing import Process
+from functools import partial
 
 
 def parse_args():
@@ -52,22 +54,43 @@ def parse_args():
             args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec]
 
 
-def submit(slurm_folder, nord=False):
+def submit(yaml_files, cpus=24):
     """
-    Given a folder submits the job to the supercomputer
+    Given a yaml file calls the pele platform to run the simulations
 
     Parameters
     __________
     slurm_folder: list[path]
         A list of the slurm files path's
-    nord: bool, optional
-        True if it will run on NORD
     """
-    for files in slurm_folder:
-        if not nord:
-            call(["sbatch", "{}".format(files)])
-        else:
-            os.system("bsub < {}".format(files))
+
+    platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main"
+    returncode = call(["srun", "--exclusive", "-n{}".format(cpus), "{}".format(platform), "{}".format(yaml_files)])
+    if returncode != 0:
+        raise Exception("something went wrong with the PELE simulation")
+
+    return returncode
+
+
+def submit_parallel(yaml_list, cpus=24):
+    """
+    Tries to parallelize the call to the pele_platform
+
+    Parameters
+    __________
+    yaml_list: list[path]
+        A list of the yaml files path's
+    cpus: int
+        The number of cpus for the simulations
+    """
+    proc = []
+    func = partial(submit, cpus=cpus)
+    for files in yaml_list:
+        p = Process(target=func, args=(files,))
+        p.start()
+        proc.append(p)
+    for p in proc:
+        p.join()
 
 
 def side_function(input_, dir_=None):
@@ -138,9 +161,9 @@ def main():
     hydrogen, consec = parse_args()
     input_ = side_function(input_, dir_)
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, folder=pdb_dir, consec=consec)
-    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
+    yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                   file_=pdb_names, cu=cu, seed=seed, nord=nord)
-    submit(slurm_files, nord)
+    submit_parallel(yaml_files, cpus)
     pele_folders(input_, pdb_names, dir_)
 
 

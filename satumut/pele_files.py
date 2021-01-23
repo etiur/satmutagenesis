@@ -128,6 +128,8 @@ class CreateLaunchFiles:
                 inp.writelines(lines)
                 self.yaml.append(yaml)
 
+            return self.yaml
+
     def slurm_creation(self):
         """
         Creates the slurm running files for PELE in sbatch managed systems
@@ -159,7 +161,7 @@ class CreateLaunchFiles:
                       'export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n',
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n']
             for yaml in self.yaml:
-                srun = 'srun --ntasks={} /gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {} &\n'.format(self.cpus,
+                srun = 'srun --exclusive --ntasks={} /gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {} &\n'.format(self.cpus,
                           yaml)
                 lines2.append(srun)
             lines2.append("\nwait\n")
@@ -255,14 +257,9 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
 
     run = CreateLaunchFiles(file_list, ligchain, ligname, atom1, atom2, cpus, test=test,
                                 initial=initial, cu=cu, seed=seed, nord=nord)
-    run.input_creation()
-    if not nord:
-        run.slurm_creation()
-    else:
-        run.slurm_nord("test")
+    yaml_files = run.input_creation()
 
-    slurm_files.append(run.slurm)
-    return slurm_files
+    return yaml_files
 
 
 def main():
