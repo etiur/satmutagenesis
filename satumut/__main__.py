@@ -9,7 +9,6 @@ __email__ = "ruite.xiang@bsc.es"
 
 
 import argparse
-from pele_files import CreateLaunchFiles
 from subprocess import call
 from os.path import basename
 import os
@@ -76,8 +75,20 @@ class CreateSlurmFiles:
             atom of the ligand to follow in this format --> chain ID:position:atom name
         length: int
             To calculate the real cpus necessary to run all the simulations
+        position: list[str]
+            [chain ID:position] of the residue, for example [A:139,..]
         cpus: int, optional
-            How many cpus do you want to use
+            how many cpus do you want to use
+        dir_: str, optional
+            Name of the folder ofr the simulations
+        hydrogens: bool, optional
+            Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
+        multiple: bool, optional
+            Specify if to mutate 2 positions at the same pdb
+        pdb_dir: str, optional
+            The name of the folder where the mutated PDB files will be stored
+        consec: bool, optional
+            Consecutively mutate the PDB file for several rounds
         test: bool, optional
             Setting the simulation to test mode
         cu: bool, optional
@@ -132,8 +143,9 @@ class CreateSlurmFiles:
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n']
 
             argument_list = []
+            posi = " ".join(self.position)
             arguments = "--input {} --position {} --ligchain {} --ligname {} --atom1 {} --atom2 {} ".format(
-                self.input, self.position, self.ligchain, self.ligname, self.atom1, self.atom2)
+                self.input, posi, self.ligchain, self.ligname, self.atom1, self.atom2)
             argument_list.append(arguments)
 
             if self.seed != 12345:
@@ -154,9 +166,13 @@ class CreateSlurmFiles:
                 argument_list.append("--pdb_dir {} ".format(self.pdb_dir))
             if self.dir:
                 argument_list.append("--dir {} ".format(self.dir))
+            if self.test:
+                argument_list.append("--test ")
 
-            python = "/home/bsc72/bsc72661/.conda/envs/saturated/bin/python -m saturated_mutagenesis.simulation {}"
-
+            all_arguments = "".join(argument_list)
+            python = "/home/bsc72/bsc72661/.conda/envs/saturated/bin/python -m saturated_mutagenesis.simulation {}".format(
+                all_arguments)
+            lines2.append(python)
             lines.extend(lines2)
             slurm.writelines(lines)
 
@@ -208,8 +224,8 @@ def main():
         length = 400
     else:
         length = len(position) * 19 + 1
-    run = CreateSlurmFiles(input_, ligchain, ligname, atom1, atom2, length, cpus, test, cu=cu, seed=seed,
-                            nord=nord)
+    run = CreateSlurmFiles(input_, ligchain, ligname, atom1, atom2, length, position, cpus, dir_, hydrogen,
+                  multiple, pdb_dir, consec, test, cu, seed, nord)
     slurm = run.slurm_creation()
     if sbatch:
         call(["sbatch", "{}".format(slurm)])
