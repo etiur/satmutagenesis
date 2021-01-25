@@ -11,7 +11,6 @@ __email__ = "ruite.xiang@bsc.es"
 import argparse
 from subprocess import call
 from os.path import basename
-import os
 
 
 def parse_args():
