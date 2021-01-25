@@ -11,7 +11,7 @@ __email__ = "ruite.xiang@bsc.es"
 import argparse
 from subprocess import call
 from os.path import basename
-import os
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
@@ -124,8 +124,8 @@ class CreateSlurmFiles:
         name = basename(self.input).replace(".pdb", "")
         self.slurm = "{}.sh".format(name)
         with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(name),
-                     "#SBATCH --error={}.err\n".format(name)]
+            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(basename(self.dir)),
+                     "#SBATCH --error={}.err\n".format(basename(self.dir))]
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
                 self.cpus = 5
