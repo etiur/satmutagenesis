@@ -1,3 +1,7 @@
+"""
+This script used pmx to mutate the residues within proteins
+"""
+
 from pmx import Model
 from pmx.rotamer import load_bbdep
 import argparse
@@ -242,7 +246,7 @@ class Mutagenesis:
             p.join()
 
 
-def generate_mutations(input_, position, hydrogens=True, multiple=False, folder="pdb_files", consec=False):
+def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False):
     """
     To generate up to 2 mutations per pdb
 
@@ -256,8 +260,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
         Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
     multiple: bool, optional
         Specify if to mutate 2 positions at the same pdb
-    folder: str, optional
-        The name of the folder where the new PDb files will be stored
+    pdb_dir: str, optional
+        The name of the folder where the mutated PDB files will be stored
     consec: bool, optional
         Consecutively mutate the PDB file for several rounds
 
@@ -269,7 +273,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
     pdbs = []
     # Perform single saturated mutations
     for mutation in position:
-        run = Mutagenesis(input_, mutation, folder, consec)
+        run = Mutagenesis(input_, mutation, pdb_dir, consec)
         final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
         pdbs.extend(final_pdbs)
         run.accelerated_insert()
@@ -278,7 +282,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, folder=
             for files in final_pdbs:
                 name = basename(files).replace(".pdb", "")
                 if name != "original.pdb":
-                    run_ = Mutagenesis(files, position[1], folder, consec)
+                    run_ = Mutagenesis(files, position[1], pdb_dir, consec)
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()

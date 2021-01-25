@@ -11,11 +11,11 @@ __email__ = "ruite.xiang@bsc.es"
 import argparse
 from mutate_pdb import generate_mutations
 from pele_files import create_20sbatch
-from subprocess import call
+from subprocess import Popen
 from os.path import abspath, basename
 import os
-from multiprocessing import Process
-from functools import partial
+import logging
+import time
 
 
 def parse_args():
@@ -65,11 +65,9 @@ def submit(yaml_files, cpus=24):
     """
 
     platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main"
-    returncode = call(["srun", "--exclusive", "-n{}".format(cpus), "{}".format(platform), "{}".format(yaml_files)])
-    if returncode != 0:
-        raise Exception("something went wrong with the PELE simulation")
+    p = Popen(["srun", "--exclusive", "-n{}".format(cpus), "{}".format(platform), "{}".format(yaml_files)])
 
-    return returncode
+    return p
 
 
 def submit_parallel(yaml_list, cpus=24):
@@ -83,14 +81,18 @@ def submit_parallel(yaml_list, cpus=24):
     cpus: int
         The number of cpus for the simulations
     """
+    logging.basicConfig(filename='simulation_time.log', level=logging.DEBUG, format='%(asctime)s - %(message)s',
+                        datefmt='%d-%b-%y %H:%M:%S')
     proc = []
-    func = partial(submit, cpus=cpus)
+    start = time.time()
     for files in yaml_list:
-        p = Process(target=func, args=(files,))
-        p.start()
+        p = submit(files, cpus)
         proc.append(p)
     for p in proc:
-        p.join()
+        p.wait()
+    end = time.time()
+
+    logging.info("It took {} to run {} simulations".format(end-start, len(yaml_list)))
 
 
 def side_function(input_, dir_=None):
@@ -160,7 +162,7 @@ def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec = parse_args()
     input_ = side_function(input_, dir_)
-    pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, folder=pdb_dir, consec=consec)
+    pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir, consec=consec)
     yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                   file_=pdb_names, cu=cu, seed=seed, nord=nord)
     submit_parallel(yaml_files, cpus)

@@ -1,3 +1,7 @@
+"""
+This script is used to analyse the results of the simulations
+"""
+
 from glob import glob
 import pandas as pd
 import seaborn as sns

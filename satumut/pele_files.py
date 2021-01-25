@@ -1,3 +1,7 @@
+"""
+This script is used to generate the yaml files for pele platform
+"""
+
 import argparse
 import os
 from helper import map_atom_string, isiterable
@@ -139,9 +143,7 @@ class CreateLaunchFiles:
         slurm_name: str
             Name for the batch file
         """
-        if not os.path.exists("slurm_files"):
-            os.mkdir("slurm_files")
-        name = basename(self.input[1]).replace(".pdb", "")[:-1]
+        name = basename(self.input).replace(".pdb", "")
         self.slurm = "slurm_files/{}.sh".format(name)
         with open(self.slurm, "w") as slurm:
             lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(name),
@@ -159,12 +161,9 @@ class CreateLaunchFiles:
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
                       'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
                       'export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n',
-                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n']
-            for yaml in self.yaml:
-                srun = 'srun --exclusive --ntasks={} /gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main {} &\n'.format(self.cpus,
-                          yaml)
-                lines2.append(srun)
-            lines2.append("\nwait\n")
+                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n'
+                      "python"]
+
             lines.extend(lines2)
             slurm.writelines(lines)
 
@@ -264,10 +263,10 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
 
 def main():
     folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord = parse_args()
-    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2,
+    yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2,
                                   cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord)
 
-    return slurm_files
+    return yaml_files
 
 
 if __name__ == "__main__":
