@@ -45,8 +45,8 @@ class CreateLaunchFiles:
 
         Parameters
         ___________
-        input_: list[str]
-            A list of PDB files path
+        input_: str
+            A PDB file's path
         ligchain: str
             the chain ID where the ligand is located
         ligname: str
@@ -76,7 +76,7 @@ class CreateLaunchFiles:
         self.atom2 = atom2
         self.cpus = cpus
         self.test = test
-        self.yaml = []
+        self.yaml = None
         self.slurm = None
         self.initial = initial
         self.cu = cu
@@ -88,12 +88,12 @@ class CreateLaunchFiles:
         match the user coordinates to pmx PDB coordinates
         """
         if self.initial:
-            self.atom1 = map_atom_string(self.atom1, self.initial, self.input[0])
-            self.atom2 = map_atom_string(self.atom2, self.initial, self.input[0])
+            self.atom1 = map_atom_string(self.atom1, self.initial, self.input)
+            self.atom2 = map_atom_string(self.atom2, self.initial, self.input)
         else:
             pass
 
-    def input_creation(self):
+    def input_creation(self, name):
         """
         create the .yaml input files for PELE
 
@@ -105,67 +105,67 @@ class CreateLaunchFiles:
         self._match_dist()
         if not os.path.exists("yaml_files"):
             os.mkdir("yaml_files")
-        for files in self.input:
-            files = files.strip("\n")
-            name = basename(files).replace(".pdb", "")
-            yaml = "yaml_files/{}.yaml".format(name)
-            with open(yaml, "w") as inp:
-                lines = ["system: '{}'\n".format(files), "chain: '{}'\n".format(self.ligchain),
-                        "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
-                        "seed: {}\n".format(self.seed)]
-                if not self.nord:
-                    lines.append("usesrun: true\n")
-                if name != "original":
-                    lines.append("working_folder: {}/PELE_{}\n".format(name[:-1], name))
-                else:
-                    lines.append("working_folder: PELE_{}\n".format(name))
-                if self.test:
-                    lines.append("test: true\n")
-                    self.cpus = 5
-                lines2 = ["cpus: {}\n".format(self.cpus), "atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2),
+
+        self.yaml = "yaml_files/{}.yaml".format(name)
+        with open(self.yaml, "w") as inp:
+            lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
+                    "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
+                    "seed: {}\n".format(self.seed)]
+            if not self.nord:
+                lines.append("usesrun: true\n")
+            if name != "original":
+                lines.append("working_folder: {}/PELE_{}\n".format(name[:-1], name))
+            else:
+                lines.append("working_folder: PELE_{}\n".format(name))
+            if self.test:
+                lines.append("test: true\n")
+                self.cpus = 5
+            lines2 = ["cpus: {}\n".format(self.cpus), "atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2),
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n",
                       "pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n"]
-                if self.cu:
-                    path = "/gpfs/projects/bsc72/ruite/examples/cuz"
-                    lines2.append("templates:\n- '{}'\n".format(path))
-                lines.extend(lines2)
-                inp.writelines(lines)
-                self.yaml.append(yaml)
+            if self.cu:
+                path = "/gpfs/projects/bsc72/ruite/examples/cuz"
+                lines2.append("templates:\n- '{}'\n".format(path))
+            lines.extend(lines2)
+            inp.writelines(lines)
 
-            return self.yaml
+        return self.yaml
 
-    def slurm_creation(self):
+    def slurm_creation(self, length):
         """
         Creates the slurm running files for PELE in sbatch managed systems
 
         Parameters
         ___________
-        slurm_name: str
-            Name for the batch file
+        length: int
+            To calculate the real cpus necessary to run all the simulations
         """
         name = basename(self.input).replace(".pdb", "")
-        self.slurm = "slurm_files/{}.sh".format(name)
+        self.slurm = "{}.sh".format(name)
         with open(self.slurm, "w") as slurm:
             lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(name),
                      "#SBATCH --error={}.err\n".format(name)]
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
                 self.cpus = 5
-                real_cpus = self.cpus * len(self.input)
+                real_cpus = self.cpus * length
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
             else:
-                real_cpus = self.cpus * len(self.input)
+                real_cpus = self.cpus * length
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
 
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
                       'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
                       'export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n',
-                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n'
-                      "python"]
+                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n']
+            arguments = "--input {} --position {}"
+            python = "/home/bsc72/bsc72661/.conda/envs/saturated/bin/python -m saturated_mutagenesis.simulation {}"
 
             lines.extend(lines2)
             slurm.writelines(lines)
+
+        return self.slurm
 
     def slurm_nord(self, slurm_name):
         """
@@ -252,11 +252,16 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         file_list = file_[:]
     else:
         raise Exception("No directory or iterable passed")
-    # Create the launching files
 
-    run = CreateLaunchFiles(file_list, ligchain, ligname, atom1, atom2, cpus, test=test,
+    # Create the launching files
+    yaml_files = []
+    for files in file_list:
+        files = files.strip("\n")
+        name = basename(files).replace(".pdb", "")
+        run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
                                 initial=initial, cu=cu, seed=seed, nord=nord)
-    yaml_files = run.input_creation()
+        yaml = run.input_creation(name)
+        yaml_files.append(yaml)
 
     return yaml_files
 

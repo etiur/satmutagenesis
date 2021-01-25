@@ -1,5 +1,5 @@
 """
-This script is designed to run saturated_mutagenesis through the command-line.
+This script is designed to generate the sbatch file for the simulations to run.
 """
 
 __author__ = "Ruite Xiang"
@@ -9,13 +9,10 @@ __email__ = "ruite.xiang@bsc.es"
 
 
 import argparse
-from mutate_pdb import generate_mutations
-from pele_files import create_20sbatch
-from subprocess import Popen
-from os.path import abspath, basename
+from pele_files import CreateLaunchFiles
+from subprocess import call
+from os.path import basename
 import os
-import logging
-import time
 
 
 def parse_args():
@@ -47,127 +44,175 @@ def parse_args():
     parser.add_argument("--hydrogen", required=False, action="store_false", help="leave it to default")
     parser.add_argument("--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
+    parser.add_argument("--sbatch", required=False, action="store_false",
+                        help="True if you want to lanch the simulation right after creating the slurm file")
 
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec]
+            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec, args.sbatch]
 
 
-def submit(yaml_files, cpus=24):
+class CreateSlurmFiles:
     """
-    Given a yaml file calls the pele platform to run the simulations
-
-    Parameters
-    __________
-    slurm_folder: list[path]
-        A list of the slurm files path's
+    Creates the 2 necessary files for the pele simulations
     """
+    def __init__(self, input_, ligchain, ligname, atom1, atom2, length, position, cpus=24, dir_=None, hydrogen=True,
+                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False):
+        """
+        Initialize the CreateLaunchFiles object
 
-    platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main"
-    p = Popen(["srun", "--exclusive", "-n{}".format(cpus), "{}".format(platform), "{}".format(yaml_files)])
+        Parameters
+        ___________
+        input_: str
+            A  PDB file's path
+        ligchain: str
+            the chain ID where the ligand is located
+        ligname: str
+            the residue name of the ligand in the PDB
+        atom1: str
+            atom of the residue to follow in this format --> chain ID:position:atom name
+        atom2: str
+            atom of the ligand to follow in this format --> chain ID:position:atom name
+        length: int
+            To calculate the real cpus necessary to run all the simulations
+        cpus: int, optional
+            How many cpus do you want to use
+        test: bool, optional
+            Setting the simulation to test mode
+        cu: bool, optional
+            Set it to true if there are coppers in the system
+        seed: int, optional
+            A seed number to make the simulations reproducible
+        nord: bool, optional
+            True if the system is managed by LSF
+        """
 
-    return p
+        self.input = input_
+        self.ligchain = ligchain
+        self.ligname = ligname
+        self.atom1 = atom1
+        self.atom2 = atom2
+        self.cpus = cpus
+        self.test = test
+        self.slurm = None
+        self.cu = cu
+        self.seed = seed
+        self.nord = nord
+        self.len = length
+        self.position = position
+        self.hydrogen = hydrogen
+        self.multiple = multiple
+        self.consec = consec
+        self.dir = dir_
+        self.pdb_dir = pdb_dir
 
+    def slurm_creation(self):
+        """
+        Creates the slurm running files for PELE in sbatch managed systems
+        """
+        name = basename(self.input).replace(".pdb", "")
+        self.slurm = "{}.sh".format(name)
+        with open(self.slurm, "w") as slurm:
+            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(name),
+                     "#SBATCH --error={}.err\n".format(name)]
+            if self.test:
+                lines.append("#SBATCH --qos=debug\n")
+                self.cpus = 5
+                real_cpus = self.cpus * self.len
+                lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
+            else:
+                real_cpus = self.cpus * self.len
+                lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
 
-def submit_parallel(yaml_list, cpus=24):
-    """
-    Tries to parallelize the call to the pele_platform
+            lines2 = ['module purge\n',
+                      'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
+                      'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
+                      'export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n',
+                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n']
 
-    Parameters
-    __________
-    yaml_list: list[path]
-        A list of the yaml files path's
-    cpus: int
-        The number of cpus for the simulations
-    """
-    logging.basicConfig(filename='simulation_time.log', level=logging.DEBUG, format='%(asctime)s - %(message)s',
-                        datefmt='%d-%b-%y %H:%M:%S')
-    proc = []
-    start = time.time()
-    for files in yaml_list:
-        p = submit(files, cpus)
-        proc.append(p)
-    for p in proc:
-        p.wait()
-    end = time.time()
+            argument_list = []
+            arguments = "--input {} --position {} --ligchain {} --ligname {} --atom1 {} --atom2 {} ".format(
+                self.input, self.position, self.ligchain, self.ligname, self.atom1, self.atom2)
+            argument_list.append(arguments)
 
-    logging.info("It took {} to run {} simulations".format(end-start, len(yaml_list)))
+            if self.seed != 12345:
+                argument_list.append("--seed {} ".format(self.seed))
+            if self.cpus != 24:
+                argument_list.append("--cpus {} ".format(self.cpus))
+            if self.hydrogen:
+                argument_list.append("--hydrogen ")
+            if self.consec:
+                argument_list.append("--consec ")
+            if self.multiple:
+                argument_list.append("--multiple ")
+            if self.cu:
+                argument_list.append("--cu ")
+            if self.nord:
+                argument_list.append("--nord ")
+            if self.pdb_dir != "pdb_files":
+                argument_list.append("--pdb_dir {} ".format(self.pdb_dir))
+            if self.dir:
+                argument_list.append("--dir {} ".format(self.dir))
 
+            python = "/home/bsc72/bsc72661/.conda/envs/saturated/bin/python -m saturated_mutagenesis.simulation {}"
 
-def side_function(input_, dir_=None):
-    """
-    Put all the necessary previous steps here
+            lines.extend(lines2)
+            slurm.writelines(lines)
 
-    Parameters
-    ___________
-    input_: str
-        The wild type PDB file path
-    dir_: str, optional
-        Name of the folder for the simulations
+        return self.slurm
 
-    Returns
-    _______
-    input_: str
-        The new path of the input
-    """
-    input_ = abspath(input_)
-    if not dir_:
-        base = basename(input_)
-        base = base.replace(".pdb", "")
-    else:
-        base = dir_
-    if not os.path.exists("{}_mutations".format(base)):
-        os.mkdir("{}_mutations".format(base))
-    os.chdir("{}_mutations".format(base))
+    def slurm_nord(self, slurm_name):
+        """
+        Create slurm files for PELE in LSF managed systems
 
-    return input_
+        Parameters
+        ___________
+        slurm_name: str
+            Name of the file created
+        """
+        if not os.path.exists("slurm_files"):
+            os.mkdir("slurm_files")
+        self.slurm = "slurm_files/{}.sh".format(slurm_name)
+        with open(self.slurm, "w") as slurm:
+            lines = ["#!/bin/bash\n", "#BSUB -J PELE\n", "#BSUB -oo {}.out\n".format(slurm_name),
+                     "#BSUB -eo {}.err\n".format(slurm_name)]
+            if self.test:
+                lines.append("#BSUB -q debug\n")
+                self.cpus = 5
+                lines.append("#BSUB -W 01:00\n")
+                lines.append("#BSUB -n {}\n\n".format(self.cpus))
+            else:
+                lines.append("#BSUB -W 48:00\n")
+                lines.append("#BSUB -n {}\n\n".format(self.cpus))
 
+            lines2 = ['module purge\n',
+                      'module load intel gcc/latest openmpi/1.8.1 boost/1.63.0 PYTHON/3.7.4 MKL/11.3 GTK+3/3.2.4\n',
+                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/1.5.1/pele_platform:$PYTHONPATH\n',
+                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/1.5.1/dependencies:$PYTHONPATH\n',
+                      'export PYTHONPATH=/gpfs/projects/bsc72/adaptiveSampling/bin_nord/v1.6.2/:$PYTHONPATH\n',
+                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/external_deps/:$PYTHONPATH\n',
+                      'export PYTHONPATH=/gpfs/projects/bsc72/lib/site-packages_mn3:$PYTHONPATH\n',
+                      'export MPLBACKEND=Agg\n', 'export OMPI_MCA_coll_hcoll_enable=0\n', 'export OMPI_MCA_mtl=^mxm\n'
+                      'python -m pele_platform.main {}\n']
 
-def pele_folders(input_, file_list, dir_=None):
-    """
-    Creates a file with the names of the different folders where the pele simulations are contained
-
-    Parameters
-    ___________
-    input_: str
-        The wild type PDB file path
-    file_list: list[path]
-        list of pdb files path created during the saturated mutagenesis
-    dir_: str, optional
-        Name of the folder ofr the simulations
-    """
-    os.chdir("../")
-    if not dir_:
-        base = basename(input_)
-        base = base.replace(".pdb", "")
-    else:
-        base = dir_
-    count = 0
-    folder = []
-    for files in file_list:
-        name = basename(files)
-        name = name.replace(".pdb", "")
-        if not count:
-            hold = "bla"
-            count += 1
-        if name != "original" and hold != name[:-1]:
-            hold = name[:-1]
-            folder.append("{}_mutations/{}\n".format(base, hold))
-    with open("dirnames_{}.txt".format(base), "w") as txt:
-        txt.writelines(folder)
+            lines.extend(lines2)
+            slurm.writelines(lines)
 
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec = parse_args()
-    input_ = side_function(input_, dir_)
-    pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir, consec=consec)
-    yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
-                                  file_=pdb_names, cu=cu, seed=seed, nord=nord)
-    submit_parallel(yaml_files, cpus)
-    pele_folders(input_, pdb_names, dir_)
+    hydrogen, consec, sbatch = parse_args()
 
+    if multiple and len(position) == 2:
+        length = 400
+    else:
+        length = len(position) * 19 + 1
+    run = CreateSlurmFiles(input_, ligchain, ligname, atom1, atom2, length, cpus, test, cu=cu, seed=seed,
+                            nord=nord)
+    slurm = run.slurm_creation()
+    if sbatch:
+        call(["sbatch", "{}".format(slurm)])
 
 if __name__ == "__main__":
     # Run this if this file is executed from command line but not if is imported as API
