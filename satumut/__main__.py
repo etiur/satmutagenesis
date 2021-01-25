@@ -187,9 +187,7 @@ class CreateSlurmFiles:
         slurm_name: str
             Name of the file created
         """
-        if not os.path.exists("slurm_files"):
-            os.mkdir("slurm_files")
-        self.slurm = "slurm_files/{}.sh".format(slurm_name)
+        self.slurm = "{}.sh".format(slurm_name)
         with open(self.slurm, "w") as slurm:
             lines = ["#!/bin/bash\n", "#BSUB -J PELE\n", "#BSUB -oo {}.out\n".format(slurm_name),
                      "#BSUB -eo {}.err\n".format(slurm_name)]

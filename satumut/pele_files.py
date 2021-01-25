@@ -77,7 +77,6 @@ class CreateLaunchFiles:
         self.cpus = cpus
         self.test = test
         self.yaml = None
-        self.slurm = None
         self.initial = initial
         self.cu = cu
         self.seed = seed
@@ -130,79 +129,6 @@ class CreateLaunchFiles:
             inp.writelines(lines)
 
         return self.yaml
-
-    def slurm_creation(self, length):
-        """
-        Creates the slurm running files for PELE in sbatch managed systems
-
-        Parameters
-        ___________
-        length: int
-            To calculate the real cpus necessary to run all the simulations
-        """
-        name = basename(self.input).replace(".pdb", "")
-        self.slurm = "{}.sh".format(name)
-        with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(name),
-                     "#SBATCH --error={}.err\n".format(name)]
-            if self.test:
-                lines.append("#SBATCH --qos=debug\n")
-                self.cpus = 5
-                real_cpus = self.cpus * length
-                lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
-            else:
-                real_cpus = self.cpus * length
-                lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
-
-            lines2 = ['module purge\n',
-                      'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
-                      'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
-                      'export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n',
-                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n']
-            arguments = "--input {} --position {}"
-            python = "/home/bsc72/bsc72661/.conda/envs/saturated/bin/python -m saturated_mutagenesis.simulation {}"
-
-            lines.extend(lines2)
-            slurm.writelines(lines)
-
-        return self.slurm
-
-    def slurm_nord(self, slurm_name):
-        """
-        Create slurm files for PELE in LSF managed systems
-
-        Parameters
-        ___________
-        slurm_name: str
-            Name of the file created
-        """
-        if not os.path.exists("slurm_files"):
-            os.mkdir("slurm_files")
-        self.slurm = "slurm_files/{}.sh".format(slurm_name)
-        with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#BSUB -J PELE\n", "#BSUB -oo {}.out\n".format(slurm_name),
-                     "#BSUB -eo {}.err\n".format(slurm_name)]
-            if self.test:
-                lines.append("#BSUB -q debug\n")
-                self.cpus = 5
-                lines.append("#BSUB -W 01:00\n")
-                lines.append("#BSUB -n {}\n\n".format(self.cpus))
-            else:
-                lines.append("#BSUB -W 48:00\n")
-                lines.append("#BSUB -n {}\n\n".format(self.cpus))
-
-            lines2 = ['module purge\n',
-                      'module load intel gcc/latest openmpi/1.8.1 boost/1.63.0 PYTHON/3.7.4 MKL/11.3 GTK+3/3.2.4\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/1.5.1/pele_platform:$PYTHONPATH\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/1.5.1/dependencies:$PYTHONPATH\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/adaptiveSampling/bin_nord/v1.6.2/:$PYTHONPATH\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/external_deps/:$PYTHONPATH\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/lib/site-packages_mn3:$PYTHONPATH\n',
-                      'export MPLBACKEND=Agg\n', 'export OMPI_MCA_coll_hcoll_enable=0\n', 'export OMPI_MCA_mtl=^mxm\n'
-                      'python -m pele_platform.main {}\n'.format(self.yaml)]
-
-            lines.extend(lines2)
-            slurm.writelines(lines)
 
 
 def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False, initial=None,
