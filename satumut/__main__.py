@@ -11,7 +11,7 @@ __email__ = "ruite.xiang@bsc.es"
 import argparse
 from subprocess import call
 from os.path import basename
-
+import os
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
@@ -169,7 +169,7 @@ class CreateSlurmFiles:
                 argument_list.append("--test ")
 
             all_arguments = "".join(argument_list)
-            python = "/home/bsc72/bsc72661/.conda/envs/saturated/bin/python -m saturated_mutagenesis.simulation {}".format(
+            python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
             lines2.append(python)
             lines.extend(lines2)
@@ -226,6 +226,7 @@ def main():
     slurm = run.slurm_creation()
     if sbatch:
         call(["sbatch", "{}".format(slurm)])
+
 
 if __name__ == "__main__":
     # Run this if this file is executed from command line but not if is imported as API
