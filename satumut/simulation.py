@@ -4,7 +4,7 @@ This script is used to create and control the simulations
 import argparse
 from mutate_pdb import generate_mutations
 from pele_files import create_20sbatch
-from subprocess import Popen
+from subprocess import Popen, call
 from os.path import abspath, basename
 import os
 import logging
@@ -52,12 +52,24 @@ class SimulationRunner:
     A class that configures and runs simulations
     """
     def __init__(self, input_, cpus=24, dir_=None):
+        """
+        Initialize the Simulation Runner class
+
+        Parameters
+        ___________
+        input_: str
+            The path to the PDB file
+        cpus: int
+            The number of cpus per EPEL simulation
+        dir_: str
+            The name of the directory for the simulations to run and the outputs to be stored
+        """
 
         self.input = input_
         self.cpus = cpus
-        self.proc = []
+        self.proc = None
         self.dir = dir_
-        self.command=None
+        self.commands=None
 
     def side_function(self):
         """
@@ -124,14 +136,7 @@ class SimulationRunner:
         p: subprocess.popen
             It returns a Popen object with the commands to run the PELE simulation
         """
-
-        platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
-        self.command = ["srun", "--exclusive", "--ntasks={}".format(self.cpus), "{}".format(platform),
-                        "-m", "pele_platform.main", "{}".format(yaml_file)]
-
-        p = Popen(self.command)
-
-        return p
+        pass
 
     def submit_parallel(self, yaml_list):
         """
@@ -140,18 +145,16 @@ class SimulationRunner:
         logging.basicConfig(filename='simulation_time.log', level=logging.DEBUG, format='%(asctime)s - %(message)s',
                             datefmt='%d-%b-%y %H:%M:%S')
 
+        platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
+        self.commands = [["srun", "--exclusive", "--ntasks={}".format(self.cpus), "{}".format(platform),
+                        "-m", "pele_platform.main", "{}".format(yaml_file)] for yaml_file in yaml_list]
         start = time.time()
-        count = 0
-        for files in [yaml_list[0]]:
-            p = self.submit(files)
-            self.proc.append(p)
-        for p in self.proc:
-            count +=1
-            p.wait()
+        for commands in self.commands:
+            call(commands)
         end = time.time()
 
         logging.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
-        logging.info("It has loop for {} times".format(count))
+        logging.info("This is the command".format(commands))
 
 
 def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus=24, dir_=None, hydrogen=True,
