@@ -34,7 +34,7 @@ def parse_args():
             args.seed, args.nord]
 
 
-class CreateLaunchFiles:
+class CreateYamlFiles:
     """
     Creates the 2 necessary files for the pele simulations
     """
@@ -184,7 +184,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
     for files in file_list:
         files = files.strip("\n")
         name = basename(files).replace(".pdb", "")
-        run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
+        run = CreateYamlFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
                                 initial=initial, cu=cu, seed=seed, nord=nord)
         yaml = run.input_creation(name)
         yaml_files.append(yaml)

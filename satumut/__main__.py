@@ -121,8 +121,7 @@ class CreateSlurmFiles:
         """
         Creates the slurm running files for PELE in sbatch managed systems
         """
-        name = basename(self.input).replace(".pdb", "")
-        self.slurm = "{}.sh".format(name)
+        self.slurm = "{}.sh".format(basename(self.dir))
         with open(self.slurm, "w") as slurm:
             lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(basename(self.dir)),
                      "#SBATCH --error={}.err\n".format(basename(self.dir))]

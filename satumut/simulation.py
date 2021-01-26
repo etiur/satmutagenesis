@@ -62,13 +62,6 @@ class SimulationRunner:
         """
         Put all the necessary previous steps here
 
-        Parameters
-        ___________
-        input_: str
-            The wild type PDB file path
-        dir_: str, optional
-            Name of the folder for the simulations
-
         Returns
         _______
         input_: str
@@ -124,6 +117,11 @@ class SimulationRunner:
         __________
         yaml_file: path
             The path to the yaml file
+
+        Returns
+        _______
+        p: subprocess.popen
+            It returns a Popen object with the commands to run the PELE simulation
         """
 
         platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main"
@@ -139,7 +137,7 @@ class SimulationRunner:
                             datefmt='%d-%b-%y %H:%M:%S')
 
         start = time.time()
-        for files in yaml_list:
+        for files in [yaml_list[0]]:
             p = self.submit(files)
             self.proc.append(p)
         for p in self.proc:
