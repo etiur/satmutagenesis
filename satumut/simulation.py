@@ -194,7 +194,7 @@ def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus
                                    consec=consec)
     yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                  file_=pdb_names, cu=cu, seed=seed, nord=nord)
-    simulation.submit_parallel(yaml_files)
+    simulation.submit(yaml_files)
     simulation.pele_folders(pdb_names)
 
 
