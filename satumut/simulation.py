@@ -123,23 +123,7 @@ class SimulationRunner:
         with open("dirnames_{}.txt".format(base), "w") as txt:
             txt.writelines(folder)
 
-    def submit(self, yaml_file):
-        """
-        Given a yaml file calls the pele platform to run the simulations
-
-        Parameters
-        __________
-        yaml_file: path
-            The path to the yaml file
-
-        Returns
-        _______
-        p: subprocess.popen
-            It returns a Popen object with the commands to run the PELE simulation
-        """
-        pass
-
-    def submit_parallel(self, yaml_list):
+    def submit(self, yaml_list):
         """
         Tries to parallelize the call to the pele_platform
 
