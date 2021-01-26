@@ -38,6 +38,7 @@ class CreateYamlFiles:
     """
     Creates the 2 necessary files for the pele simulations
     """
+
     def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24,
                  test=False, initial=None, cu=False, seed=12345, nord=False):
         """
@@ -108,8 +109,8 @@ class CreateYamlFiles:
         self.yaml = "yaml_files/{}.yaml".format(name)
         with open(self.yaml, "w") as inp:
             lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
-                    "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
-                    "seed: {}\n".format(self.seed)]
+                     "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
+                     "seed: {}\n".format(self.seed)]
             if not self.nord:
                 lines.append("usesrun: true\n")
             if name != "original":
@@ -185,7 +186,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         files = files.strip("\n")
         name = basename(files).replace(".pdb", "")
         run = CreateYamlFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
-                                initial=initial, cu=cu, seed=seed, nord=nord)
+                              initial=initial, cu=cu, seed=seed, nord=nord)
         yaml = run.input_creation(name)
         yaml_files.append(yaml)
 
@@ -195,7 +196,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
 def main():
     folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord = parse_args()
     yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2,
-                                  cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord)
+                                 cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord)
 
     return yaml_files
 

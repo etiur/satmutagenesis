@@ -3,7 +3,7 @@ This module tests the analysis module
 """
 
 from ..analysis import SimulationData, analyse_all, box_plot, all_profiles, extract_snapshot_from_pdb
-from ..analysis import create_report, consecutive_analysis
+from ..analysis import create_report
 import pandas as pd
 import pytest
 import os

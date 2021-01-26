@@ -57,6 +57,7 @@ class SimulationRunner:
         self.cpus = cpus
         self.proc = []
         self.dir = dir_
+        self.command=None
 
     def side_function(self):
         """
@@ -124,8 +125,11 @@ class SimulationRunner:
             It returns a Popen object with the commands to run the PELE simulation
         """
 
-        platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8 -m pele_platform.main"
-        p = Popen(["srun", "--exclusive", "-n{}".format(self.cpus), "{}".format(platform), "{}".format(yaml_file)])
+        platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
+        self.command = ["srun", "--exclusive", "--ntasks={}".format(self.cpus), "{}".format(platform),
+                        "-m", "pele_platform.main", "{}".format(yaml_file)]
+
+        p = Popen(self.command)
 
         return p
 
@@ -137,14 +141,17 @@ class SimulationRunner:
                             datefmt='%d-%b-%y %H:%M:%S')
 
         start = time.time()
+        count = 0
         for files in [yaml_list[0]]:
             p = self.submit(files)
             self.proc.append(p)
         for p in self.proc:
+            count +=1
             p.wait()
         end = time.time()
 
         logging.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
+        logging.info("It has loop for {} times".format(count))
 
 
 def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus=24, dir_=None, hydrogen=True,

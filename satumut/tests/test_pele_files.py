@@ -2,20 +2,27 @@
 This module tests the pele files module
 """
 
-from ..pele_files import CreateLaunchFiles, create_20sbatch
+from ..pele_files import CreateYamlFiles, create_20sbatch
 import pytest
 import shutil
 from os.path import basename, dirname
 import os
+from ..__main__ import CreateSlurmFiles
 
 
 @pytest.fixture()
 def data_p():
-    run = CreateLaunchFiles("data/test/PK2_F454T.pdb", "L", "ANL", "C:1:CU", "L:1:N1", 5, test=True)
+    run = CreateYamlFiles("data/test/PK2_F454T.pdb", "L", "ANL", "C:1:CU", "L:1:N1", 5, test=True)
     return run
 
 
-class TestCreateFiles:
+@pytest.fixture()
+def data_sl():
+    run = CreateSlurmFiles("data/test/PK2_F454T.pdb", "L", "ANL", "C:1:CU", "L:1:N1", 5, ["A:134", "A:32"], test=True)
+    return run
+
+
+class TestCreateYamlFiles:
     """
     A class to test the CreateLaunchFiles class
     """
@@ -31,38 +38,38 @@ class TestCreateFiles:
         if os.path.exists(dirname(data_p.yaml)):
             shutil.rmtree(dirname(data_p.yaml))
 
-    def test_slurm(self, data_p):
+    def test_slurm(self, data_sl):
         """
         A function that tests the slurm_creation function
         """
-        data_p.slurm_creation("test")
+        data_sl.slurm_creation("test")
         assert basename(data_p.slurm).split(".")[1] == "sh", "the file has the wrong format"
-        with open(data_p.slurm, "r") as fi:
+        with open(data_sl.slurm, "r") as fi:
             assert fi.readline() == "#!/bin/bash\n", "slurm file not created"
-        if os.path.exists(dirname(data_p.slurm)):
-            shutil.rmtree(dirname(data_p.slurm))
+        if os.path.exists(data_sl.slurm):
+            os.remove(data_sl.slurm)
 
     @pytest.mark.not_finished
-    def test_nord(self, data_p):
+    def test_nord(self, data_sl):
         """
         A function that tests the slurm_nord function
         """
-        data_p.slurm_nord("nord")
-        assert basename(data_p.slurm).split(".")[1] == "sh", "the file has the wrong format"
-        with open(data_p.slurm, "r") as fi:
+        data_sl.slurm_nord("nord")
+        assert basename(data_sl.slurm).split(".")[1] == "sh", "the file has the wrong format"
+        with open(data_sl.slurm, "r") as fi:
             assert fi.readline() == "#!/bin/bash\n", "nord file not created"
-        if os.path.exists(dirname(data_p.slurm)):
-            shutil.rmtree(dirname(data_p.slurm))
+        if os.path.exists(data_sl.slurm):
+            os.remove(data_sl.slurm)
 
 
 def test_create_20sbatch():
     """
     A function to test the create_20sbatch function
     """
-    slurm_files = create_20sbatch("L", "ANL", "C:1:CU", "L:1:N1", ["data/test/PK2_F454T.pdb"], test=True)
+    yaml_files = create_20sbatch("L", "ANL", "C:1:CU", "L:1:N1", ["data/test/PK2_F454T.pdb"], test=True)
 
-    with open(slurm_files[0], "r") as fi:
-        assert fi.readline() == "#!/bin/bash\n", "slurm file not created"
+    with open(yaml_files[0], "r") as fi:
+        assert fi.readline() == "#!/bin/bash\n", "yaml file not created"
 
-    if os.path.exists(dirname(slurm_files[0])):
-        shutil.rmtree(dirname(slurm_files[0]))
+    if os.path.exists(dirname(yaml_files[0])):
+        shutil.rmtree(dirname(yaml_files[0]))

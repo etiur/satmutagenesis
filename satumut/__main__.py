@@ -142,7 +142,7 @@ class CreateSlurmFiles:
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
                       'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
                       'export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n',
-                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n']
+                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n\n']
 
             argument_list = []
             posi = " ".join(self.position)
