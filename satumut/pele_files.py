@@ -102,9 +102,9 @@ class CreateYamlFiles:
             Name for the input file for the simulation
         """
         self._match_dist()
+
         if not os.path.exists("yaml_files"):
             os.mkdir("yaml_files")
-
         self.yaml = "yaml_files/{}.yaml".format(name)
         with open(self.yaml, "w") as inp:
             lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
