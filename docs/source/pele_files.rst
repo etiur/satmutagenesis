@@ -1,6 +1,6 @@
-The creation of files for PELE simulations
-********************************************
-The second script is used when you have the PDB files and you want to generate the control files for lanching the PELE simulation for each of the PDBs.
+The creation of yaml files for PELE platform
+**********************************************
+The second script is used when you have the PDB files and you want to generate the yamls files for each of the PDBs.
 
 .. code-block:: bash
 
@@ -38,5 +38,5 @@ The ``--folder`` flag accepts folders where the PDB files are located, files con
 
     $ python -m satumut.mutate_pdb --folder pdb_files --ligchain 'L' --ligname 'ANL' --atom1 "C:1:CU" --atom2 "L:1:N1" --cu --test
     
-As a result, it will create the 2 files necessary to launch a PELE simulation in marenostrum or nord for each of the PDBs in the folder.
+As a result, it will create the yaml files which are the input files for the PELE platform. 
 

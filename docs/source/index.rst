@@ -15,6 +15,7 @@ User's guide
    manual
    mutate_pdb
    pele_files
+   simulation
    Api_examples
 
 API documentation

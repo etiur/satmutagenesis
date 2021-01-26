@@ -32,3 +32,11 @@ satumut.pele\_files module
     :members:
     :special-members: __init__
     :show-inheritance:
+
+satumut.simulation module
+--------------------------
+
+.. automodule:: satumut.simulation
+    :members:
+    :special-members: __init__
+    :show-inheritance:

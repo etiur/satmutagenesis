@@ -42,6 +42,8 @@ Introduction
         --pdb_dir PDB_DIR     The name for the mutated pdb folder
         --hydrogen            Leave it to default
         --consec              Consecutively mutate the PDB file for several rounds
+        --sbatch              True if you want to lanch the simulation right after
+                              creating the slurm file
         
 The first 6 arguments are necessary and the rest are optional, for example:
 
@@ -49,7 +51,9 @@ The first 6 arguments are necessary and the rest are optional, for example:
 
     $ python -m satumut --input PK2_F454T.pdb --position A:454 --ligchain 'L' --ligname 'ANL' --atom1 "C:1:CU" --atom2 "L:1:N1" --cu --test
 
-
+The code will produce a slurm file ``.sh`` and will lanch it as a job in marenostrum, then all the other files will be generated and the simulations be started by the job.
+    
+    
 Analysis
 =========
 Once the simulation has been lanched, wait until the results from the simulations are generated and then you can start the analysis with the ``analysis module`` in the command line.

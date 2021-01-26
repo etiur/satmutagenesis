@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>The generation of mutations &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
+  <title>Running the PELE simulations &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="The creation of yaml files for PELE platform" href="pele_files.html" />
-    <link rel="prev" title="The manual" href="manual.html" /> 
+    <link rel="next" title="The API guide" href="Api_examples.html" />
+    <link rel="prev" title="The creation of yaml files for PELE platform" href="pele_files.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -87,9 +87,9 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="manual.html">The manual</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">The generation of mutations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutate_pdb.html">The generation of mutations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of yaml files for PELE platform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="simulation.html">Running the PELE simulations</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Running the PELE simulations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Api_examples.html">The API guide</a></li>
 </ul>
 <ul>
@@ -142,13 +142,13 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>The generation of mutations</li>
+      <li>Running the PELE simulations</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/mutate_pdb.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/simulation.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -161,36 +161,51 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="the-generation-of-mutations">
-<h1>The generation of mutations<a class="headerlink" href="#the-generation-of-mutations" title="Permalink to this headline">¶</a></h1>
-<p>Now let’s look at the individual scripts starting with the mutate_pdb.py which can be used if you only want to generate the PDB files of the mutations. It outputs 19 PDBs + 1 PDB for the wildtype.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m saturated_mutagenesis.mutate_pdb --help
+  <div class="section" id="running-the-pele-simulations">
+<h1>Running the PELE simulations<a class="headerlink" href="#running-the-pele-simulations" title="Permalink to this headline">¶</a></h1>
+<p>This script combines the functions and classes from all the other modules to create the PDB files and the yaml files, then it creates different subprocesses, as many as the number of yaml files.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.simulation --help
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: mutate_pdb.py [-h] --input INPUT --position POSITION [POSITION ...]
-                 [--multiple] [--hydrogen] [--folder FOLDER] [--consec]
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: simulation.py [-h] --input INPUT --position POSITION [POSITION ...]
+                 --ligchain LIGCHAIN --ligname LIGNAME --atom1 ATOM1
+                 --atom2 ATOM2 [--cpus CPUS] [--cu] [--test] [--nord]
+                 [--multiple] [--seed SEED] [--dir DIR]
+                 [--pdb_dir PDB_DIR] [--hydrogen] [--consec]
 
-Performs saturated mutagenesis given a PDB file
+Generate the mutant PDB and the corresponding running files
 
 optional arguments:
     -h, --help            show this help message and exit
     --input INPUT         Include PDB file&#39;s path
     --position POSITION [POSITION ...]
-                          Include one or more chain IDs and positions --&gt;
+                          Include one or more chain IDs and positions -&gt; Chain
                           ID:position
+    --ligchain LIGCHAIN   Include the chain ID of the ligand
+    --ligname LIGNAME     The ligand residue name
+    --atom1 ATOM1         atom of the residue to follow in this format -&gt; chain
+                          ID:position:atom name
+    --atom2 ATOM2         atom of the ligand to follow in this format -&gt; chain
+                          ID:position:atom name
+    --cpus CPUS           Include the number of cpus desired
+    --cu                  used if there are copper in the system
+    --test                Used if you want to run a test before
+    --nord                used if LSF is the utility managing the jobs
     --multiple            if you want to mutate 2 residue in the same pdb
+    --seed SEED           Include the seed number to make the simulation
+                          reproducible
+    --dir DIR             The name of the folder for all the simulations
+    --pdb_dir PDB_DIR     The name for the mutated pdb folder
     --hydrogen            leave it to default
-    --folder FOLDER       The folder for the pdb_files
     --consec              Consecutively mutate the PDB file for several rounds
 </pre></div>
 </div>
-<p>There are 2 necessary arguments, input or the wildtype PDB file and the position or positions to mutate, for example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$  python -m saturated_mutagenesis.mutate_pdb --input PK2_F454T.pdb --position A:454 A:135
-</pre></div>
-</div>
 <div class="line-block">
-<div class="line">If the flag <code class="docutils literal notranslate"><span class="pre">--multiple</span></code> is present and there are 2 positions to mutate to, it will generate 400 PDBs as a result of the combination of 20 X 20 mutations.</div>
-<div class="line">If the flag <code class="docutils literal notranslate"><span class="pre">--consec</span></code> is present, it means that you have mutated 20 residues the first time, and you are selecting 1 of those 20 mutations to start the second round fo mutations. The flag preserves the name of the PDB file so you know from which PDB file it came from the second mutation.</div>
+<div class="line">It has all the required arguments for the classes and functions from the other modules.</div>
+<div class="line">An example would be:</div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.simulation --input PK2_F454T.pdb --position A:454 --ligchain L --ligname ANL --atom1 C:1:CU --atom2 L:1:N1 --cpus <span class="m">5</span> --cu --test
+</pre></div>
 </div>
 </div>
 
@@ -200,8 +215,8 @@ optional arguments:
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="pele_files.html" class="btn btn-neutral float-right" title="The creation of yaml files for PELE platform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="manual.html" class="btn btn-neutral float-left" title="The manual" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Api_examples.html" class="btn btn-neutral float-right" title="The API guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pele_files.html" class="btn btn-neutral float-left" title="The creation of yaml files for PELE platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

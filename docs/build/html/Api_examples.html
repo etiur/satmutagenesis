@@ -40,7 +40,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="satumut" href="satumut.html" />
-    <link rel="prev" title="The creation of files for PELE simulations" href="pele_files.html" /> 
+    <link rel="prev" title="Running the PELE simulations" href="simulation.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -88,10 +88,13 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="manual.html">The manual</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mutate_pdb.html">The generation of mutations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of files for PELE simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of yaml files for PELE platform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Running the PELE simulations</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The API guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-main-script">The main script</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-mutate-pdb-module">The mutate_pdb module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-pele-files-module">The pele_files module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-simulation-module">The simulation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-analysis-module">The Analysis module</a></li>
 </ul>
 </li>
@@ -168,10 +171,22 @@
   <div class="section" id="the-api-guide">
 <h1>The API guide<a class="headerlink" href="#the-api-guide" title="Permalink to this headline">¶</a></h1>
 <p>Now let’s see how to use the python API instead of the command line</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">satumut.mutate_pdb</span> <span class="kn">import</span> <span class="n">Mutagenesis</span><span class="p">,</span> <span class="n">generate_mutations</span>
-<span class="kn">from</span> <span class="nn">satumut.pele_files</span> <span class="kn">import</span> <span class="n">CreateLaunchFiles</span><span class="p">,</span> <span class="n">create_20sbatch</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">satumut</span> <span class="kn">import</span> <span class="n">CreateSlurmFiles</span>
+<span class="kn">from</span> <span class="nn">satumut.mutate_pdb</span> <span class="kn">import</span> <span class="n">Mutagenesis</span><span class="p">,</span> <span class="n">generate_mutations</span>
+<span class="kn">from</span> <span class="nn">satumut.pele_files</span> <span class="kn">import</span> <span class="n">CreateYamlFiles</span><span class="p">,</span> <span class="n">create_20sbatch</span>
+<span class="kn">from</span> <span class="nn">satumut.simulation</span> <span class="kn">import</span> <span class="n">SimulationRunner</span><span class="p">,</span> <span class="n">saturated_simulation</span>
 <span class="kn">from</span> <span class="nn">satumut.analysis</span> <span class="kn">import</span> <span class="n">SimulationData</span><span class="p">,</span> <span class="n">analyse_all</span><span class="p">,</span> <span class="n">box_plot</span><span class="p">,</span> <span class="n">all_profiles</span><span class="p">,</span> <span class="n">extract_all</span><span class="p">,</span> <span class="n">find_top_mutations</span><span class="p">,</span> <span class="n">consecutive_analysis</span>
 </pre></div>
+</div>
+<div class="section" id="the-main-script">
+<h2>The main script<a class="headerlink" href="#the-main-script" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">CreateSlurmFiles</span></code> is s class from the satumut main script which creates the slurm file necessary to launch a job in marenostrum, automatically if set.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="o">=</span> <span class="n">CreateSlurmFiles</span><span class="p">(</span><span class="n">input_</span><span class="o">=</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="n">ligchain</span><span class="o">=</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="n">ligname</span><span class="o">=</span><span class="s2">&quot;ligand&quot;</span><span class="p">,</span> <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;C:1:CU&quot;</span><span class="p">,</span> <span class="n">atom2</span><span class="o">=</span><span class="s2">&quot;L:1:N1&quot;</span><span class="p">,</span> <span class="n">lenght</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+<span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A:154], dir_=None, hydrogen=True, multiple=False, cpus=24, pdb_dir=&quot;</span><span class="n">pdb_files</span><span class="s2">&quot;, test=False, consec=False, cu=False, seed=12345, nord=False)</span>
+
+<span class="n">slurm</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">slurm_creation</span><span class="p">()</span> <span class="c1"># creates the slurm file</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="the-mutate-pdb-module">
 <h2>The mutate_pdb module<a class="headerlink" href="#the-mutate-pdb-module" title="Permalink to this headline">¶</a></h2>
@@ -196,18 +211,31 @@
 </div>
 <div class="section" id="the-pele-files-module">
 <h2>The pele_files module<a class="headerlink" href="#the-pele-files-module" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">`CreateLaunchFiles</span></code> is a class that can generate the .yaml and the .sh files for the PELE simulations for a single PDB system.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="o">=</span> <span class="n">CreateLaunchFiles</span><span class="p">(</span><span class="n">input_</span><span class="o">=</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="n">ligchain</span><span class="o">=</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="n">ligname</span><span class="o">=</span><span class="s2">&quot;ligand&quot;</span><span class="p">,</span> <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;C:1:CU&quot;</span><span class="p">,</span>
+<p><code class="docutils literal notranslate"><span class="pre">CreateYamlFiles</span></code> is a class that can generate the .yaml files for the PELE simulations given an input PDB.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="o">=</span> <span class="n">CreateYamlFiles</span><span class="p">(</span><span class="n">input_</span><span class="o">=</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="n">ligchain</span><span class="o">=</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="n">ligname</span><span class="o">=</span><span class="s2">&quot;ligand&quot;</span><span class="p">,</span> <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;C:1:CU&quot;</span><span class="p">,</span>
 <span class="n">atom2</span><span class="o">=</span><span class="s2">&quot;L:1:N1&quot;</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12345</span><span class="p">,</span> <span class="n">nord</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="n">run</span><span class="o">.</span><span class="n">input_creation</span><span class="p">(</span><span class="s2">&quot;yaml_name&quot;</span><span class="p">)</span>
-<span class="n">run</span><span class="o">.</span><span class="n">slurm_creation</span><span class="p">(</span><span class="s2">&quot;slurm_name&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">create_20sbatch</span></code> is a function that uses the class to create the pele files for more than 1 PDBs, it acceps directories, files or iterables, for instance the list of pdbs generated by generate_mutations</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pdbs</span> <span class="o">=</span> <span class="n">generate_mutations</span><span class="p">(</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;A:145&quot;</span><span class="p">,</span> <span class="n">hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="s2">&quot;pdb_files&quot;</span><span class="p">,</span> <span class="n">consec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">slurm_files</span> <span class="o">=</span> <span class="n">create_20sbatch</span><span class="p">(</span><span class="n">ligchain</span><span class="o">=</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="n">ligname</span><span class="o">=</span><span class="s2">&quot;ligand&quot;</span><span class="p">,</span> <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;C:1:CU&quot;</span><span class="p">,</span> <span class="n">atom2</span><span class="o">=</span><span class="s2">&quot;L:1:N1&quot;</span><span class="p">,</span> <span class="n">file_</span><span class="o">=</span> <span class="n">pdbs</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pdbs</span> <span class="o">=</span> <span class="n">generate_mutations</span><span class="p">(</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;A:145&quot;</span><span class="p">],</span> <span class="n">hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="s2">&quot;pdb_files&quot;</span><span class="p">,</span> <span class="n">consec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">yaml_files</span> <span class="o">=</span> <span class="n">create_20sbatch</span><span class="p">(</span><span class="n">ligchain</span><span class="o">=</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="n">ligname</span><span class="o">=</span><span class="s2">&quot;ligand&quot;</span><span class="p">,</span> <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;C:1:CU&quot;</span><span class="p">,</span> <span class="n">atom2</span><span class="o">=</span><span class="s2">&quot;L:1:N1&quot;</span><span class="p">,</span> <span class="n">file_</span><span class="o">=</span> <span class="n">pdbs</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">cu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12345</span><span class="p">,</span> <span class="n">nord</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-simulation-module">
+<h2>The simulation module<a class="headerlink" href="#the-simulation-module" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">SimulationRunner</span></code> is a class that controls and calls the pele platform to run the simulations</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">simulation</span> <span class="o">=</span> <span class="n">SimulationRunner</span><span class="p">(</span><span class="n">input_</span><span class="o">=</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">dir_</span><span class="o">=</span><span class="s2">&quot;test_results&quot;</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">side_function</span><span class="p">()</span> <span class="c1"># Creates and changes the working directory so all the simulation results are kept in the same folder</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">yaml_files</span><span class="p">)</span> <span class="c1"># Given a list of yaml_files it creates a subprocess running a simulation for each of the files</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">saturated_simulation</span></code> is a function that combines the different functions from the 2 previous modules to perform saturated mutagenesis of the given positions</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">saturated_simulation</span><span class="p">(</span><span class="n">input_</span><span class="o">=</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A:145&quot;</span><span class="p">],</span> <span class="n">ligchain</span><span class="o">=</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="n">ligname</span><span class="o">=</span><span class="s2">&quot;ligand&quot;</span><span class="p">,</span> <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;C:1:CU&quot;</span><span class="p">,</span> <span class="n">atom2</span><span class="o">=</span><span class="s2">&quot;L:1:N1&quot;</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">dir_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hydrogen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pdb_dir</span><span class="o">=</span><span class="s2">&quot;pdb_files&quot;</span><span class="p">,</span> <span class="n">consec</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12345</span><span class="p">,</span> <span class="n">nord</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -258,7 +286,7 @@
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="satumut.html" class="btn btn-neutral float-right" title="satumut" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="pele_files.html" class="btn btn-neutral float-left" title="The creation of files for PELE simulations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="simulation.html" class="btn btn-neutral float-left" title="Running the PELE simulations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

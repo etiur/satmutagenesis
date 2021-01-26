@@ -87,7 +87,8 @@
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="manual.html">The manual</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mutate_pdb.html">The generation of mutations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of files for PELE simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of yaml files for PELE platform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Running the PELE simulations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Api_examples.html">The API guide</a></li>
 </ul>
 <ul>
@@ -182,7 +183,9 @@
       <ul>
         <li><a href="satumut.html#satumut.mutate_pdb.Mutagenesis.__init__">(satumut.mutate_pdb.Mutagenesis method)</a>
 </li>
-        <li><a href="satumut.html#satumut.pele_files.CreateLaunchFiles.__init__">(satumut.pele_files.CreateLaunchFiles method)</a>
+        <li><a href="satumut.html#satumut.pele_files.CreateYamlFiles.__init__">(satumut.pele_files.CreateYamlFiles method)</a>
+</li>
+        <li><a href="satumut.html#satumut.simulation.SimulationRunner.__init__">(satumut.simulation.SimulationRunner method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -221,7 +224,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="satumut.html#satumut.analysis.create_report">create_report() (in module satumut.analysis)</a>
 </li>
-      <li><a href="satumut.html#satumut.pele_files.CreateLaunchFiles">CreateLaunchFiles (class in satumut.pele_files)</a>
+      <li><a href="satumut.html#satumut.pele_files.CreateYamlFiles">CreateYamlFiles (class in satumut.pele_files)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -263,7 +266,7 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="satumut.html#satumut.pele_files.CreateLaunchFiles.input_creation">input_creation() (satumut.pele_files.CreateLaunchFiles method)</a>
+      <li><a href="satumut.html#satumut.pele_files.CreateYamlFiles.input_creation">input_creation() (satumut.pele_files.CreateYamlFiles method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -291,10 +294,12 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="satumut.html#satumut.analysis.pele_profile_single">pele_profile_single() (in module satumut.analysis)</a>
+      <li><a href="satumut.html#satumut.simulation.SimulationRunner.pele_folders">pele_folders() (satumut.simulation.SimulationRunner method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="satumut.html#satumut.analysis.pele_profile_single">pele_profile_single() (in module satumut.analysis)</a>
+</li>
       <li><a href="satumut.html#satumut.analysis.pele_profiles">pele_profiles() (in module satumut.analysis)</a>
 </li>
   </ul></td>
@@ -311,7 +316,11 @@
 </li>
       <li><a href="satumut.html#module-satumut.pele_files">satumut.pele_files (module)</a>
 </li>
+      <li><a href="satumut.html#module-satumut.simulation">satumut.simulation (module)</a>
+</li>
       <li><a href="satumut.html#satumut.mutate_pdb.Mutagenesis.saturated_mutagenesis">saturated_mutagenesis() (satumut.mutate_pdb.Mutagenesis method)</a>
+</li>
+      <li><a href="satumut.html#satumut.simulation.saturated_simulation">saturated_simulation() (in module satumut.simulation)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -319,13 +328,15 @@
 </li>
       <li><a href="satumut.html#satumut.analysis.SimulationData.set_distance">set_distance() (satumut.analysis.SimulationData method)</a>
 </li>
+      <li><a href="satumut.html#satumut.simulation.SimulationRunner.side_function">side_function() (satumut.simulation.SimulationRunner method)</a>
+</li>
       <li><a href="satumut.html#satumut.analysis.SimulationData">SimulationData (class in satumut.analysis)</a>
+</li>
+      <li><a href="satumut.html#satumut.simulation.SimulationRunner">SimulationRunner (class in satumut.simulation)</a>
 </li>
       <li><a href="satumut.html#satumut.mutate_pdb.Mutagenesis.single_mutagenesis">single_mutagenesis() (satumut.mutate_pdb.Mutagenesis method)</a>
 </li>
-      <li><a href="satumut.html#satumut.pele_files.CreateLaunchFiles.slurm_creation">slurm_creation() (satumut.pele_files.CreateLaunchFiles method)</a>
-</li>
-      <li><a href="satumut.html#satumut.pele_files.CreateLaunchFiles.slurm_nord">slurm_nord() (satumut.pele_files.CreateLaunchFiles method)</a>
+      <li><a href="satumut.html#satumut.simulation.SimulationRunner.submit">submit() (satumut.simulation.SimulationRunner method)</a>
 </li>
   </ul></td>
 </tr></table>

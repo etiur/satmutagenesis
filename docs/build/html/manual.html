@@ -92,7 +92,8 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mutate_pdb.html">The generation of mutations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of files for PELE simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of yaml files for PELE platform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Running the PELE simulations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Api_examples.html">The API guide</a></li>
 </ul>
 <ul>
@@ -206,12 +207,15 @@ optional arguments:
     --pdb_dir PDB_DIR     The name for the mutated pdb folder
     --hydrogen            Leave it to default
     --consec              Consecutively mutate the PDB file for several rounds
+    --sbatch              True if you want to lanch the simulation right after
+                          creating the slurm file
 </pre></div>
 </div>
 <p>The first 6 arguments are necessary and the rest are optional, for example:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut --input PK2_F454T.pdb --position A:454 --ligchain <span class="s1">&#39;L&#39;</span> --ligname <span class="s1">&#39;ANL&#39;</span> --atom1 <span class="s2">&quot;C:1:CU&quot;</span> --atom2 <span class="s2">&quot;L:1:N1&quot;</span> --cu --test
 </pre></div>
 </div>
+<p>The code will produce a slurm file <code class="docutils literal notranslate"><span class="pre">.sh</span></code> and will lanch it as a job in marenostrum, then all the other files will be generated and the simulations be started by the job.</p>
 </div>
 <div class="section" id="analysis">
 <h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
