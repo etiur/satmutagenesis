@@ -70,6 +70,7 @@ class SimulationRunner:
         self.proc = None
         self.dir = dir_
         self.commands=None
+        self.return_code = []
 
     def side_function(self):
         """
@@ -148,13 +149,17 @@ class SimulationRunner:
         platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
         self.commands = [["srun", "--exclusive", "--ntasks={}".format(self.cpus), "{}".format(platform),
                         "-m", "pele_platform.main", "{}".format(yaml_file)] for yaml_file in yaml_list]
+        self.proc = [Popen(command) for command in self.commands]
+        count = 0
         start = time.time()
-        for commands in self.commands:
-            call(commands)
+        for p in self.proc:
+            count +=1
+            return_code = p.wait()
+            self.return_code.append(return_code)
         end = time.time()
 
         logging.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
-        logging.info("This is the command".format(commands))
+        logging.info("The return codes are".format(" ".join(self.return_code)))
 
 
 def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus=24, dir_=None, hydrogen=True,
