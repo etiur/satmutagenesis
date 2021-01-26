@@ -127,7 +127,7 @@ class CreateSlurmFiles:
             name = basename(self.dir)
         self.slurm = "{}.sh".format(name)
         with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#SBATCH -J PELE\n", "#SBATCH --output={}.out\n".format(name),
+            lines = ["#!/bin/bash\n", "#SBATCH -J {}\n".format(name), "#SBATCH --output={}.out\n".format(name),
                      "#SBATCH --error={}.err\n".format(name)]
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
@@ -154,7 +154,7 @@ class CreateSlurmFiles:
                 argument_list.append("--seed {} ".format(self.seed))
             if self.cpus != 24:
                 argument_list.append("--cpus {} ".format(self.cpus))
-            if self.hydrogen:
+            if not self.hydrogen:
                 argument_list.append("--hydrogen ")
             if self.consec:
                 argument_list.append("--consec ")

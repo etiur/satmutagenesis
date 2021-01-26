@@ -142,24 +142,23 @@ class SimulationRunner:
     def submit_parallel(self, yaml_list):
         """
         Tries to parallelize the call to the pele_platform
+
+        Parameters
+        __________
+        yaml_list: list[path]
+            A list of paths to the yaml files
         """
         logging.basicConfig(filename='simulation_time.log', level=logging.DEBUG, format='%(asctime)s - %(message)s',
                             datefmt='%d-%b-%y %H:%M:%S')
-
         platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
-        self.commands = [["srun", "--exclusive", "--ntasks={}".format(self.cpus), "{}".format(platform),
-                        "-m", "pele_platform.main", "{}".format(yaml_file)] for yaml_file in yaml_list]
-        self.proc = [Popen(command) for command in self.commands]
-        count = 0
+        self.commands = [["{}".format(platform), "-m", "pele_platform.main", "{}".format(yaml_file)] for yaml_file in yaml_list]
+        self.proc = [Popen(commands) for commands in self.commands]
         start = time.time()
         for p in self.proc:
-            count +=1
-            return_code = p.wait()
-            self.return_code.append(return_code)
+            p.wait()
         end = time.time()
-
         logging.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
-        logging.info("The return codes are".format(" ".join(self.return_code)))
+        logging.info("The return codes are {}".format(self.commands[0]))
 
 
 def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus=24, dir_=None, hydrogen=True,
