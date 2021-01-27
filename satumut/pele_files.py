@@ -28,10 +28,12 @@ def parse_args():
                         help="used if LSF is the utility managing the jobs")
     parser.add_argument("--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
+    parser.add_argument("--steps", required=False, type=int,
+                        help="The number of PELE steps")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.cu,
-            args.seed, args.nord]
+            args.seed, args.nord, args.steps]
 
 
 class CreateYamlFiles:
@@ -40,7 +42,7 @@ class CreateYamlFiles:
     """
 
     def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24,
-                 test=False, initial=None, cu=False, seed=12345, nord=False):
+                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -68,6 +70,8 @@ class CreateYamlFiles:
             A seed number to make the simulations reproducible
         nord: bool, optional
             True if the system is managed by LSF
+        steps: int, optional
+            The number of PELE steps
         """
 
         self.input = input_
@@ -82,6 +86,7 @@ class CreateYamlFiles:
         self.cu = cu
         self.seed = seed
         self.nord = nord
+        self.steps = steps
 
     def _match_dist(self):
         """
@@ -113,6 +118,8 @@ class CreateYamlFiles:
                      "seed: {}\n".format(self.seed)]
             if not self.nord:
                 lines.append("usesrun: true\n")
+            if self.steps:
+                lines.append("steps: {}\n".format(self.steps))
             if name != "original":
                 lines.append("working_folder: {}/PELE_{}\n".format(name[:-1], name))
             else:
@@ -133,7 +140,7 @@ class CreateYamlFiles:
 
 
 def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False, initial=None,
-                    cu=False, seed=12345, nord=False):
+                    cu=False, seed=12345, nord=False, steps=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -162,6 +169,8 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         A seed number to make the simulations reproducible
     nord: bool, optional
         True if the system is managed by LSF
+    steps: int, optional
+            The number of PELE steps
 
     Returns
     _______
@@ -186,7 +195,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         files = files.strip("\n")
         name = basename(files).replace(".pdb", "")
         run = CreateYamlFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
-                              initial=initial, cu=cu, seed=seed, nord=nord)
+                              initial=initial, cu=cu, seed=seed, nord=nord, steps=steps)
         yaml = run.input_creation(name)
         yaml_files.append(yaml)
 
@@ -194,9 +203,9 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
 
 
 def main():
-    folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord = parse_args()
+    folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord, steps = parse_args()
     yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2,
-                                 cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord)
+                                 cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord, steps=steps)
 
     return yaml_files
 

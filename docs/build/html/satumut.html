@@ -687,11 +687,11 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <p>This script is used to generate the yaml files for pele platform</p>
 <dl class="class">
 <dt id="satumut.pele_files.CreateYamlFiles">
-<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the 2 necessary files for the pele simulations</p>
 <dl class="method">
 <dt id="satumut.pele_files.CreateYamlFiles.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the CreateLaunchFiles object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -709,6 +709,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
 <li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
+<li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
 </ul>
 </td>
 </tr>
@@ -734,7 +735,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 
 <dl class="function">
 <dt id="satumut.pele_files.create_20sbatch">
-<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>file_</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>file_</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates for each of the mutants the yaml and slurm files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -753,6 +754,7 @@ or a file of the path to the different pdb files</li>
 <li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
 <li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
+<li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
 </ul>
 </td>
 </tr>
@@ -784,8 +786,8 @@ or a file of the path to the different pdb files</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>input</strong> (<em>str</em>) – The path to the PDB file</li>
-<li><strong>cpus</strong> (<em>int</em>) – The number of cpus per EPEL simulation</li>
-<li><strong>dir</strong> (<em>str</em>) – The name of the directory for the simulations to run and the outputs to be stored</li>
+<li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of cpus per EPEL simulation</li>
+<li><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the directory for the simulations to run and the outputs to be stored</li>
 </ul>
 </td>
 </tr>
@@ -810,7 +812,7 @@ or a file of the path to the different pdb files</li>
 <dl class="method">
 <dt id="satumut.simulation.SimulationRunner.side_function">
 <code class="descname">side_function</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.SimulationRunner.side_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Put all the necessary previous steps here</p>
+<dd><p>Change the working directory to store all the simulations in one place</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -841,7 +843,7 @@ or a file of the path to the different pdb files</li>
 
 <dl class="function">
 <dt id="satumut.simulation.saturated_simulation">
-<code class="descclassname">satumut.simulation.</code><code class="descname">saturated_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.saturated_simulation" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.simulation.</code><code class="descname">saturated_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.saturated_simulation" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that uses the SimulationRunner class to run saturated mutagenesis simulations</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -865,6 +867,7 @@ or a file of the path to the different pdb files</li>
 <li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
 <li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
+<li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
 </ul>
 </td>
 </tr>

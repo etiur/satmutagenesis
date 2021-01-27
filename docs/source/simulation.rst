@@ -39,6 +39,7 @@ This script combines the functions and classes from all the other modules to cre
         --pdb_dir PDB_DIR     The name for the mutated pdb folder
         --hydrogen            leave it to default
         --consec              Consecutively mutate the PDB file for several rounds
+        --steps STEPS        The number of PELE steps
 
 | It has all the required arguments for the classes and functions from the other modules. 
 | An example would be:

@@ -44,6 +44,7 @@ Introduction
         --consec              Consecutively mutate the PDB file for several rounds
         --sbatch              True if you want to lanch the simulation right after
                               creating the slurm file
+        --steps STEPS        The number of PELE steps
         
 The first 6 arguments are necessary and the rest are optional, for example:
 

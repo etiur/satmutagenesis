@@ -31,6 +31,7 @@ The second script is used when you have the PDB files and you want to generate t
         --nord               used if LSF is the utility managing the jobs
         --seed SEED          Include the seed number to make the simulation
                              reproducible
+        --steps STEPS        The number of PELE steps
                              
 The ``--folder`` flag accepts folders where the PDB files are located, files containing the path to the different PDBs (one path per line) or lists of paths to the PDBs, for example:
 

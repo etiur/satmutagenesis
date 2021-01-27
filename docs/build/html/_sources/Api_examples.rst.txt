@@ -18,7 +18,7 @@ The main script
 .. code-block:: python
     
     run = CreateSlurmFiles(input_="test.pdb", ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", lenght=20,
-    position=["A:154], dir_=None, hydrogen=True, multiple=False, cpus=24, pdb_dir="pdb_files", test=False, consec=False, cu=False, seed=12345, nord=False)
+    position=["A:154], dir_=None, hydrogen=True, multiple=False, cpus=24, pdb_dir="pdb_files", test=False, consec=False, cu=False, seed=12345, nord=False, steps=None)
     
     slurm = run.slurm_creation() # creates the slurm file
 
@@ -53,7 +53,7 @@ The pele_files module
 .. code-block:: python
 
     run = CreateYamlFiles(input_="test.pdb", ligchain="L", ligname="ligand", atom1="C:1:CU", 
-    atom2="L:1:N1", cpus=24, test=False, initial=None, cu=False, seed=12345, nord=False)
+    atom2="L:1:N1", cpus=24, test=False, initial=None, cu=False, seed=12345, nord=False, steps=None)
     
     run.input_creation("yaml_name")
 
@@ -64,7 +64,7 @@ The pele_files module
 
     pdbs = generate_mutations("test.pdb", ["A:145"], hydrogens=True, multiple=False, folder="pdb_files", consec=False)
     yaml_files = create_20sbatch(ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", file_= pdbs, cpus=24, test=False, initial=None,
-                    cu=False, seed=12345, nord=False)
+                    cu=False, seed=12345, nord=False, steps=None)
                     
 The simulation module
 ======================
@@ -81,7 +81,7 @@ The simulation module
 .. code-block:: python
 
     saturated_simulation(input_="test.pdb", position=["A:145"], ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", cpus=24, dir_=None, hydrogen=True,
-                         multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False)
+                         multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False, steps=None)
 
 The Analysis module
 ====================

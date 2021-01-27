@@ -7,7 +7,6 @@ __license__ = "MIT"
 __maintainer__ = "Ruite Xiang"
 __email__ = "ruite.xiang@bsc.es"
 
-
 import argparse
 from subprocess import call
 from os.path import basename
@@ -44,19 +43,24 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("--sbatch", required=False, action="store_false",
                         help="True if you want to lanch the simulation right after creating the slurm file")
+    parser.add_argument("--steps", required=False, type=int,
+                        help="The number of PELE steps")
 
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec, args.sbatch]
+            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
+            args.sbatch, args.steps]
 
 
 class CreateSlurmFiles:
     """
     Creates the 2 necessary files for the pele simulations
     """
+
     def __init__(self, input_, ligchain, ligname, atom1, atom2, length, position, cpus=24, dir_=None, hydrogen=True,
-                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False):
+                 multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
+                 steps=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -73,7 +77,7 @@ class CreateSlurmFiles:
         atom2: str
             atom of the ligand to follow in this format --> chain ID:position:atom name
         length: int
-            To calculate the real cpus necessary to run all the simulations
+            The number of yaml files to calculate the real cpus necessary to run all the simulations
         position: list[str]
             [chain ID:position] of the residue, for example [A:139,..]
         cpus: int, optional
@@ -96,6 +100,8 @@ class CreateSlurmFiles:
             A seed number to make the simulations reproducible
         nord: bool, optional
             True if the system is managed by LSF
+        steps: int, optional
+            The number of PELE steps
         """
 
         self.input = input_
@@ -116,6 +122,7 @@ class CreateSlurmFiles:
         self.consec = consec
         self.dir = dir_
         self.pdb_dir = pdb_dir
+        self.steps = steps
 
     def slurm_creation(self):
         """
@@ -170,6 +177,8 @@ class CreateSlurmFiles:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.test:
                 argument_list.append("--test ")
+            if self.steps:
+                argument_list.append("--steps {} ".format(self.steps))
 
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
@@ -210,7 +219,7 @@ class CreateSlurmFiles:
                       'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/external_deps/:$PYTHONPATH\n',
                       'export PYTHONPATH=/gpfs/projects/bsc72/lib/site-packages_mn3:$PYTHONPATH\n',
                       'export MPLBACKEND=Agg\n', 'export OMPI_MCA_coll_hcoll_enable=0\n', 'export OMPI_MCA_mtl=^mxm\n'
-                      'python -m pele_platform.main {}\n']
+                                                                                          'python -m pele_platform.main {}\n']
 
             lines.extend(lines2)
             slurm.writelines(lines)
@@ -218,14 +227,14 @@ class CreateSlurmFiles:
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, sbatch = parse_args()
+    hydrogen, consec, sbatch, steps = parse_args()
 
     if multiple and len(position) == 2:
         length = 400
     else:
         length = len(position) * 19 + 1
     run = CreateSlurmFiles(input_, ligchain, ligname, atom1, atom2, length, position, cpus, dir_, hydrogen,
-                  multiple, pdb_dir, consec, test, cu, seed, nord)
+                           multiple, pdb_dir, consec, test, cu, seed, nord, steps)
     slurm = run.slurm_creation()
     if sbatch:
         call(["sbatch", "{}".format(slurm)])

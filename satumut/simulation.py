@@ -40,11 +40,13 @@ def parse_args():
     parser.add_argument("--hydrogen", required=False, action="store_false", help="leave it to default")
     parser.add_argument("--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
+    parser.add_argument("--steps", required=False, type=int,
+                        help="The number of PELE steps")
 
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec]
+            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec, args.steps]
 
 
 class SimulationRunner:
@@ -59,9 +61,9 @@ class SimulationRunner:
         ___________
         input_: str
             The path to the PDB file
-        cpus: int
+        cpus: int, optional
             The number of cpus per EPEL simulation
-        dir_: str
+        dir_: str, optional
             The name of the directory for the simulations to run and the outputs to be stored
         """
 
@@ -74,7 +76,7 @@ class SimulationRunner:
 
     def side_function(self):
         """
-        Put all the necessary previous steps here
+        Change the working directory to store all the simulations in one place
 
         Returns
         _______
@@ -147,7 +149,7 @@ class SimulationRunner:
 
 def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus=24, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                         nord=False):
+                         nord=False, steps=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -187,13 +189,15 @@ def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus
         A seed number to make the simulations reproducible
     nord: bool, optional
         True if the system is managed by LSF
+    steps: int, optional
+        The number of PELE steps
     """
     simulation = SimulationRunner(input_, cpus, dir_)
     input_ = simulation.side_function()
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
                                    consec=consec)
     yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
-                                 file_=pdb_names, cu=cu, seed=seed, nord=nord)
+                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps)
     simulation.submit(yaml_files)
     simulation.pele_folders(pdb_names)
 
