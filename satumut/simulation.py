@@ -204,9 +204,9 @@ def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec = parse_args()
+    hydrogen, consec, steps = parse_args()
     saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus, dir_, hydrogen,
-                         multiple, pdb_dir, consec, test, cu, seed, nord)
+                         multiple, pdb_dir, consec, test, cu, seed, nord, steps)
 
 
 if __name__ == "__main__":
