@@ -313,7 +313,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – how many top pdbs are extracted from the trajectories</li>
 <li><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the output file for the pdfs</li>
 <li><strong>plot_dir</strong> (<em>str</em>) – Name for the results folder</li>
-<li><strong>opt</strong> (<em>str</em><em>, </em><em>optional</em>) – choose if to analyse distance, binding or all</li>
+<li><strong>opt</strong> (<em>str</em><em>, </em><em>optional</em>) – choose if to analyse distance, energy or both</li>
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – How many cpus to use to extract the top pdbs</li>
 <li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – The threshold for the mutations to be included in the pdf</li>
 </ul>
@@ -843,7 +843,7 @@ or a file of the path to the different pdb files</li>
 
 <dl class="function">
 <dt id="satumut.simulation.saturated_simulation">
-<code class="descclassname">satumut.simulation.</code><code class="descname">saturated_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.saturated_simulation" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.simulation.</code><code class="descname">saturated_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=None</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.saturated_simulation" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that uses the SimulationRunner class to run saturated mutagenesis simulations</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -868,6 +868,13 @@ or a file of the path to the different pdb files</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
 <li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
 <li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
+<li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The quality of the plots</li>
+<li><strong>box</strong> (<em>int</em><em>, </em><em>optional</em>) – how many points are used for the box plots</li>
+<li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – how many top pdbs are extracted from the trajectories</li>
+<li><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the output file for the pdfs</li>
+<li><strong>plot_dir</strong> (<em>str</em>) – Name for the results folder</li>
+<li><strong>opt</strong> (<em>str</em><em>, </em><em>optional</em>) – choose if to analyse distance, energy or both</li>
+<li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – The threshold for the mutations to be included in the pdf</li>
 </ul>
 </td>
 </tr>

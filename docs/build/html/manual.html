@@ -174,7 +174,7 @@
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <div class="line-block">
-<div class="line">After the download from the <a class="reference external" href="https://github.com/etiur/satumut">repository</a> you can readily use the pakcgae through the command line to generate the different files and lanch simulations on Marenostrum or Nord.</div>
+<div class="line">After the download from the <a class="reference external" href="https://github.com/etiur/satumut">repository</a> you can readily use the pakcgae through the command line to generate the different files, lanch the simulations on Marenostrum or Nord and analyse the simulations through boxplots, scatter plots and trajectories.</div>
 <div class="line">Let’s see the necessary arguments</div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut --help
@@ -210,6 +210,17 @@ optional arguments:
     --sbatch              True if you want to lanch the simulation right after
                           creating the slurm file
     --steps STEPS        The number of PELE steps
+    --dpi DPI             Set the quality of the plots
+    --box BOX             Set how many data points are used for the boxplot
+    --traj TRAJ           Set how many PDBs are extracted from the trajectories
+    --out OUT             Name of the summary file created at the end of the
+                          analysis
+    --folder FOLDER       Name of the plots folder
+    --analyse {energy,distance,both}
+                          The metric to measure the improvement of the system
+    --cpus CPUS           Include the number of cpus desired
+    --thres THRES         The threshold for the improvement which will affect
+                          what will be included in the summary
 </pre></div>
 </div>
 <p>The first 6 arguments are necessary and the rest are optional, for example:</p>
@@ -220,7 +231,7 @@ optional arguments:
 </div>
 <div class="section" id="analysis">
 <h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
-<p>Once the simulation has been lanched, wait until the results from the simulations are generated and then you can start the analysis with the <code class="docutils literal notranslate"><span class="pre">analysis</span> <span class="pre">module</span></code> in the command line.</p>
+<p>Once the simulation has been lanched, The job will wait until the results from the simulations are generated and then it will start with the analysis with the <code class="docutils literal notranslate"><span class="pre">analysis</span> <span class="pre">module</span></code>.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.analysis --help
 </pre></div>
 </div>
@@ -241,7 +252,7 @@ optional arguments:
     --out OUT             Name of the summary file created at the end of the
                           analysis
     --folder FOLDER       Name of the plots folder
-    --analyse <span class="o">{</span>energy,distance,all<span class="o">}</span>
+    --analyse <span class="o">{</span>energy,distance,both<span class="o">}</span>
                           The metric to measure the improvement of the system
     --cpus CPUS           Include the number of cpus desired
     --thres THRES         The threshold <span class="k">for</span> the improvement which will affect

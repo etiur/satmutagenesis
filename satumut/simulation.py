@@ -9,7 +9,7 @@ from os.path import abspath, basename
 import os
 import logging
 import time
-
+from analysis import consecutive_analysis
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
@@ -42,11 +42,26 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("--steps", required=False, type=int,
                         help="The number of PELE steps")
+    parser.add_argument("--dpi", required=False, default=800, type=int,
+                        help="Set the quality of the plots")
+    parser.add_argument("--box", required=False, default=30, type=int,
+                        help="Set how many data points are used for the boxplot")
+    parser.add_argument("--traj", required=False, default=10, type=int,
+                        help="Set how many PDBs are extracted from the trajectories")
+    parser.add_argument("--out", required=False, default="summary",
+                        help="Name of the summary file created at the end of the analysis")
+    parser.add_argument("--plot", required=False,
+                        help="Path of the plots folder")
+    parser.add_argument("--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
+                        help="The metric to measure the improvement of the system")
+    parser.add_argument("--thres", required=False, default=-0.1, type=float,
+                        help="The threshold for the improvement which will affect what will be included in the summary")
 
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec, args.steps]
+            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
+            args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres]
 
 
 class SimulationRunner:
@@ -71,7 +86,6 @@ class SimulationRunner:
         self.cpus = cpus
         self.proc = None
         self.dir = dir_
-        self.commands=None
         self.return_code = []
 
     def side_function(self):
@@ -111,19 +125,18 @@ class SimulationRunner:
             base = base.replace(".pdb", "")
         else:
             base = self.dir
-        count = 0
+        hold = "bla"
         folder = []
         for files in pdb_list:
-            name = basename(files)
-            name = name.replace(".pdb", "")
-            if not count:
-                hold = "bla"
-                count += 1
+            name = basename(files).replace(".pdb", "")
             if name != "original" and hold != name[:-1]:
                 hold = name[:-1]
                 folder.append("{}_mutations/{}\n".format(base, hold))
-        with open("dirnames_{}.txt".format(base), "w") as txt:
+        dirname = "dirnames_{}.txt".format(base)
+        with open(dirname, "w") as txt:
             txt.writelines(folder)
+
+        return dirname
 
     def submit(self, yaml_list):
         """
@@ -134,22 +147,24 @@ class SimulationRunner:
         yaml_list: list[path]
             A list of paths to the yaml files
         """
-        logging.basicConfig(filename='simulation_time.log', level=logging.DEBUG, format='%(asctime)s - %(message)s',
-                            datefmt='%d-%b-%y %H:%M:%S')
         platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
-        self.commands = [["{}".format(platform), "-m", "pele_platform.main", "{}".format(yaml_file)] for yaml_file in yaml_list]
-        self.proc = [Popen(commands) for commands in self.commands]
+        commands = [["{}".format(platform), "-m", "pele_platform.main", "{}".format(yaml)] for yaml in yaml_list]
+        self.proc = [Popen(command) for command in commands]
         start = time.time()
         for p in self.proc:
             p.wait()
         end = time.time()
+
+        # creating a log
+        logging.basicConfig(filename='simulation_time.log', level=logging.DEBUG, format='%(asctime)s - %(message)s',
+                            datefmt='%d-%b-%y %H:%M:%S')
         logging.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
-        logging.info("The return codes are {}".format(self.commands[0]))
 
 
 def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus=24, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                         nord=False, steps=None):
+                         nord=False, steps=None, dpi=800, box=30, traj=10, output="summary",
+                         plot_dir=None, opt="distance", thres=-0.1):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -191,6 +206,20 @@ def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus
         True if the system is managed by LSF
     steps: int, optional
         The number of PELE steps
+    dpi : int, optional
+       The quality of the plots
+    box : int, optional
+       how many points are used for the box plots
+    traj : int, optional
+       how many top pdbs are extracted from the trajectories
+    output : str, optional
+       name of the output file for the pdfs
+    plot_dir : str
+       Name for the results folder
+    opt : str, optional
+       choose if to analyse distance, energy or both
+    thres : float, optional
+       The threshold for the mutations to be included in the pdf
     """
     simulation = SimulationRunner(input_, cpus, dir_)
     input_ = simulation.side_function()
@@ -199,14 +228,15 @@ def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus
     yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                  file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps)
     simulation.submit(yaml_files)
-    simulation.pele_folders(pdb_names)
-
+    dirname = simulation.pele_folders(pdb_names)
+    consecutive_analysis(dirname, dpi, box, traj, output, plot_dir, opt, cpus, thres)
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, steps = parse_args()
+    hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analysis, thres = parse_args()
     saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus, dir_, hydrogen,
-                         multiple, pdb_dir, consec, test, cu, seed, nord, steps)
+                         multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
+                         plot_dir, analysis, thres)
 
 
 if __name__ == "__main__":

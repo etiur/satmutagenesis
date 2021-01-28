@@ -32,9 +32,9 @@ def parse_args():
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
-    parser.add_argument("--folder", required=False,
+    parser.add_argument("--plot", required=False,
                         help="Path of the plots folder")
-    parser.add_argument("--analyse", required=False, choices=("energy", "distance", "all"), default="distance",
+    parser.add_argument("--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
@@ -42,7 +42,7 @@ def parse_args():
                         help="The threshold for the improvement which will affect what will be included in the summary")
     args = parser.parse_args()
 
-    return [args.inp, args.dpi, args.box, args.traj, args.out, args.folder, args.analyse,
+    return [args.inp, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse,
             args.cpus, args.thres]
 
 
@@ -576,7 +576,7 @@ def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
     plot_dir : str
        Name for the results folder
     opt : str, optional
-       choose if to analyse distance, binding or all
+       choose if to analyse distance, energy or both
     cpus : int, optional
        How many cpus to use to extract the top pdbs
     thres : float, optional

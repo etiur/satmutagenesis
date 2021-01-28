@@ -6,7 +6,7 @@ The manual
 
 Introduction
 ===================
-| After the download from the `repository <https://github.com/etiur/satumut>`_ you can readily use the pakcgae through the command line to generate the different files and lanch simulations on Marenostrum or Nord.
+| After the download from the `repository <https://github.com/etiur/satumut>`_ you can readily use the pakcgae through the command line to generate the different files, lanch the simulations on Marenostrum or Nord and analyse the simulations through boxplots, scatter plots and trajectories.
 | Let's see the necessary arguments
 
 .. code-block:: bash
@@ -45,7 +45,17 @@ Introduction
         --sbatch              True if you want to lanch the simulation right after
                               creating the slurm file
         --steps STEPS        The number of PELE steps
-        
+        --dpi DPI             Set the quality of the plots
+        --box BOX             Set how many data points are used for the boxplot
+        --traj TRAJ           Set how many PDBs are extracted from the trajectories
+        --out OUT             Name of the summary file created at the end of the
+                              analysis
+        --folder FOLDER       Name of the plots folder
+        --analyse {energy,distance,both}
+                              The metric to measure the improvement of the system
+        --cpus CPUS           Include the number of cpus desired
+        --thres THRES         The threshold for the improvement which will affect
+                              what will be included in the summary
 The first 6 arguments are necessary and the rest are optional, for example:
 
 .. code-block:: bash
@@ -54,10 +64,9 @@ The first 6 arguments are necessary and the rest are optional, for example:
 
 The code will produce a slurm file ``.sh`` and will lanch it as a job in marenostrum, then all the other files will be generated and the simulations be started by the job.
     
-    
 Analysis
 =========
-Once the simulation has been lanched, wait until the results from the simulations are generated and then you can start the analysis with the ``analysis module`` in the command line.
+Once the simulation has been lanched, The job will wait until the results from the simulations are generated and then it will start with the analysis with the ``analysis module``.
 
 .. code-block:: bash
 
@@ -82,7 +91,7 @@ Once the simulation has been lanched, wait until the results from the simulation
         --out OUT             Name of the summary file created at the end of the
                               analysis
         --folder FOLDER       Name of the plots folder
-        --analyse {energy,distance,all}
+        --analyse {energy,distance,both}
                               The metric to measure the improvement of the system
         --cpus CPUS           Include the number of cpus desired
         --thres THRES         The threshold for the improvement which will affect

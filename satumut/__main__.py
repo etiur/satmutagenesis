@@ -45,12 +45,26 @@ def parse_args():
                         help="True if you want to lanch the simulation right after creating the slurm file")
     parser.add_argument("--steps", required=False, type=int,
                         help="The number of PELE steps")
+    parser.add_argument("--dpi", required=False, default=800, type=int,
+                        help="Set the quality of the plots")
+    parser.add_argument("--box", required=False, default=30, type=int,
+                        help="Set how many data points are used for the boxplot")
+    parser.add_argument("--traj", required=False, default=10, type=int,
+                        help="Set how many PDBs are extracted from the trajectories")
+    parser.add_argument("--out", required=False, default="summary",
+                        help="Name of the summary file created at the end of the analysis")
+    parser.add_argument("--plot", required=False,
+                        help="Path of the plots folder")
+    parser.add_argument("--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
+                        help="The metric to measure the improvement of the system")
+    parser.add_argument("--thres", required=False, default=-0.1, type=float,
+                        help="The threshold for the improvement which will affect what will be included in the summary")
 
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
             args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
-            args.sbatch, args.steps]
+            args.sbatch, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres]
 
 
 class CreateSlurmFiles:
@@ -60,7 +74,7 @@ class CreateSlurmFiles:
 
     def __init__(self, input_, ligchain, ligname, atom1, atom2, length, position, cpus=24, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
-                 steps=None):
+                 steps=None, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1):
         """
         Initialize the CreateLaunchFiles object
 
@@ -102,6 +116,20 @@ class CreateSlurmFiles:
             True if the system is managed by LSF
         steps: int, optional
             The number of PELE steps
+        dpi : int, optional
+            The quality of the plots
+        box : int, optional
+            how many points are used for the box plots
+        traj : int, optional
+            how many top pdbs are extracted from the trajectories
+        output : str, optional
+            name of the output file for the pdfs
+        plot_dir : str
+            Name for the results folder
+        opt : str, optional
+            choose if to analyse distance, energy or both
+        thres : float, optional
+            The threshold for the mutations to be included in the pdf
         """
 
         self.input = input_
@@ -123,6 +151,13 @@ class CreateSlurmFiles:
         self.dir = dir_
         self.pdb_dir = pdb_dir
         self.steps = steps
+        self.dpi = dpi
+        self.box = box
+        self.traj = traj
+        self.output = output
+        self.plot_dir = plot_dir
+        self.opt = opt
+        self.thres = thres
 
     def slurm_creation(self):
         """
@@ -179,6 +214,20 @@ class CreateSlurmFiles:
                 argument_list.append("--test ")
             if self.steps:
                 argument_list.append("--steps {} ".format(self.steps))
+            if self.dpi != 800:
+                argument_list.append("--dpi {} ".format(self.dpi))
+            if self.box != 30:
+                argument_list.append("--box {} ".format(self.box))
+            if self.traj != 10:
+                argument_list.append("--traj {} ".format(self.traj))
+            if self.output != "summary":
+                argument_list.append("--out {} ".format(self.output))
+            if self.plot_dir:
+                argument_list.append("--plot {} ".format(self.plot_dir))
+            if self.opt != "distance":
+                argument_list.append("--analyse {} ".format(self.opt))
+            if self.thres != -0.1:
+                argument_list.append("--thres {} ".format(self.thres))
 
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
@@ -227,14 +276,15 @@ class CreateSlurmFiles:
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, sbatch, steps = parse_args()
+    hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres = parse_args()
 
     if multiple and len(position) == 2:
         length = 400
     else:
         length = len(position) * 19 + 1
     run = CreateSlurmFiles(input_, ligchain, ligname, atom1, atom2, length, position, cpus, dir_, hydrogen,
-                           multiple, pdb_dir, consec, test, cu, seed, nord, steps)
+                           multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
+                           out, plot_dir, analysis, thres)
     slurm = run.slurm_creation()
     if sbatch:
         call(["sbatch", "{}".format(slurm)])
