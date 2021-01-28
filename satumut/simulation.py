@@ -124,7 +124,7 @@ class SimulationRunner:
             base = basename(self.input)
             base = base.replace(".pdb", "")
         else:
-            base = self.dir
+            base = basename(self.dir)
         hold = "bla"
         folder = []
         for files in pdb_list:
@@ -230,6 +230,7 @@ def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus
     simulation.submit(yaml_files)
     dirname = simulation.pele_folders(pdb_names)
     consecutive_analysis(dirname, dpi, box, traj, output, plot_dir, opt, cpus, thres)
+
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
