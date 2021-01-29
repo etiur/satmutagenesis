@@ -4,12 +4,13 @@ This script is used to create and control the simulations
 import argparse
 from mutate_pdb import generate_mutations
 from pele_files import create_20sbatch
-from subprocess import Popen, call
+from subprocess import Popen
 from os.path import abspath, basename
 import os
 import logging
 import time
 from analysis import consecutive_analysis
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
@@ -23,7 +24,7 @@ def parse_args():
                         help="atom of the residue to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--atom2", required=True,
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--cpus", required=False, default=24, type=int,
+    parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
     parser.add_argument("--test", required=False, action="store_true", help="Used if you want to run a test before")
@@ -40,7 +41,7 @@ def parse_args():
     parser.add_argument("--hydrogen", required=False, action="store_false", help="leave it to default")
     parser.add_argument("--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
-    parser.add_argument("--steps", required=False, type=int,
+    parser.add_argument("--steps", required=False, type=int, default=700,
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
@@ -68,7 +69,7 @@ class SimulationRunner:
     """
     A class that configures and runs simulations
     """
-    def __init__(self, input_, cpus=24, dir_=None):
+    def __init__(self, input_, cpus=25, dir_=None):
         """
         Initialize the Simulation Runner class
 
@@ -161,9 +162,9 @@ class SimulationRunner:
         logging.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
 
 
-def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus=24, dir_=None, hydrogen=True,
+def saturated_simulation(input_, position, ligchain, ligname, atom1, atom2, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                         nord=False, steps=None, dpi=800, box=30, traj=10, output="summary",
+                         nord=False, steps=700, dpi=800, box=30, traj=10, output="summary",
                          plot_dir=None, opt="distance", thres=-0.1):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations

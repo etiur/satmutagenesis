@@ -18,7 +18,7 @@ The main script
 .. code-block:: python
     
     run = CreateSlurmFiles(input_="test.pdb", ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", lenght=20,
-    position=["A:154], dir_=None, hydrogen=True, multiple=False, cpus=24, pdb_dir="pdb_files", test=False, consec=False, cu=False, seed=12345, nord=False, steps=None,
+    position=["A:154], dir_=None, hydrogen=True, multiple=False, cpus=25, pdb_dir="pdb_files", test=False, consec=False, cu=False, seed=12345, nord=False, stesp=700,
     dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1)
     
     slurm = run.slurm_creation() # creates the slurm file
@@ -54,7 +54,7 @@ The pele_files module
 .. code-block:: python
 
     run = CreateYamlFiles(input_="test.pdb", ligchain="L", ligname="ligand", atom1="C:1:CU", 
-    atom2="L:1:N1", cpus=24, test=False, initial=None, cu=False, seed=12345, nord=False, steps=None)
+    atom2="L:1:N1", cpus=25, test=False, initial=None, cu=False, seed=12345, nord=False, stesp=700)
     
     run.input_creation("yaml_name")
 
@@ -64,8 +64,8 @@ The pele_files module
 .. code-block:: python
 
     pdbs = generate_mutations("test.pdb", ["A:145"], hydrogens=True, multiple=False, folder="pdb_files", consec=False)
-    yaml_files = create_20sbatch(ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", file_= pdbs, cpus=24, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, steps=None)
+    yaml_files = create_20sbatch(ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", file_= pdbs, cpus=25, test=False, initial=None,
+                    cu=False, seed=12345, nord=False, stesp=700)
                     
 The simulation module
 ======================
@@ -73,16 +73,16 @@ The simulation module
 
 .. code-block:: python
 
-    simulation = SimulationRunner(input_="test.pdb", cpus=24, dir_="test_results")
+    simulation = SimulationRunner(input_="test.pdb", cpus=25, dir_="test_results")
     simulation.side_function() # Creates and changes the working directory so all the simulation results are kept in the same folder
     simulation.submit(yaml_files) # Given a list of yaml_files it creates a subprocess running a simulation for each of the files
     
-``saturated_simulation`` is a function that combines the different functions from the 2 previous modules to perform saturated mutagenesis of the given positions
+``saturated_simulation`` is a function that combines the different functions from the 3 modules to perform saturated mutagenesis of the given positions and analyse the results from the simulations
 
 .. code-block:: python
 
-    saturated_simulation(input_="test.pdb", position=["A:145"], ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", cpus=24, dir_=None, hydrogen=True,
-                         multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False, steps=None, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1)
+    saturated_simulation(input_="test.pdb", position=["A:145"], ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", cpus=25, dir_=None, hydrogen=True,
+                         multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False, steps=700, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1)
 
 The Analysis module
 ====================
@@ -120,7 +120,7 @@ The Analysis module
 
 .. code-block:: python
 
-    extract_all(res_dir="analysis_dir", data_dict=data_dict, folders=".", cpus=24) # the folders if the same argument for the folder sin analyse_all
+    extract_all(res_dir="analysis_dir", data_dict=data_dict, folders=".", cpus=25) # the folders if the same argument for the folder sin analyse_all
     
 ``find_top_mutations`` is a function that searches within the data_dict to find those mutations that improves on a chosen metric (energy, distance or both) with an increment superior to a predetermined threshold, as a results it creates a report with all the plots generated for those mutations in a PDF file.
 
@@ -132,5 +132,5 @@ The Analysis module
 
 .. code-block:: python
 
-    consecutive_analysis(file_name=["path1", "path2", "path3"], dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", cpus=24, thres=-0.1) # file_name argument can accept an iterable, directory or a file that contains the path to the folders where the different pele simulations are stored.
+    consecutive_analysis(file_name=["path1", "path2", "path3"], dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", cpus=25, thres=-0.1) # file_name argument can accept an iterable, directory or a file that contains the path to the folders where the different pele simulations are stored.
     

@@ -12,7 +12,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
     parser.add_argument("--folder", required=True,
-                        help="An iterable of the path to different pdb files, a name of the folder or a file of the "
+                        help="An iterable of the path to different pdb files, a name of the folder or a file with the "
                              "path to the different pdb files")
     parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("--ligname", required=True, help="The ligand residue name")
@@ -20,7 +20,7 @@ def parse_args():
                         help="atom of the residue to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--atom2", required=True,
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--cpus", required=False, default=24, type=int,
+    parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
     parser.add_argument("--test", required=False, action="store_true", help="Used if you want to run a test before")
@@ -28,7 +28,7 @@ def parse_args():
                         help="used if LSF is the utility managing the jobs")
     parser.add_argument("--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
-    parser.add_argument("--steps", required=False, type=int,
+    parser.add_argument("--steps", required=False, type=int, default=700,
                         help="The number of PELE steps")
     args = parser.parse_args()
 
@@ -41,8 +41,8 @@ class CreateYamlFiles:
     Creates the 2 necessary files for the pele simulations
     """
 
-    def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24,
-                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=None):
+    def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=25,
+                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=700):
         """
         Initialize the CreateLaunchFiles object
 
@@ -115,11 +115,9 @@ class CreateYamlFiles:
         with open(self.yaml, "w") as inp:
             lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
-                     "seed: {}\n".format(self.seed)]
+                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps)]
             if not self.nord:
                 lines.append("usesrun: true\n")
-            if self.steps:
-                lines.append("steps: {}\n".format(self.steps))
             if name != "original":
                 lines.append("working_folder: {}/PELE_{}\n".format(name[:-1], name))
             else:
@@ -139,8 +137,8 @@ class CreateYamlFiles:
         return self.yaml
 
 
-def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, steps=None):
+def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=25, test=False, initial=None,
+                    cu=False, seed=12345, nord=False, steps=700):
     """
     creates for each of the mutants the yaml and slurm files
 

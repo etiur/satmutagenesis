@@ -40,6 +40,17 @@ This script combines the functions and classes from all the other modules to cre
         --hydrogen            leave it to default
         --consec              Consecutively mutate the PDB file for several rounds
         --steps STEPS        The number of PELE steps
+        --dpi DPI             Set the quality of the plots
+        --box BOX             Set how many data points are used for the boxplot
+        --traj TRAJ           Set how many PDBs are extracted from the trajectories
+        --out OUT             Name of the summary file created at the end of the
+                              analysis
+        --plot PLOT       Name of the plots folder
+        --analyse {energy,distance,both}
+                              The metric to measure the improvement of the system
+        --cpus CPUS           Include the number of cpus desired
+        --thres THRES         The threshold for the improvement which will affect
+                              what will be included in the summary
 
 | It has all the required arguments for the classes and functions from the other modules. 
 | An example would be:

@@ -50,7 +50,7 @@ Introduction
         --traj TRAJ           Set how many PDBs are extracted from the trajectories
         --out OUT             Name of the summary file created at the end of the
                               analysis
-        --folder FOLDER       Name of the plots folder
+        --plot PLOT       Name of the plots folder
         --analyse {energy,distance,both}
                               The metric to measure the improvement of the system
         --cpus CPUS           Include the number of cpus desired

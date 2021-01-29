@@ -36,7 +36,7 @@ def parse_args():
                         help="Path of the plots folder")
     parser.add_argument("--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
                         help="The metric to measure the improvement of the system")
-    parser.add_argument("--cpus", required=False, default=24, type=int,
+    parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
@@ -384,7 +384,7 @@ def extract_10_pdb_single(info, res_dir, data_dict):
         extract_snapshot_from_pdb(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind)
 
 
-def extract_all(res_dir, data_dict, folders, cpus=24):
+def extract_all(res_dir, data_dict, folders, cpus=25):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
 
@@ -556,7 +556,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
 
 def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", cpus=24, thres=-0.1):
+                         plot_dir=None, opt="distance", cpus=25, thres=-0.1):
     """
     Creates all the plots for the different mutated positions
 
