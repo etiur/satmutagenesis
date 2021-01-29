@@ -16,7 +16,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
     # main required arguments
     parser.add_argument("-i","--input", required=True, help="Include PDB file's path")
-    parser.add_argument("-p","--position", required=True, nargs="+",
+    parser.add_argument("-p","--position", required=False, nargs="+",
                         help="Include one or more chain IDs and positions -> Chain ID:position")
     parser.add_argument("-lc","--ligchain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("-ln","--ligname", required=True, help="The ligand residue name")
@@ -36,7 +36,7 @@ def parse_args():
                         help="The name of the folder for all the simulations")
     parser.add_argument("-pd","--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("-h","--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-hy","--hydrogen", required=False, action="store_false", help="leave it to default")
     parser.add_argument("-co","--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-sb", "--sbatch", required=False, action="store_false",
@@ -61,22 +61,22 @@ def parse_args():
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
                              "code and 1 letter code can be used.")
-    parser.add_argument("-PR","--plurizyme_resid", required=False, default=[],
-                        help="Specify the PDB atom name, residue number and name that"
+    parser.add_argument("-PR","--plurizyme_at_and_res", required=False,
+                        help="Specify the chain ID, residue number and the PDB atom name that"
                              "will set the list of the neighbouring residues for the"
-                             "next round. Example: _C4_ 1 LIG")
+                             "next round. Example: chain ID:position:atom name")
     parser.add_argument("-r","--radius", required=False, default=5.0, type=float,
                         help="The radius around the selected atom to search for the other residues")
-    parser.add_argument("-f","--fixed_resids",required=False,default=[],nargs='+',
+    parser.add_argument("-f","--fixed_resids",required=False, default=[], nargs='+',
                         help="Specify the list of residues that you don't want"
-                             "to have mutated (Must write the list of residue"
+                             "to have mutated (Must write the list of residue position"
                              "numbers)")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
             args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
             args.sbatch, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
-            args.single_mutagenesis, args.plurizyme_resid, args.radius, args.fixed_resids]
+            args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids]
 
 
 class CreateSlurmFiles:
@@ -86,7 +86,8 @@ class CreateSlurmFiles:
 
     def __init__(self, input_, ligchain, ligname, atoms, position, cpus=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
-                 steps=700, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1):
+                 steps=700, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
+                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[]):
         """
         Initialize the CreateLaunchFiles object
 
@@ -138,6 +139,14 @@ class CreateSlurmFiles:
             choose if to analyse distance, energy or both
         thres : float, optional
             The threshold for the mutations to be included in the pdf
+        single_mutagenesis: str
+            The new residue to mutate the positions to, in 3 letter or 1 letter code
+        plurizyme_at_and_res: str
+            Chain_ID:position:atom_name, which will be the center around the search for neighbours
+        radius: float, optional
+            The radius for the neighbours search
+        fixed_resids. list[position_num]
+            A list of residues positions to avoid mutating
         """
 
         self.input = input_
@@ -168,6 +177,10 @@ class CreateSlurmFiles:
         self.plot_dir = plot_dir
         self.opt = opt
         self.thres = thres
+        self.single = single_mutagenesis
+        self.pluri = plurizyme_at_and_res
+        self.radius = radius
+        self.avoid = fixed_resids
 
     def slurm_creation(self):
         """
@@ -198,8 +211,8 @@ class CreateSlurmFiles:
 
             argument_list = []
             posi = " ".join(self.position)
-            arguments = "--input {} --position {} --ligchain {} --ligname {} --atoms {} ".format(
-                self.input, posi, self.ligchain, self.ligname, self.atoms)
+            arguments = "-i {} -p {} -lc {} -ln {} -at {} ".format(self.input, posi, self.ligchain,
+                                                                   self.ligname, self.atoms)
             argument_list.append(arguments)
 
             if self.seed != 12345:
@@ -207,17 +220,17 @@ class CreateSlurmFiles:
             if self.cpus != 25:
                 argument_list.append("--cpus {} ".format(self.cpus))
             if not self.hydrogen:
-                argument_list.append("--hydrogen ")
+                argument_list.append("-hy ")
             if self.consec:
-                argument_list.append("--consec ")
+                argument_list.append("-co ")
             if self.multiple:
-                argument_list.append("--multiple ")
+                argument_list.append("-m ")
             if self.cu:
                 argument_list.append("--cu ")
             if self.nord:
                 argument_list.append("--nord ")
             if self.pdb_dir != "pdb_files":
-                argument_list.append("--pdb_dir {} ".format(self.pdb_dir))
+                argument_list.append("-pd {} ".format(self.pdb_dir))
             if self.dir:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.test:
@@ -235,9 +248,16 @@ class CreateSlurmFiles:
             if self.plot_dir:
                 argument_list.append("--plot {} ".format(self.plot_dir))
             if self.opt != "distance":
-                argument_list.append("--analyse {} ".format(self.opt))
+                argument_list.append("-an {} ".format(self.opt))
             if self.thres != -0.1:
                 argument_list.append("--thres {} ".format(self.thres))
+            if self.single and self.pluri:
+                argument_list.append("-sm {} ".format(self.single))
+                argument_list.append("-PR {} ".format(self.pluri))
+                if self.radius != 5.0:
+                    argument_list.append("-r {} ".format(self.radius))
+                if len(self.avoid) != 0:
+                    argument_list.append("-f {} ".format(self.avoid))
 
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
@@ -287,8 +307,8 @@ class CreateSlurmFiles:
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
-    plurizyme_resid, radius, fixed_resids = parse_args()
-    
+    plurizyme_at_and_res, radius, fixed_resids = parse_args()
+
     run = CreateSlurmFiles(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                            multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                            out, plot_dir, analysis, thres)

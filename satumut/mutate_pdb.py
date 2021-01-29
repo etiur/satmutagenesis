@@ -22,7 +22,7 @@ def parse_args():
                         help="Include one or more chain IDs and positions -> Chain ID:position")
     parser.add_argument("-m","--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
-    parser.add_argument("-h","--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-hy","--hydrogen", required=False, action="store_false", help="leave it to default")
     parser.add_argument("-co","--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-pd","--pdb_dir", required=False, default="pdb_files",
@@ -269,6 +269,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         The name of the folder where the mutated PDB files will be stored
     consec: bool, optional
         Consecutively mutate the PDB file for several rounds
+    single: str
+        The new residue to mutate the positions to, in 3 letter or 1 letter code
 
     Returns
     ________

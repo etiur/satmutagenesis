@@ -100,18 +100,18 @@ def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
     PARAMETERS
     ----------
     input_ : string
-                       PDB file where the specific atoms resides
-    specific_at_res_chainid : list of strings
-                       PDB atom name of the selected specific atom (spaces in "_"), residue
-                       number and residue name
+                    PDB file where the specific atoms resides
+    specific_at_res_chainid : strings
+                    Chain_ID:position:atom_name, which will be the center around the search for neighbours.
     radius : float
-                       Value of the minimum distance between the atom and any of the residues
+                    Value of the minimum distance between the atom and any of the residues
     fixed_resids: list of integers
-                        List of residue numbers of the residues that the user don't want to mutate
+                    List of residue numbers of the residues that the user don't want to mutate
     Returns
     _______
     Updated_positions : The list of neighbour residues of the specified atom
     """
+    specific_at_res_chainid = specific_at_res_chainid.split(":")
     Updated_positions = []
     parser = Bio.PDB.PDBParser(QUIET=True)
 
@@ -125,7 +125,7 @@ def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
     ns = Bio.PDB.NeighborSearch(Atoms)
 
     # Get the close residues to the desired atom by a neighbour search
-    Close_residues = ns.search(Target_atom.coord, radius, level = 'R')
+    Close_residues = ns.search(Target_atom.coord, radius, level='R')
 
     # Take the output of the neighbour search with biopython and take the positions of the residues that will be mutated
     for close_res in Close_residues:
