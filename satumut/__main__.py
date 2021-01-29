@@ -37,31 +37,35 @@ def parse_args():
                         help="used if LSF is the utility managing the jobs")
     parser.add_argument("-m","--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
-    parser.add_argument("-s","--seed", required=False, default=12345, type=int,
+    parser.add_argument("-se","--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
     parser.add_argument("-d","--dir", required=False,
                         help="The name of the folder for all the simulations")
     parser.add_argument("-pd","--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("-h","--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-hy","--hydrogen", required=False, action="store_false", help="leave it to default")
     parser.add_argument("-co","--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-s","--single_mutagenesis",required=False, default="",
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
                              "code and 1 letter code can be used.")
-    parser.add_argument("-PR","--pluriZyme_at_and_res", required=False, default=[],
+    parser.add_argument("-PR","--pluriZyme_at_and_res", required=False, default=[],nargs='*',
                         help="Specify the PDB atom name, residue number and name that"
                              "will set the list of the neighbouring residues for the"
-                             "next round. Example: _C4_ 1 LIG")
+                             "next round. Example: L 1 C4")
     parser.add_argument("-r","--radius", required=False, default=5.0, type=float,
                         help="Include the seed number to make the simulation reproducible")
+    parser.add_argument("-f","--fixed_resids",required=False,default=[],nargs='+',
+                        help="Specify the list of residues that you don't want"
+                             "to have mutated (Must write the list of residue"
+                             "numbers)")
 
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
             args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
-            args.single_mutagenesis, args.pluriZyme_at_and_res, args.radius]
+            args.single_mutagenesis, args.pluriZyme_at_and_res, args.radius, args.fixed_resids]
 
 
 def submit(slurm_folder, nord=False):
@@ -147,9 +151,10 @@ def pele_folders(input_, file_list, dir_=None):
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, single_mutagenesis, pluriZyme_at_and_res, radius = parse_args()
+    hydrogen, consec, single_mutagenesis, pluriZyme_at_and_res, radius, fixed_resids = parse_args()
     if len(pluriZyme_at_and_res)!=0:
-        position = Neighbourresidues(input_,pluriZyme_at_and_res,radius)
+        position = Neighbourresidues(input_,pluriZyme_at_and_res,radius, fixed_resids)
+    print(position);exit()
     input_ = side_function(input_, dir_)
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, folder=pdb_dir,
                                    consec=consec, single_mutagenesis=single_mutagenesis)
