@@ -14,25 +14,21 @@ def parse_args():
     parser.add_argument("--folder", required=True,
                         help="An iterable of the path to different pdb files, a name of the folder or a file with the "
                              "path to the different pdb files")
-    parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
-    parser.add_argument("--ligname", required=True, help="The ligand residue name")
-    parser.add_argument("--atom1", required=True,
-                        help="atom of the residue to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--atom2", required=True,
-                        help="atom of the ligand to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--cpus", required=False, default=25, type=int,
-                        help="Include the number of cpus desired")
+    parser.add_argument("-lc","--ligchain", required=True, help="Include the chain ID of the ligand")
+    parser.add_argument("-ln","--ligname", required=True, help="The ligand residue name")
+    parser.add_argument("-at","--atoms", required=True, nargs="+",
+                        help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
-    parser.add_argument("--test", required=False, action="store_true", help="Used if you want to run a test before")
-    parser.add_argument("--nord", required=False, action="store_true",
+    parser.add_argument("-t","--test", required=False, action="store_true", help="Used if you want to run a test before")
+    parser.add_argument("-n","--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
-    parser.add_argument("--seed", required=False, default=12345, type=int,
+    parser.add_argument("-s","--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
-    parser.add_argument("--steps", required=False, type=int, default=700,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=700,
                         help="The number of PELE steps")
     args = parser.parse_args()
 
-    return [args.folder, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.cu,
+    return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus, args.test, args.cu,
             args.seed, args.nord, args.steps]
 
 
@@ -41,7 +37,7 @@ class CreateYamlFiles:
     Creates the 2 necessary files for the pele simulations
     """
 
-    def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=25,
+    def __init__(self, input_, ligchain, ligname, atoms, cpus=25,
                  test=False, initial=None, cu=False, seed=12345, nord=False, steps=700):
         """
         Initialize the CreateLaunchFiles object
@@ -54,10 +50,8 @@ class CreateYamlFiles:
             the chain ID where the ligand is located
         ligname: str
             the residue name of the ligand in the PDB
-        atom1: str
-            atom of the residue to follow in this format --> chain ID:position:atom name
-        atom2: str
-            atom of the ligand to follow in this format --> chain ID:position:atom name
+        atoms: list[str]
+            list of atom of the residue to follow, in this format --> chain ID:position:atom name
         cpus: int, optional
             How many cpus do you want to use
         test: bool, optional
@@ -77,8 +71,7 @@ class CreateYamlFiles:
         self.input = input_
         self.ligchain = ligchain
         self.ligname = ligname
-        self.atom1 = atom1
-        self.atom2 = atom2
+        self.atoms = atoms
         self.cpus = cpus
         self.test = test
         self.yaml = None
@@ -93,8 +86,8 @@ class CreateYamlFiles:
         match the user coordinates to pmx PDB coordinates
         """
         if self.initial:
-            self.atom1 = map_atom_string(self.atom1, self.initial, self.input)
-            self.atom2 = map_atom_string(self.atom2, self.initial, self.input)
+            for i in range(len(self.atoms)):
+                self.atoms[i] = map_atom_string(self.atoms[i], self.initial, self.input)
         else:
             pass
 
@@ -115,7 +108,7 @@ class CreateYamlFiles:
         with open(self.yaml, "w") as inp:
             lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
-                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps)]
+                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps), "atom_dist:\n"]
             if not self.nord:
                 lines.append("usesrun: true\n")
             if name != "original":
@@ -125,7 +118,10 @@ class CreateYamlFiles:
             if self.test:
                 lines.append("test: true\n")
                 self.cpus = 5
-            lines2 = ["cpus: {}\n".format(self.cpus), "atom_dist:\n- '{}'\n- '{}'\n".format(self.atom1, self.atom2),
+
+            lines_atoms = ["- '{}'\n".format(atoms) for atoms in self.atoms]
+            lines.extend(lines_atoms)
+            lines2 = ["cpus: {}\n".format(self.cpus),
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n",
                       "pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n"]
             if self.cu:
@@ -137,7 +133,7 @@ class CreateYamlFiles:
         return self.yaml
 
 
-def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=25, test=False, initial=None,
+def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initial=None,
                     cu=False, seed=12345, nord=False, steps=700):
     """
     creates for each of the mutants the yaml and slurm files
@@ -192,7 +188,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=25, test=False,
     for files in file_list:
         files = files.strip("\n")
         name = basename(files).replace(".pdb", "")
-        run = CreateYamlFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
+        run = CreateYamlFiles(files, ligchain, ligname, atoms, cpus, test=test,
                               initial=initial, cu=cu, seed=seed, nord=nord, steps=steps)
         yaml = run.input_creation(name)
         yaml_files.append(yaml)
@@ -201,8 +197,8 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=25, test=False,
 
 
 def main():
-    folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord, steps = parse_args()
-    yaml_files = create_20sbatch(ligchain, ligname, atom1, atom2,
+    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps = parse_args()
+    yaml_files = create_20sbatch(ligchain, ligname, atoms,
                                  cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord, steps=steps)
 
     return yaml_files

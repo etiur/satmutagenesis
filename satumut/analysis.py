@@ -466,7 +466,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         box1 = "{}_results/Plots/box/{}_binding.png".format(res_dir, position_num)
         pdf.image(box1, w=180)
         pdf.ln(1000000)
-    elif analysis == "all":
+    elif analysis == "both":
         box1 = "{}_results/Plots/box/{}_distance.png".format(res_dir, position_num)
         box2 = "{}_results/Plots/box/{}_binding.png".format(res_dir, position_num)
         pdf.image(box1, w=180)
@@ -542,7 +542,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
             elif analysis == "energy" and value.bind_diff.median() < thres:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "all" and value.dist_diff.median() < thres and value.bind_diff.median() < thres:
+            elif analysis == "both" and value.dist_diff.median() < thres and value.bind_diff.median() < thres:
                 mutation_dict[key] = value
                 count += 1
 

@@ -15,35 +15,33 @@ from os.path import basename
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
     # main required arguments
-    parser.add_argument("--input", required=True, help="Include PDB file's path")
-    parser.add_argument("--position", required=True, nargs="+",
+    parser.add_argument("-i","--input", required=True, help="Include PDB file's path")
+    parser.add_argument("-p","--position", required=True, nargs="+",
                         help="Include one or more chain IDs and positions -> Chain ID:position")
-    parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
-    parser.add_argument("--ligname", required=True, help="The ligand residue name")
-    parser.add_argument("--atom1", required=True,
-                        help="atom of the residue to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--atom2", required=True,
-                        help="atom of the ligand to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--cpus", required=False, default=25, type=int,
+    parser.add_argument("-lc","--ligchain", required=True, help="Include the chain ID of the ligand")
+    parser.add_argument("-ln","--ligname", required=True, help="The ligand residue name")
+    parser.add_argument("-at","--atoms", required=True, nargs="+",
+                        help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
+    parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
-    parser.add_argument("--test", required=False, action="store_true", help="Used if you want to run a test before")
-    parser.add_argument("--nord", required=False, action="store_true",
+    parser.add_argument("-t","--test", required=False, action="store_true", help="Used if you want to run a test before")
+    parser.add_argument("-n","--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
-    parser.add_argument("--multiple", required=False, action="store_true",
+    parser.add_argument("-m","--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
-    parser.add_argument("--seed", required=False, default=12345, type=int,
+    parser.add_argument("-s","--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
-    parser.add_argument("--dir", required=False,
+    parser.add_argument("-d","--dir", required=False,
                         help="The name of the folder for all the simulations")
-    parser.add_argument("--pdb_dir", required=False, default="pdb_files",
+    parser.add_argument("-pd","--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("--hydrogen", required=False, action="store_false", help="leave it to default")
-    parser.add_argument("--consec", required=False, action="store_true",
+    parser.add_argument("-h","--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-co","--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
-    parser.add_argument("--sbatch", required=False, action="store_false",
+    parser.add_argument("-sb", "--sbatch", required=False, action="store_false",
                         help="True if you want to lanch the simulation right after creating the slurm file")
-    parser.add_argument("--steps", required=False, type=int, default=700,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=700,
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
@@ -59,12 +57,22 @@ def parse_args():
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
-
+    parser.add_argument("-s","--single",required=False, default="",
+                        help="Specifiy the name of the residue that you want the "
+                             "original residue to be mutated to. Both 3 letter "
+                             "code and 1 letter code can be used.")
+    parser.add_argument("-PR","--plurizyme", required=False, default=[],
+                        help="Specify the PDB atom name, residue number and name that"
+                             "will set the list of the neighbouring residues for the"
+                             "next round. Example: _C4_ 1 LIG")
+    parser.add_argument("-r","--radius", required=False, default=5.0, type=float,
+                        help="The radius around the selected atom to search for the other residues")
     args = parser.parse_args()
 
-    return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
+    return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
             args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
-            args.sbatch, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres]
+            args.sbatch, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
+            args.single, args.plurizyme, args.radius]
 
 
 class CreateSlurmFiles:
@@ -72,7 +80,7 @@ class CreateSlurmFiles:
     Creates the 2 necessary files for the pele simulations
     """
 
-    def __init__(self, input_, ligchain, ligname, atom1, atom2, length, position, cpus=25, dir_=None, hydrogen=True,
+    def __init__(self, input_, ligchain, ligname, atoms, length, position, cpus=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=700, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1):
         """
@@ -86,10 +94,8 @@ class CreateSlurmFiles:
             the chain ID where the ligand is located
         ligname: str
             the residue name of the ligand in the PDB
-        atom1: str
-            atom of the residue to follow in this format --> chain ID:position:atom name
-        atom2: str
-            atom of the ligand to follow in this format --> chain ID:position:atom name
+        atoms: list[str]
+            list of atom of the residue to follow, in this format --> chain ID:position:atom name
         length: int
             The number of yaml files to calculate the real cpus necessary to run all the simulations
         position: list[str]
@@ -135,8 +141,7 @@ class CreateSlurmFiles:
         self.input = input_
         self.ligchain = ligchain
         self.ligname = ligname
-        self.atom1 = atom1
-        self.atom2 = atom2
+        self.atoms = " ".join(atoms)
         self.cpus = cpus
         self.test = test
         self.slurm = None
@@ -188,8 +193,8 @@ class CreateSlurmFiles:
 
             argument_list = []
             posi = " ".join(self.position)
-            arguments = "--input {} --position {} --ligchain {} --ligname {} --atom1 {} --atom2 {} ".format(
-                self.input, posi, self.ligchain, self.ligname, self.atom1, self.atom2)
+            arguments = "--input {} --position {} --ligchain {} --ligname {} --atoms {} ".format(
+                self.input, posi, self.ligchain, self.ligname, self.atoms)
             argument_list.append(arguments)
 
             if self.seed != 12345:
@@ -275,14 +280,14 @@ class CreateSlurmFiles:
 
 
 def main():
-    input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
+    input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres = parse_args()
 
     if multiple and len(position) == 2:
         length = 400
     else:
         length = len(position) * 19 + 1
-    run = CreateSlurmFiles(input_, ligchain, ligname, atom1, atom2, length, position, cpus, dir_, hydrogen,
+    run = CreateSlurmFiles(input_, ligchain, ligname, atoms, length, position, cpus, dir_, hydrogen,
                            multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                            out, plot_dir, analysis, thres)
     slurm = run.slurm_creation()
