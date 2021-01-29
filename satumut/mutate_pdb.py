@@ -27,9 +27,13 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-pd","--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
+    parser.add_argument("-s","--single_mutagenesis",required=False,
+                        help="Specifiy the name of the residue that you want the "
+                             "original residue to be mutated to. Both 3 letter "
+                             "code and 1 letter code can be used.")
     # arguments = vars(parser.parse_args())
     args = parser.parse_args()
-    return args.input, args.position, args.hydrogen, args.multiple, args.pdb_dir, args.consec
+    return args.input, args.position, args.hydrogen, args.multiple, args.pdb_dir, args.consec, args.single_mutagenesis
 
 
 class Mutagenesis:
@@ -247,7 +251,7 @@ class Mutagenesis:
             p.join()
 
 
-def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False):
+def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False, single=None):
     """
     To generate up to 2 mutations per pdb
 
@@ -275,11 +279,15 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     # Perform single saturated mutations
     for mutation in position:
         run = Mutagenesis(input_, mutation, pdb_dir, consec)
-        final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
-        pdbs.extend(final_pdbs)
-        run.accelerated_insert()
+        if single:
+            mutant = run.single_mutagenesis(single, hydrogens)
+            pdbs.append(mutant)
+        else:
+            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
+            pdbs.extend(final_pdbs)
+            run.accelerated_insert()
         # Mutate in a second position for each of the single mutations
-        if multiple and len(position) == 2:
+        if multiple and len(position) == 2 and not single:
             for files in final_pdbs:
                 name = basename(files).replace(".pdb", "")
                 if name != "original.pdb":
@@ -291,9 +299,10 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     return pdbs
 
 
+
 def main():
-    input_, position, hydrogen, multiple, pdb_dir, consec = parse_args()
-    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec)
+    input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis = parse_args()
+    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis)
 
     return output
 

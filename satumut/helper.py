@@ -1,6 +1,7 @@
 """
 This script contains helper functions
 """
+import Bio.PDB
 
 
 def map_atom_string(atom_string, initial_pdb, prep_pdb):
@@ -89,3 +90,47 @@ def isiterable(p_object):
     except TypeError:
         return False
     return True
+
+
+def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=[]):
+    """
+    It gives the list of residues near a specific atom according to a radius
+    in a PDB file.
+
+    PARAMETERS
+    ----------
+    input_ : string
+                       PDB file where the specific atoms resides
+    specific_at_res_chainid : list of strings
+                       PDB atom name of the selected specific atom (spaces in "_"), residue
+                       number and residue name
+    radius : float
+                       Value of the minimum distance between the atom and any of the residues
+    fixed_resids: list of integers
+                        List of residue numbers of the residues that the user don't want to mutate
+    Returns
+    _______
+    Updated_positions : The list of neighbour residues of the specified atom
+    """
+    Updated_positions = []
+    parser = Bio.PDB.PDBParser(QUIET=True)
+
+    # Open the PDB file with the Bio module and get the topology of the desired atom to get the coordinates
+    Structure = parser.get_structure(input_[:-4], input_)
+    Target_residue = Structure[0][specific_at_res_chainid[0]][int(specific_at_res_chainid[1])]
+    Target_atom = Target_residue[specific_at_res_chainid[2]]
+
+    # Get all atoms of the structure and create an instance for a neighbour search around the desired atom
+    Atoms = Bio.PDB.Selection.unfold_entities(Structure[0], 'A')
+    ns = Bio.PDB.NeighborSearch(Atoms)
+
+    # Get the close residues to the desired atom by a neighbour search
+    Close_residues = ns.search(Target_atom.coord, radius, level = 'R')
+
+    # Take the output of the neighbour search with biopython and take the positions of the residues that will be mutated
+    for close_res in Close_residues:
+        if not close_res == Target_residue:
+            if str(close_res.id[1]) not in fixed_resids:
+                Updated_positions.append('A'+':'+str(close_res.id[1]))
+
+    return Updated_positions
