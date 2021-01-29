@@ -84,7 +84,7 @@ class CreateSlurmFiles:
     Creates the 2 necessary files for the pele simulations
     """
 
-    def __init__(self, input_, ligchain, ligname, atoms, length, position, cpus=25, dir_=None, hydrogen=True,
+    def __init__(self, input_, ligchain, ligname, atoms, position, cpus=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=700, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1):
         """
@@ -100,8 +100,6 @@ class CreateSlurmFiles:
             the residue name of the ligand in the PDB
         atoms: list[str]
             list of atom of the residue to follow, in this format --> chain ID:position:atom name
-        length: int
-            The number of yaml files to calculate the real cpus necessary to run all the simulations
         position: list[str]
             [chain ID:position] of the residue, for example [A:139,..]
         cpus: int, optional
@@ -152,7 +150,10 @@ class CreateSlurmFiles:
         self.cu = cu
         self.seed = seed
         self.nord = nord
-        self.len = length
+        if multiple and len(position) == 2:
+            self.len = 400
+        else:
+            self.len = len(position) * 19 + 1
         self.position = position
         self.hydrogen = hydrogen
         self.multiple = multiple
@@ -287,12 +288,8 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_resid, radius, fixed_resids = parse_args()
-
-    if multiple and len(position) == 2:
-        length = 400
-    else:
-        length = len(position) * 19 + 1
-    run = CreateSlurmFiles(input_, ligchain, ligname, atoms, length, position, cpus, dir_, hydrogen,
+    
+    run = CreateSlurmFiles(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                            multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                            out, plot_dir, analysis, thres)
     slurm = run.slurm_creation()
