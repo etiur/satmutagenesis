@@ -53,11 +53,11 @@ def parse_args():
                         help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--plot", required=False,
                         help="Path of the plots folder")
-    parser.add_argument("--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
+    parser.add_argument("-an", "--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
-    parser.add_argument("-s","--single_mutagenesis",required=False,
+    parser.add_argument("-sm","--single_mutagenesis",required=False,
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
                              "code and 1 letter code can be used.")
@@ -285,7 +285,8 @@ class CreateSlurmFiles:
 
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres = parse_args()
+    hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
+    plurizyme_resid, radius, fixed_resids = parse_args()
 
     if multiple and len(position) == 2:
         length = 400

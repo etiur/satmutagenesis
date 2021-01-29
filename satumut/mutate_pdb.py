@@ -27,7 +27,7 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-pd","--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("-s","--single_mutagenesis",required=False,
+    parser.add_argument("-sm","--single_mutagenesis",required=False,
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
                              "code and 1 letter code can be used.")

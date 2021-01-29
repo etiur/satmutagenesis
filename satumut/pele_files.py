@@ -109,6 +109,8 @@ class CreateYamlFiles:
             lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
                      "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps), "atom_dist:\n"]
+            lines_atoms = ["- '{}'\n".format(atoms) for atoms in self.atoms]
+            lines.extend(lines_atoms)
             if not self.nord:
                 lines.append("usesrun: true\n")
             if name != "original":
@@ -118,9 +120,6 @@ class CreateYamlFiles:
             if self.test:
                 lines.append("test: true\n")
                 self.cpus = 5
-
-            lines_atoms = ["- '{}'\n".format(atoms) for atoms in self.atoms]
-            lines.extend(lines_atoms)
             lines2 = ["cpus: {}\n".format(self.cpus),
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n",
                       "pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n"]
@@ -144,10 +143,8 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
         the chain ID where the ligand is located
     ligname: str
         the residue name of the ligand in the PDB
-    atom1: str
-        atom of the residue to follow  --> chain ID:position:atom name
-    atom2: str
-        atom of the ligand to follow  --> chain ID:position:atom name
+    atoms: list[str]
+        list of atom of the residue to follow, in this format --> chain ID:position:atom name
     file_: iterable (not string or dict), dir or a file
         An iterable of the path to different pdb files, a name of the folder
         or a file of the path to the different pdb files

@@ -53,16 +53,30 @@ def parse_args():
                         help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--plot", required=False,
                         help="Path of the plots folder")
-    parser.add_argument("--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
+    parser.add_argument("-an", "--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
-
+    parser.add_argument("-sm","--single_mutagenesis",required=False,
+                        help="Specifiy the name of the residue that you want the "
+                             "original residue to be mutated to. Both 3 letter "
+                             "code and 1 letter code can be used.")
+    parser.add_argument("-PR","--plurizyme_resid", required=False, default=[],
+                        help="Specify the PDB atom name, residue number and name that"
+                             "will set the list of the neighbouring residues for the"
+                             "next round. Example: _C4_ 1 LIG")
+    parser.add_argument("-r","--radius", required=False, default=5.0, type=float,
+                        help="The radius around the selected atom to search for the other residues")
+    parser.add_argument("-f","--fixed_resids",required=False,default=[],nargs='+',
+                        help="Specify the list of residues that you don't want"
+                             "to have mutated (Must write the list of residue"
+                             "numbers)")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms,args.cpus, args.test,
             args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
-            args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres]
+            args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
+            args.single_mutagenesis, args.plurizyme_resid, args.radius, args.fixed_resids]
 
 
 class SimulationRunner:
@@ -179,7 +193,7 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
         the chain ID where the ligand is located
     ligname: str
         the residue name of the ligand in the PDB
-        atoms: list[str]
+    atoms: list[str]
             list of atom of the residue to follow, in this format --> chain ID:position:atom name
     cpus: int, optional
         how many cpus do you want to use
@@ -231,9 +245,18 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
     consecutive_analysis(dirname, dpi, box, traj, output, plot_dir, opt, cpus, thres)
 
 
+def plurizyme_simulations():
+    """
+    Run the simulations for the plurizymes projct
+    """
+    pass
+
+
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analysis, thres = parse_args()
+    hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
+    plurizyme_resid, radius, fixed_resids = parse_args()
+
     saturated_simulation(input_, position, ligchain, ligname, atoms, cpus, dir_, hydrogen,
                          multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
                          plot_dir, analysis, thres)
