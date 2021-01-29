@@ -280,13 +280,15 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     for mutation in position:
         run = Mutagenesis(input_, mutation, pdb_dir, consec)
         if single:
+            # If the single_mutagenesis flag is used, execute this
             mutant = run.single_mutagenesis(single, hydrogens)
             pdbs.append(mutant)
         else:
+            # Else, perform single saturated mutations
             final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
             pdbs.extend(final_pdbs)
             run.accelerated_insert()
-        # Mutate in a second position for each of the single mutations
+        # Mutate in a second position for each of the 20 single mutations
         if multiple and len(position) == 2 and not single:
             for files in final_pdbs:
                 name = basename(files).replace(".pdb", "")
