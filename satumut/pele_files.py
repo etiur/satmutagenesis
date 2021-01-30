@@ -18,6 +18,8 @@ def parse_args():
     parser.add_argument("-ln","--ligname", required=True, help="The ligand residue name")
     parser.add_argument("-at","--atoms", required=True, nargs="+",
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
+    parser.add_argument("--cpus", required=False, default=25, type=int,
+                        help="Include the number of cpus desired")
     parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
     parser.add_argument("-t","--test", required=False, action="store_true", help="Used if you want to run a test before")
     parser.add_argument("-n","--nord", required=False, action="store_true",
