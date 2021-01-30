@@ -163,7 +163,7 @@ class CreateSlurmFiles:
             self.len = 400
         else:
             self.len = len(position) * 19 + 1
-        self.position = position
+        self.position = " ".join(position)
         self.hydrogen = hydrogen
         self.multiple = multiple
         self.consec = consec
@@ -210,8 +210,7 @@ class CreateSlurmFiles:
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n\n']
 
             argument_list = []
-            posi = " ".join(self.position)
-            arguments = "-i {} -p {} -lc {} -ln {} -at {} ".format(self.input, posi, self.ligchain,
+            arguments = "-i {} -p {} -lc {} -ln {} -at {} ".format(self.input, self.position, self.ligchain,
                                                                    self.ligname, self.atoms)
             argument_list.append(arguments)
 
