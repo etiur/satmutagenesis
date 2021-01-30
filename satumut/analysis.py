@@ -82,6 +82,7 @@ class SimulationData:
         pd.options.mode.chained_assignment = None
         reports = []
         for files in glob("{}/output/0/report_*".format(self.folder)):
+            print files
             rep = basename(files).split("_")[1]
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
@@ -110,6 +111,7 @@ class SimulationData:
         self.binding.reset_index(drop=True, inplace=True)
 
         if "original" in self.folder:
+            print self.distance
             self.distance = self.distance.iloc[0]
             self.binding = self.binding.iloc[0]
 

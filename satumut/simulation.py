@@ -238,7 +238,8 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
                                  file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps)
     simulation.submit(yaml_files)
     dirname = simulation.pele_folders(pdb_names)
-    consecutive_analysis(dirname, dpi, box, traj, output, plot_dir, opt, cpus, thres)
+    if not test:
+        consecutive_analysis(dirname, dpi, box, traj, output, plot_dir, opt, cpus, thres)
 
 
 def plurizyme_simulations(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,

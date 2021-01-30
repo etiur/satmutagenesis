@@ -73,7 +73,7 @@ class CreateYamlFiles:
         self.input = input_
         self.ligchain = ligchain
         self.ligname = ligname
-        self.atoms = atoms
+        self.atoms = atoms[:]
         self.cpus = cpus
         self.test = test
         self.yaml = None
@@ -111,7 +111,7 @@ class CreateYamlFiles:
             lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
                      "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps), "atom_dist:\n"]
-            lines_atoms = ["- '{}'\n".format(atoms) for atoms in self.atoms]
+            lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
             lines.extend(lines_atoms)
             if not self.nord:
                 lines.append("usesrun: true\n")
