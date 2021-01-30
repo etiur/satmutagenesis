@@ -15,3 +15,5 @@ Given a position of a residue within a protein system:
 * [pmx](https://pypi.org/project/pmx/)
 * [seaborn](https://seaborn.pydata.org/)
 * [fpdf](https://pyfpdf.readthedocs.io/en/latest/#installation)
+* [biopython](https://biopython.org/wiki/Documentation)
+
