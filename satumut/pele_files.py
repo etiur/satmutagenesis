@@ -69,6 +69,8 @@ class CreateYamlFiles:
             True if the system is managed by LSF
         steps: int, optional
             The number of PELE steps
+        single: str
+            Anything that indicates that we are in purizyme mode
         """
         self.input = input_
         self.ligchain = ligchain
@@ -179,6 +181,8 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
         True if the system is managed by LSF
     steps: int, optional
             The number of PELE steps
+    single: str, optional
+        Anything that indicates that we are in plurizyme mode
 
     Returns
     _______
