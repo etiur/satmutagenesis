@@ -14,17 +14,18 @@ def parse_args():
     parser.add_argument("--folder", required=True,
                         help="An iterable of the path to different pdb files, a name of the folder or a file with the "
                              "path to the different pdb files")
-    parser.add_argument("-lc","--ligchain", required=True, help="Include the chain ID of the ligand")
-    parser.add_argument("-ln","--ligname", required=True, help="The ligand residue name")
-    parser.add_argument("-at","--atoms", required=True, nargs="+",
+    parser.add_argument("-lc", "--ligchain", required=True, help="Include the chain ID of the ligand")
+    parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
+    parser.add_argument("-at", "--atoms", required=True, nargs="+",
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
-    parser.add_argument("-t","--test", required=False, action="store_true", help="Used if you want to run a test before")
-    parser.add_argument("-n","--nord", required=False, action="store_true",
+    parser.add_argument("-t", "--test", required=False, action="store_true",
+                        help="Used if you want to run a test before")
+    parser.add_argument("-n", "--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
-    parser.add_argument("-s","--seed", required=False, default=12345, type=int,
+    parser.add_argument("-s", "--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
     parser.add_argument("-st", "--steps", required=False, type=int, default=800,
                         help="The number of PELE steps")
@@ -40,7 +41,7 @@ class CreateYamlFiles:
     """
 
     def __init__(self, input_, ligchain, ligname, atoms, cpus=25,
-                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=800):
+                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=800, single=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -69,7 +70,6 @@ class CreateYamlFiles:
         steps: int, optional
             The number of PELE steps
         """
-
         self.input = input_
         self.ligchain = ligchain
         self.ligname = ligname
@@ -82,6 +82,7 @@ class CreateYamlFiles:
         self.seed = seed
         self.nord = nord
         self.steps = steps
+        self.single = single
 
     def _match_dist(self):
         """
@@ -93,6 +94,18 @@ class CreateYamlFiles:
         else:
             pass
 
+    def _search_round(self):
+        """
+        Looks at which round of the mutation it is
+        """
+        count = 1
+        round = "round_1"
+        while os.path.exists(round):
+            count += 1
+            round = "round_{}".format(count)
+
+        return round
+
     def input_creation(self, name):
         """
         create the .yaml input files for PELE
@@ -103,7 +116,9 @@ class CreateYamlFiles:
             Name for the input file for the simulation
         """
         self._match_dist()
-
+        folder = name[:-1]
+        if self.single:
+            folder = self._search_round()
         if not os.path.exists("yaml_files"):
             os.mkdir("yaml_files")
         self.yaml = "yaml_files/{}.yaml".format(name)
@@ -116,7 +131,7 @@ class CreateYamlFiles:
             if not self.nord:
                 lines.append("usesrun: true\n")
             if name != "original":
-                lines.append("working_folder: {}/PELE_{}\n".format(name[:-1], name))
+                lines.append("working_folder: {}/PELE_{}\n".format(folder, name))
             else:
                 lines.append("working_folder: PELE_{}\n".format(name))
             if self.test:
@@ -135,7 +150,7 @@ class CreateYamlFiles:
 
 
 def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, steps=800):
+                    cu=False, seed=12345, nord=False, steps=800, single=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -170,7 +185,6 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
     slurm_files: list[path]
         A list of the files generated
     """
-    slurm_files = []
     if isdir(str(file_)):
         file_list = list(filter(lambda x: ".pdb" in x, os.listdir(file_)))
         file_list = [join(file_, files) for files in file_list]
@@ -188,7 +202,7 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
         files = files.strip("\n")
         name = basename(files).replace(".pdb", "")
         run = CreateYamlFiles(files, ligchain, ligname, atoms, cpus, test=test,
-                              initial=initial, cu=cu, seed=seed, nord=nord, steps=steps)
+                              initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single)
         yaml = run.input_creation(name)
         yaml_files.append(yaml)
 

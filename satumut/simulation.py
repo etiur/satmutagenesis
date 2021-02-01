@@ -293,7 +293,7 @@ def plurizyme_simulations(input_, ligchain, ligname, atoms, single_mutagenesis, 
     position = Neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec, single=single_mutagenesis)
     yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
-                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps)
+                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis)
     simulation.submit(yaml_files)
     dirname = simulation.pele_folders(pdb_names)
 

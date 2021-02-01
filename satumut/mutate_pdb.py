@@ -102,7 +102,7 @@ class Mutagenesis:
             self.model.write("{}/original.pdb".format(self.folder))
             self.final_pdbs.append("{}/original.pdb".format(self.folder))
         if self.consec:
-            self.final_pdbs.remove("{}/original.pdb")
+            self.final_pdbs.remove("{}/original.pdb".format(self.folder))
 
         after = map_atom_string(self.coords, self.input, "{}/original.pdb".format(self.folder))
         self.chain_id = after.split(":")[0]
@@ -278,6 +278,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         The list of all generated pdbs' path
     """
     pdbs = []
+    if single and not consec:
+        pdbs.append("{}/original.pdb".format(pdb_dir))
     # Perform single saturated mutations
     for mutation in position:
         run = Mutagenesis(input_, mutation, pdb_dir, consec)
@@ -286,7 +288,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
             mutant = run.single_mutagenesis(single, hydrogens)
             pdbs.append(mutant)
         else:
-            # Else, perform single saturated mutations
+            # Else, perform saturated mutations
             final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
             pdbs.extend(final_pdbs)
             run.accelerated_insert()
