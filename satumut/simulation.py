@@ -10,7 +10,7 @@ import os
 import logging
 import time
 from analysis import consecutive_analysis
-from helper import Neighbourresidues
+from helper import Neighbourresidues, Log
 
 
 def parse_args():
@@ -42,7 +42,7 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-sb", "--sbatch", required=False, action="store_false",
                         help="True if you want to lanch the simulation right after creating the slurm file")
-    parser.add_argument("-st", "--steps", required=False, type=int, default=700,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=800,
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
@@ -169,14 +169,13 @@ class SimulationRunner:
         end = time.time()
 
         # creating a log
-        logging.basicConfig(filename='simulation_time.log', level=logging.DEBUG, format='%(asctime)s - %(message)s',
-                            datefmt='%d-%b-%y %H:%M:%S')
-        logging.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
+        log = Log("simulation_time")
+        log.logger.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
 
 
 def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                         nord=False, steps=700, dpi=800, box=30, traj=10, output="summary",
+                         nord=False, steps=800, dpi=800, box=30, traj=10, output="summary",
                          plot_dir=None, opt="distance", thres=-0.1):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
@@ -245,7 +244,7 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
 def plurizyme_simulations(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                           radius=5.0, fixed_resids=[], cpus=25, dir_=None, hydrogen=True,
                           pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                          nord=False, steps=700):
+                          nord=False, steps=800):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 

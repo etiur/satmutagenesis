@@ -26,7 +26,7 @@ def parse_args():
                         help="used if LSF is the utility managing the jobs")
     parser.add_argument("-s","--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
-    parser.add_argument("-st", "--steps", required=False, type=int, default=700,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=800,
                         help="The number of PELE steps")
     args = parser.parse_args()
 
@@ -40,7 +40,7 @@ class CreateYamlFiles:
     """
 
     def __init__(self, input_, ligchain, ligname, atoms, cpus=25,
-                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=700):
+                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=800):
         """
         Initialize the CreateLaunchFiles object
 
@@ -135,7 +135,7 @@ class CreateYamlFiles:
 
 
 def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, steps=700):
+                    cu=False, seed=12345, nord=False, steps=800):
     """
     creates for each of the mutants the yaml and slurm files
 

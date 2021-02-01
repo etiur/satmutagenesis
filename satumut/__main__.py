@@ -41,7 +41,7 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-sb", "--sbatch", required=False, action="store_false",
                         help="True if you want to lanch the simulation right after creating the slurm file")
-    parser.add_argument("-st", "--steps", required=False, type=int, default=700,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=800,
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
@@ -86,7 +86,7 @@ class CreateSlurmFiles:
 
     def __init__(self, input_, ligchain, ligname, atoms, position, cpus=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
-                 steps=700, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
+                 steps=800, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[]):
         """
         Initialize the CreateLaunchFiles object
@@ -234,7 +234,7 @@ class CreateSlurmFiles:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.test:
                 argument_list.append("--test ")
-            if self.steps != 700:
+            if self.steps != 800:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))

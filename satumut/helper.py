@@ -2,6 +2,7 @@
 This script contains helper functions
 """
 import Bio.PDB
+import logging
 
 
 def map_atom_string(atom_string, initial_pdb, prep_pdb):
@@ -134,3 +135,24 @@ def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
                 Updated_positions.append('A'+':'+str(close_res.id[1]))
 
     return Updated_positions
+
+
+class Log():
+    """
+    A class to keep log of the output from different modules
+    """
+    def __init__(self, name):
+        """
+        Initialize the Log class
+
+        Parameters
+        __________
+        name: str
+            The name of the log file
+        """
+        self.logger = logging.getLogger(__name__)
+        self.fh = logging.FileHandler("{}.log".format(name))
+        self.fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self.fh.setFormatter(formatter)
+        self.logger.addHandler(self.fh)

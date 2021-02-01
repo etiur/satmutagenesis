@@ -15,7 +15,7 @@ import logging
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from helper import isiterable
+from helper import isiterable, Log
 plt.switch_backend('agg')
 
 
@@ -82,7 +82,6 @@ class SimulationData:
         pd.options.mode.chained_assignment = None
         reports = []
         for files in glob("{}/output/0/report_*".format(self.folder)):
-            print files
             rep = basename(files).split("_")[1]
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
@@ -111,7 +110,6 @@ class SimulationData:
         self.binding.reset_index(drop=True, inplace=True)
 
         if "original" in self.folder:
-            print self.distance
             self.distance = self.distance.iloc[0]
             self.binding = self.binding.iloc[0]
 
@@ -533,7 +531,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
        Set the threshold for those mutations to be included in the pdf
     """
     # Find top mutations
-    logging.basicConfig(filename='{}_results/top_mutations.log'.format(res_dir), level=logging.DEBUG)
+    log = Log("analysis")
     count = 0
     mutation_dict = {}
     for key, value in data_dict.items():
@@ -550,11 +548,11 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
-        logging.info(
+        log.logger.info(
             "{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, thres))
         create_report(res_dir, mutation_dict, position_num, output, analysis)
     else:
-        logging.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
+        log.logger.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
 
 
 def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
