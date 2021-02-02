@@ -10,6 +10,7 @@ __email__ = "ruite.xiang@bsc.es"
 import argparse
 from subprocess import call
 from os.path import basename
+from helper import Neighbourresidues
 
 
 def parse_args():
@@ -161,8 +162,11 @@ class CreateSlurmFiles:
         self.nord = nord
         if multiple and len(position) == 2:
             self.len = 400
+        elif not single_mutagenesis:
+            self.len = len(position) * 19 + 1
         else:
-            self.len = len(position) * 19 + 2
+            _ = Neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
+            self.len = len(_)
         self.position = " ".join(position)
         self.hydrogen = hydrogen
         self.multiple = multiple
@@ -200,8 +204,9 @@ class CreateSlurmFiles:
                 real_cpus = self.cpus * self.len
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
             else:
-                real_cpus = self.cpus * self.len
+                real_cpus = self.cpus * self.len + 50
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
+                #lines.append("#SBATCH --constraint=highmem")
 
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
@@ -310,7 +315,8 @@ def main():
 
     run = CreateSlurmFiles(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                            multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
-                           out, plot_dir, analysis, thres)
+                           out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
+                           fixed_resids)
     slurm = run.slurm_creation()
     if sbatch:
         call(["sbatch", "{}".format(slurm)])

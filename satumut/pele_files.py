@@ -101,12 +101,12 @@ class CreateYamlFiles:
         Looks at which round of the mutation it is
         """
         count = 1
-        round = "round_1"
-        while os.path.exists(round):
+        round_ = "round_1"
+        while os.path.exists(round_):
             count += 1
-            round = "round_{}".format(count)
+            round_ = "round_{}".format(count)
 
-        return round
+        return round_
 
     def input_creation(self, name):
         """
@@ -118,9 +118,10 @@ class CreateYamlFiles:
             Name for the input file for the simulation
         """
         self._match_dist()
-        folder = name[:-1]
         if self.single:
             folder = self._search_round()
+        else:
+            folder = name[:-1]
         if not os.path.exists("yaml_files"):
             os.mkdir("yaml_files")
         self.yaml = "yaml_files/{}.yaml".format(name)

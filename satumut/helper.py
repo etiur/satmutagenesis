@@ -150,9 +150,79 @@ class Log():
         name: str
             The name of the log file
         """
-        self.logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger(__name__)
         self.fh = logging.FileHandler("{}.log".format(name))
         self.fh.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         self.fh.setFormatter(formatter)
-        self.logger.addHandler(self.fh)
+        self._logger.addHandler(self.fh)
+
+    def debug(self, *messages):
+        """
+        It pulls a debug message.
+
+        Parameters
+        ----------
+        messages : list[str]
+            The list of messages to print
+        """
+        if len(messages) > 1:
+            self._logger.debug(' '.join(map(str, messages)))
+        else:
+            self._logger.debug(messages[0])
+
+    def info(self, *messages):
+        """
+        It pulls an info message.
+
+        Parameters
+        ----------
+        messages : list[str]
+            The list of messages to print
+        """
+        if len(messages) > 1:
+            self._logger.info(' '.join(map(str, messages)))
+        else:
+            self._logger.info(messages[0])
+
+    def warning(self, *messages):
+        """
+        It pulls a warning message.
+
+        Parameters
+        ----------
+        messages : list[str]
+            The list of messages to print
+        """
+        if len(messages) > 1:
+            self._logger.warning(' '.join(map(str, messages)))
+        else:
+            self._logger.warning(messages[0])
+
+    def error(self, *messages):
+        """
+        It pulls a error message.
+
+        Parameters
+        ----------
+        messages : list[str]
+            The list of messages to print
+        """
+        if len(messages) > 1:
+            self._logger.error(' '.join(map(str, messages)))
+        else:
+            self._logger.error(messages[0])
+
+    def critical(self, *messages):
+        """
+        It pulls a critical message.
+        
+        Parameters
+        ----------
+        messages : list[str]
+            The list of messages to print
+        """
+        if len(messages) > 1:
+            self._logger.critical(' '.join(map(str, messages)))
+        else:
+            self._logger.critical(messages[0])

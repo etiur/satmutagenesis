@@ -531,7 +531,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
        Set the threshold for those mutations to be included in the pdf
     """
     # Find top mutations
-    log = Log("analysis")
+    log = Log("{}_results/analysis".format(res_dir))
     count = 0
     mutation_dict = {}
     for key, value in data_dict.items():
@@ -548,11 +548,11 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
-        log.logger.info(
-            "{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, thres))
+        log.info(
+            ["{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, thres)])
         create_report(res_dir, mutation_dict, position_num, output, analysis)
     else:
-        log.logger.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
+        log.warning(["No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres)])
 
 
 def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",

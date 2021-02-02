@@ -7,7 +7,6 @@ from pele_files import create_20sbatch
 from subprocess import Popen
 from os.path import abspath, basename
 import os
-import logging
 import time
 from analysis import consecutive_analysis
 from helper import Neighbourresidues, Log
@@ -84,7 +83,7 @@ class SimulationRunner:
     """
     A class that configures and runs simulations
     """
-    def __init__(self, input_, dir_=None):
+    def __init__(self, input_, dir_=None, single=None):
         """
         Initialize the Simulation Runner class
 
@@ -100,6 +99,7 @@ class SimulationRunner:
         self.proc = None
         self.dir = dir_
         self.return_code = []
+        self.single = single
 
     def side_function(self):
         """
@@ -130,7 +130,8 @@ class SimulationRunner:
         ___________
         pdb_list: list[path]
             list of pdb files path created during the saturated mutagenesis
-
+        single: str
+            Anything that indiucates that the plurizymes is used
         """
         os.chdir("../")
         if not self.dir:
@@ -140,16 +141,17 @@ class SimulationRunner:
             base = basename(self.dir)
         hold = "bla"
         folder = []
-        for files in pdb_list:
-            name = basename(files).replace(".pdb", "")
-            if name != "original" and hold != name[:-1]:
-                hold = name[:-1]
-                folder.append("{}_mutations/{}\n".format(base, hold))
-        dirname = "dirnames_{}.txt".format(base)
-        with open(dirname, "w") as txt:
-            txt.writelines(folder)
+        if not self.single:
+            for files in pdb_list:
+                name = basename(files).replace(".pdb", "")
+                if name != "original" and hold != name[:-1]:
+                    hold = name[:-1]
+                    folder.append("{}_mutations/{}\n".format(base, hold))
+            dirname = "dirnames_{}.txt".format(base)
+            with open(dirname, "w") as txt:
+                txt.writelines(folder)
 
-        return dirname
+            return dirname
 
     def submit(self, yaml_list):
         """
@@ -170,7 +172,7 @@ class SimulationRunner:
 
         # creating a log
         log = Log("simulation_time")
-        log.logger.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
+        log.info(["It took {} to run {} simulations".format(end - start, len(yaml_list))])
 
 
 def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, dir_=None, hydrogen=True,
@@ -287,7 +289,7 @@ def plurizyme_simulations(input_, ligchain, ligname, atoms, single_mutagenesis, 
     steps: int, optional
         The number of PELE steps
     """
-    simulation = SimulationRunner(input_, dir_)
+    simulation = SimulationRunner(input_, dir_, single_mutagenesis)
     input_ = simulation.side_function()
     # Using the neighbours search to obtain a list of positions to mutate
     position = Neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
@@ -302,6 +304,7 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids = parse_args()
+
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulations(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
