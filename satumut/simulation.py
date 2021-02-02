@@ -39,8 +39,6 @@ def parse_args():
     parser.add_argument("-hy","--hydrogen", required=False, action="store_false", help="leave it to default")
     parser.add_argument("-co","--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
-    parser.add_argument("-sb", "--sbatch", required=False, action="store_false",
-                        help="True if you want to lanch the simulation right after creating the slurm file")
     parser.add_argument("-st", "--steps", required=False, type=int, default=800,
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,

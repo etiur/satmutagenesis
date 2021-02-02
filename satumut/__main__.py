@@ -149,7 +149,7 @@ class CreateSlurmFiles:
         fixed_resids. list[position_num]
             A list of residues positions to avoid mutating
         """
-
+        assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
         self.input = input_
         self.ligchain = ligchain
         self.ligname = ligname
@@ -162,11 +162,11 @@ class CreateSlurmFiles:
         self.nord = nord
         if multiple and len(position) == 2:
             self.len = 400
-        elif not single_mutagenesis:
-            self.len = len(position) * 19 + 1
-        else:
+        elif single_mutagenesis and plurizyme_at_and_res:
             _ = Neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
             self.len = len(_)
+        else:
+            self.len = len(position) * 19 + 1
         self.position = " ".join(position)
         self.hydrogen = hydrogen
         self.multiple = multiple

@@ -8,21 +8,27 @@ Now let's look at the individual scripts starting with the mutate_pdb.py which c
     
 .. code-block:: bash
 
-    usage: mutate_pdb.py [-h] --input INPUT --position POSITION [POSITION ...]
-                     [--multiple] [--hydrogen] [--folder FOLDER] [--consec]
+    usage: mutate_pdb.py [-h] -i INPUT -p POSITION [POSITION ...] [-m] [-hy] [-co]
+                     [-pd PDB_DIR] [-sm SINGLE_MUTAGENESIS]
 
     Performs saturated mutagenesis given a PDB file
 
     optional arguments:
         -h, --help            show this help message and exit
-        --input INPUT         Include PDB file's path
-        --position POSITION [POSITION ...]
-                              Include one or more chain IDs and positions -->
-                              ID:position
-        --multiple            if you want to mutate 2 residue in the same pdb
-        --hydrogen            leave it to default
-        --folder FOLDER       The folder for the pdb_files
-        --consec              Consecutively mutate the PDB file for several rounds
+        -i INPUT, --input INPUT
+                            Include PDB file's path
+        -p POSITION [POSITION ...], --position POSITION [POSITION ...]
+                            Include one or more chain IDs and positions -> Chain
+                            ID:position
+        -m, --multiple        if you want to mutate 2 residue in the same pdb
+        -hy, --hydrogen       leave it to default
+        -co, --consec         Consecutively mutate the PDB file for several rounds
+        -pd PDB_DIR, --pdb_dir PDB_DIR
+                            The name for the mutated pdb folder
+        -sm SINGLE_MUTAGENESIS, --single_mutagenesis SINGLE_MUTAGENESIS
+                            Specifiy the name of the residue that you want the
+                            original residue to be mutated to. Both 3 letter code
+                            and 1 letter code can be used.
         
 There are 2 necessary arguments, input or the wildtype PDB file and the position or positions to mutate, for example:
 

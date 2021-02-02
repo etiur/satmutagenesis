@@ -11,7 +11,6 @@ import os
 import sys
 import re
 from fpdf import FPDF
-import logging
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial

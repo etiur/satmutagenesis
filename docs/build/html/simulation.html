@@ -167,56 +167,78 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.simulation --help
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: simulation.py [-h] --input INPUT --position POSITION [POSITION ...]
-                 --ligchain LIGCHAIN --ligname LIGNAME --atom1 ATOM1
-                 --atom2 ATOM2 [--cpus CPUS] [--cu] [--test] [--nord]
-                 [--multiple] [--seed SEED] [--dir DIR]
-                 [--pdb_dir PDB_DIR] [--hydrogen] [--consec]
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: simulation.py <span class="o">[</span>-h<span class="o">]</span> -i INPUT <span class="o">[</span>-p POSITION <span class="o">[</span>POSITION ...<span class="o">]]</span> -lc LIGCHAIN
+                 -ln LIGNAME -at ATOMS <span class="o">[</span>ATOMS ...<span class="o">]</span> <span class="o">[</span>--cpus CPUS<span class="o">]</span> <span class="o">[</span>--cu<span class="o">]</span>
+                 <span class="o">[</span>-t<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-m<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-d DIR<span class="o">]</span> <span class="o">[</span>-pd PDB_DIR<span class="o">]</span> <span class="o">[</span>-hy<span class="o">]</span>
+                 <span class="o">[</span>-co<span class="o">]</span>   <span class="o">[</span>-st STEPS<span class="o">]</span> <span class="o">[</span>--dpi DPI<span class="o">]</span> <span class="o">[</span>--box BOX<span class="o">]</span>
+                 <span class="o">[</span>--traj TRAJ<span class="o">]</span> <span class="o">[</span>--out OUT<span class="o">]</span> <span class="o">[</span>--plot PLOT<span class="o">]</span>
+                 <span class="o">[</span>-an <span class="o">{</span>energy,distance,both<span class="o">}]</span> <span class="o">[</span>--thres THRES<span class="o">]</span>
+                 <span class="o">[</span>-sm SINGLE_MUTAGENESIS<span class="o">]</span> <span class="o">[</span>-PR PLURIZYME_AT_AND_RES<span class="o">]</span>
+                 <span class="o">[</span>-r RADIUS<span class="o">]</span> <span class="o">[</span>-f FIXED_RESIDS <span class="o">[</span>FIXED_RESIDS ...<span class="o">]]</span>
 
 Generate the mutant PDB and the corresponding running files
 
 optional arguments:
-    -h, --help            show this help message and exit
-    --input INPUT         Include PDB file&#39;s path
-    --position POSITION [POSITION ...]
-                          Include one or more chain IDs and positions -&gt; Chain
-                          ID:position
-    --ligchain LIGCHAIN   Include the chain ID of the ligand
-    --ligname LIGNAME     The ligand residue name
-    --atom1 ATOM1         atom of the residue to follow in this format -&gt; chain
-                          ID:position:atom name
-    --atom2 ATOM2         atom of the ligand to follow in this format -&gt; chain
-                          ID:position:atom name
-    --cpus CPUS           Include the number of cpus desired
-    --cu                  used if there are copper in the system
-    --test                Used if you want to run a test before
-    --nord                used if LSF is the utility managing the jobs
-    --multiple            if you want to mutate 2 residue in the same pdb
-    --seed SEED           Include the seed number to make the simulation
-                          reproducible
-    --dir DIR             The name of the folder for all the simulations
-    --pdb_dir PDB_DIR     The name for the mutated pdb folder
-    --hydrogen            leave it to default
-    --consec              Consecutively mutate the PDB file for several rounds
-    --steps STEPS        The number of PELE steps
-    --dpi DPI             Set the quality of the plots
-    --box BOX             Set how many data points are used for the boxplot
-    --traj TRAJ           Set how many PDBs are extracted from the trajectories
-    --out OUT             Name of the summary file created at the end of the
-                          analysis
-    --plot PLOT       Name of the plots folder
-    --analyse {energy,distance,both}
-                          The metric to measure the improvement of the system
-    --cpus CPUS           Include the number of cpus desired
-    --thres THRES         The threshold for the improvement which will affect
-                          what will be included in the summary
+    -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
+    -i INPUT, --input INPUT
+                    Include PDB file<span class="s1">&#39;s path</span>
+<span class="s1">    -p POSITION [POSITION ...], --position POSITION [POSITION ...]</span>
+<span class="s1">                    Include one or more chain IDs and positions -&gt; Chain</span>
+<span class="s1">                    ID:position</span>
+<span class="s1">    -lc LIGCHAIN, --ligchain LIGCHAIN</span>
+<span class="s1">                    Include the chain ID of the ligand</span>
+<span class="s1">    -ln LIGNAME, --ligname LIGNAME</span>
+<span class="s1">                    The ligand residue name</span>
+<span class="s1">    -at ATOMS [ATOMS ...], --atoms ATOMS [ATOMS ...]</span>
+<span class="s1">                    Series of atoms of the residues to follow in this</span>
+<span class="s1">                    format -&gt; chain ID:position:atom name</span>
+<span class="s1">    --cpus CPUS           Include the number of cpus desired</span>
+<span class="s1">    --cu                  used if there are copper in the system</span>
+<span class="s1">    -t, --test            Used if you want to run a test before</span>
+<span class="s1">    -n, --nord            used if LSF is the utility managing the jobs</span>
+<span class="s1">    -m, --multiple        if you want to mutate 2 residue in the same pdb</span>
+<span class="s1">    -s SEED, --seed SEED  Include the seed number to make the simulation</span>
+<span class="s1">                    reproducible</span>
+<span class="s1">    -d DIR, --dir DIR     The name of the folder for all the simulations</span>
+<span class="s1">    -pd PDB_DIR, --pdb_dir PDB_DIR</span>
+<span class="s1">                    The name for the mutated pdb folder</span>
+<span class="s1">    -hy, --hydrogen       leave it to default</span>
+<span class="s1">    -co, --consec         Consecutively mutate the PDB file for several rounds</span>
+
+<span class="s1">    -st STEPS, --steps STEPS</span>
+<span class="s1">                    The number of PELE steps</span>
+<span class="s1">    --dpi DPI             Set the quality of the plots</span>
+<span class="s1">    --box BOX             Set how many data points are used for the boxplot</span>
+<span class="s1">    --traj TRAJ           Set how many PDBs are extracted from the trajectories</span>
+<span class="s1">    --out OUT             Name of the summary file created at the end of the</span>
+<span class="s1">                    analysis</span>
+<span class="s1">    --plot PLOT           Path of the plots folder</span>
+<span class="s1">    -an {energy,distance,both}, --analyse {energy,distance,both}</span>
+<span class="s1">                    The metric to measure the improvement of the system</span>
+<span class="s1">    --thres THRES         The threshold for the improvement which will affect</span>
+<span class="s1">                    what will be included in the summary</span>
+<span class="s1">    -sm SINGLE_MUTAGENESIS, --single_mutagenesis SINGLE_MUTAGENESIS</span>
+<span class="s1">                    Specifiy the name of the residue that you want the</span>
+<span class="s1">                    original residue to be mutated to. Both 3 letter code</span>
+<span class="s1">                    and 1 letter code can be used.</span>
+<span class="s1">    -PR PLURIZYME_AT_AND_RES, --plurizyme_at_and_res PLURIZYME_AT_AND_RES</span>
+<span class="s1">                    Specify the chain ID, residue number and the PDB atom</span>
+<span class="s1">                    name thatwill set the list of the neighbouring</span>
+<span class="s1">                    residues for thenext round. Example: chain</span>
+<span class="s1">                    ID:position:atom name</span>
+<span class="s1">    -r RADIUS, --radius RADIUS</span>
+<span class="s1">                    The radius around the selected atom to search for the</span>
+<span class="s1">                    other residues</span>
+<span class="s1">    -f FIXED_RESIDS [FIXED_RESIDS ...], --fixed_resids FIXED_RESIDS [FIXED_RESIDS ...]</span>
+<span class="s1">                    Specify the list of residues that you don&#39;</span>t wantto
+                    have mutated <span class="o">(</span>Must write the list of residuenumbers<span class="o">)</span>
 </pre></div>
 </div>
 <div class="line-block">
-<div class="line">It has all the required arguments for the classes and functions from the other modules.</div>
+<div class="line">It has all the required arguments for the classes and functions from the other modules if the falgs <code class="docutils literal notranslate"><span class="pre">-sm</span></code> and <code class="docutils literal notranslate"><span class="pre">-PR</span></code> are present it runs <code class="docutils literal notranslate"><span class="pre">plurizymes_simulation</span></code> instead of <code class="docutils literal notranslate"><span class="pre">saturated_simulation</span></code>.</div>
 <div class="line">An example would be:</div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.simulation --input PK2_F454T.pdb --position A:454 --ligchain L --ligname ANL --atom1 C:1:CU --atom2 L:1:N1 --cpus <span class="m">5</span> --cu --test
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.simulation --input PK2_F454T.pdb --position A:454 --ligchain L --ligname ANL --atoms C:1:CU L:1:N1 --cpus <span class="m">5</span> --cu --test
 </pre></div>
 </div>
 </div>

@@ -7,7 +7,7 @@ Now let's see how to use the python API instead of the command line
     from satumut import CreateSlurmFiles
     from satumut.mutate_pdb import Mutagenesis, generate_mutations
     from satumut.pele_files import CreateYamlFiles, create_20sbatch
-    from satumut.simulation import SimulationRunner, saturated_simulation
+    from satumut.simulation import SimulationRunner, saturated_simulation, plurizyme_simulation
     from satumut.analysis import SimulationData, analyse_all, box_plot, all_profiles, extract_all, find_top_mutations, consecutive_analysis
 
     
@@ -17,9 +17,9 @@ The main script
 
 .. code-block:: python
     
-    run = CreateSlurmFiles(input_="test.pdb", ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", lenght=20,
-    position=["A:154], dir_=None, hydrogen=True, multiple=False, cpus=25, pdb_dir="pdb_files", test=False, consec=False, cu=False, seed=12345, nord=False, stesp=700,
-    dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1)
+    run = CreateSlurmFiles(input_="test.pdb", ligchain="L", ligname="ligand", atoms=["C:1:CU","L:1:N1"],
+    position=["A:154"], dir_=None, hydrogen=True, multiple=False, cpus=25, pdb_dir="pdb_files", test=False, consec=False, cu=False, seed=12345, nord=False, stesp=700,
+    dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1, single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[])
     
     slurm = run.slurm_creation() # creates the slurm file
 
@@ -53,8 +53,8 @@ The pele_files module
 
 .. code-block:: python
 
-    run = CreateYamlFiles(input_="test.pdb", ligchain="L", ligname="ligand", atom1="C:1:CU", 
-    atom2="L:1:N1", cpus=25, test=False, initial=None, cu=False, seed=12345, nord=False, stesp=700)
+    run = CreateYamlFiles(input_="test.pdb", ligchain="L", ligname="ligand", atoms=["C:1:CU","L:1:N1"],
+    cpus=25, test=False, initial=None, cu=False, seed=12345, nord=False, stesp=700)
     
     run.input_creation("yaml_name")
 
@@ -64,7 +64,7 @@ The pele_files module
 .. code-block:: python
 
     pdbs = generate_mutations("test.pdb", ["A:145"], hydrogens=True, multiple=False, folder="pdb_files", consec=False)
-    yaml_files = create_20sbatch(ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", file_= pdbs, cpus=25, test=False, initial=None,
+    yaml_files = create_20sbatch(ligchain="L", ligname="ligand", atoms=["C:1:CU", "L:1:N1"], file_= pdbs, cpus=25, test=False, initial=None,
                     cu=False, seed=12345, nord=False, stesp=700)
                     
 The simulation module
@@ -81,8 +81,16 @@ The simulation module
 
 .. code-block:: python
 
-    saturated_simulation(input_="test.pdb", position=["A:145"], ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", cpus=25, dir_=None, hydrogen=True,
+    saturated_simulation(input_="test.pdb", position=["A:145"], ligchain="L", ligname="ligand", atoms=["C:1:CU","L:1:N1"], cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False, steps=700, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1)
+
+``plurizyme_simulation`` is a function that uses the different functions from the 3 previouys modules to perform single mutagenesis on various positions found around a user specified atom, the *plurizyme_at_and_res* argument,
+
+.. code-block:: python
+
+    plurizyme_simulation(input_="test.pdb", ligchain="L", ligname="ligand", atoms=["C:1:CU","L:1:N1"], single_mutagenesis="SER", plurizyme_at_and_res="A:132:CA", 
+                        radius=5.0, fixed_resids=[], cpus=25, dir_=None, hydrogen=True, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, 
+                        nord=False, steps=800)
 
 The Analysis module
 ====================
