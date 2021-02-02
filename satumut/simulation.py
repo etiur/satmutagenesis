@@ -243,7 +243,7 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
         consecutive_analysis(dirname, dpi, box, traj, output, plot_dir, opt, cpus, thres)
 
 
-def plurizyme_simulations(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
+def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                           radius=5.0, fixed_resids=[], cpus=25, dir_=None, hydrogen=True,
                           pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                           nord=False, steps=800):
@@ -307,7 +307,7 @@ def main():
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
-        plurizyme_simulations(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
+        plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                           radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps)
     else:
         # Else, perform saturated mutagenesis

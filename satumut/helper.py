@@ -216,7 +216,7 @@ class Log():
     def critical(self, *messages):
         """
         It pulls a critical message.
-        
+
         Parameters
         ----------
         messages : list[str]
