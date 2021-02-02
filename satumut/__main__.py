@@ -162,7 +162,7 @@ class CreateSlurmFiles:
         if multiple and len(position) == 2:
             self.len = 400
         else:
-            self.len = len(position) * 19 + 1
+            self.len = len(position) * 19 + 2
         self.position = " ".join(position)
         self.hydrogen = hydrogen
         self.multiple = multiple

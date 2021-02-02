@@ -162,7 +162,7 @@ class SimulationRunner:
         """
         platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
         commands = [["{}".format(platform), "-m", "pele_platform.main", "{}".format(yaml)] for yaml in yaml_list]
-        self.proc = [Popen(command) for command in commands]
+        self.proc = [Popen(command, close_fds=False) for command in commands]
         start = time.time()
         for p in self.proc:
             p.wait()
@@ -302,15 +302,16 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids = parse_args()
-    if not plurizyme_at_and_res and not single_mutagenesis:
-        # if the other 2 flags are not present perform saturated_simulations
+    if plurizyme_at_and_res and single_mutagenesis:
+        # if the other 2 flags are present perform plurizyme simulations
+        plurizyme_simulations(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
+                          radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps)
+    else:
+        # Else, perform saturated mutagenesis
         saturated_simulation(input_, position, ligchain, ligname, atoms, cpus, dir_, hydrogen,
                          multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
                          plot_dir, analysis, thres)
-    else:
-        # perform plurizymes simulations
-        plurizyme_simulations(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
-                          radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps)
+
 
 
 if __name__ == "__main__":
