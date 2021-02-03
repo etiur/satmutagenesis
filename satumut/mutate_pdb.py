@@ -278,8 +278,6 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         The list of all generated pdbs' path
     """
     pdbs = []
-    if single and not consec:
-        pdbs.append("{}/original.pdb".format(pdb_dir))
     # Perform single saturated mutations
     for mutation in position:
         run = Mutagenesis(input_, mutation, pdb_dir, consec)
