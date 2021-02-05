@@ -87,7 +87,7 @@ class CreateSlurmFiles:
     Creates the 2 necessary files for the pele simulations
     """
 
-    def __init__(self, input_, ligchain, ligname, atoms, position, cpus=25, dir_=None, hydrogen=True,
+    def __init__(self, input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=800, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], cpus_task=2):

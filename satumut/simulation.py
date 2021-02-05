@@ -298,7 +298,7 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
                                  file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis)
     simulation.submit(yaml_files)
-    dirname = simulation.pele_folders(pdb_names)
+
 
 
 def main():
