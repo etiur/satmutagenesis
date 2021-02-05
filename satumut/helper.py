@@ -37,7 +37,8 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
         # extract coordinates from user input
         for i in initial_lines:
             if (i.startswith("HETATM") or i.startswith("ATOM")) and i[21].strip() == chain.strip() and i[
-                    22:26].strip() == resnum.strip() and i[12:16].strip() == atom_name.strip():
+                                                                                                       22:26].strip() == resnum.strip() and i[
+                                                                                                                                            12:16].strip() == atom_name.strip():
 
                 coords = i[30:54].split()
 
@@ -55,7 +56,7 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
         chain, resnum = atom_string.split(":")
         for i in initial_lines:
             if (i.startswith("HETATM") or i.startswith("ATOM")) and i[21].strip() == chain.strip() and i[
-                                                                    22:26].strip() == resnum.strip():
+                                                                                                       22:26].strip() == resnum.strip():
                 coords = i[30:54].split()
 
                 # extract coordinates from preprocessed file
@@ -132,7 +133,7 @@ def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
     for close_res in Close_residues:
         if not close_res == Target_residue:
             if str(close_res.id[1]) not in fixed_resids:
-                Updated_positions.append('A'+':'+str(close_res.id[1]))
+                Updated_positions.append('A' + ':' + str(close_res.id[1]))
 
     return Updated_positions
 
@@ -141,6 +142,7 @@ class Log():
     """
     A class to keep log of the output from different modules
     """
+
     def __init__(self, name):
         """
         Initialize the Log class

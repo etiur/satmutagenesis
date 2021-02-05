@@ -303,7 +303,6 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     return pdbs
 
 
-
 def main():
     input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis = parse_args()
     output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis)

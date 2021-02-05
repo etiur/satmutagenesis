@@ -15,29 +15,30 @@ from helper import Neighbourresidues, Log
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
     # main required arguments
-    parser.add_argument("-i","--input", required=True, help="Include PDB file's path")
-    parser.add_argument("-p","--position", required=False, nargs="+",
+    parser.add_argument("-i", "--input", required=True, help="Include PDB file's path")
+    parser.add_argument("-p", "--position", required=False, nargs="+",
                         help="Include one or more chain IDs and positions -> Chain ID:position")
-    parser.add_argument("-lc","--ligchain", required=True, help="Include the chain ID of the ligand")
-    parser.add_argument("-ln","--ligname", required=True, help="The ligand residue name")
-    parser.add_argument("-at","--atoms", required=True, nargs="+",
+    parser.add_argument("-lc", "--ligchain", required=True, help="Include the chain ID of the ligand")
+    parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
+    parser.add_argument("-at", "--atoms", required=True, nargs="+",
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
-    parser.add_argument("-t","--test", required=False, action="store_true", help="Used if you want to run a test before")
-    parser.add_argument("-n","--nord", required=False, action="store_true",
+    parser.add_argument("-t", "--test", required=False, action="store_true",
+                        help="Used if you want to run a test before")
+    parser.add_argument("-n", "--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
-    parser.add_argument("-m","--multiple", required=False, action="store_true",
+    parser.add_argument("-m", "--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
-    parser.add_argument("-s","--seed", required=False, default=12345, type=int,
+    parser.add_argument("-s", "--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
-    parser.add_argument("-d","--dir", required=False,
+    parser.add_argument("-d", "--dir", required=False,
                         help="The name of the folder for all the simulations")
-    parser.add_argument("-pd","--pdb_dir", required=False, default="pdb_files",
+    parser.add_argument("-pd", "--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("-hy","--hydrogen", required=False, action="store_false", help="leave it to default")
-    parser.add_argument("-co","--consec", required=False, action="store_true",
+    parser.add_argument("-hy", "--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-co", "--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-st", "--steps", required=False, type=int, default=800,
                         help="The number of PELE steps")
@@ -55,23 +56,23 @@ def parse_args():
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
-    parser.add_argument("-sm","--single_mutagenesis",required=False,
+    parser.add_argument("-sm", "--single_mutagenesis", required=False,
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
                              "code and 1 letter code can be used.")
-    parser.add_argument("-PR","--plurizyme_at_and_res", required=False,
+    parser.add_argument("-PR", "--plurizyme_at_and_res", required=False,
                         help="Specify the chain ID, residue number and the PDB atom name that"
                              "will set the list of the neighbouring residues for the"
                              "next round. Example: chain ID:position:atom name")
-    parser.add_argument("-r","--radius", required=False, default=5.0, type=float,
+    parser.add_argument("-r", "--radius", required=False, default=5.0, type=float,
                         help="The radius around the selected atom to search for the other residues")
-    parser.add_argument("-f","--fixed_resids",required=False, default=[], nargs='+',
+    parser.add_argument("-f", "--fixed_resids", required=False, default=[], nargs='+',
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue"
                              "numbers)")
     args = parser.parse_args()
 
-    return [args.input, args.position, args.ligchain, args.ligname, args.atoms,args.cpus, args.test,
+    return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
             args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
             args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids]
@@ -81,6 +82,7 @@ class SimulationRunner:
     """
     A class that configures and runs simulations
     """
+
     def __init__(self, input_, dir_=None, single=None):
         """
         Initialize the Simulation Runner class
@@ -242,9 +244,9 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
-                          radius=5.0, fixed_resids=[], cpus=25, dir_=None, hydrogen=True,
-                          pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                          nord=False, steps=250):
+                         radius=5.0, fixed_resids=[], cpus=25, dir_=None, hydrogen=True,
+                         pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
+                         nord=False, steps=250):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -291,7 +293,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     input_ = simulation.side_function()
     # Using the neighbours search to obtain a list of positions to mutate
     position = Neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
-    pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec, single=single_mutagenesis)
+    pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec,
+                                   single=single_mutagenesis)
     yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
                                  file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis)
     simulation.submit(yaml_files)
@@ -306,16 +309,14 @@ def main():
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
-                          radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps)
+                             radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, position, ligchain, ligname, atoms, cpus, dir_, hydrogen,
-                         multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
-                         plot_dir, analysis, thres)
-
+                             multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
+                             plot_dir, analysis, thres)
 
 
 if __name__ == "__main__":
     # Run this if this file is executed from command line but not if is imported as API
     main()
-
