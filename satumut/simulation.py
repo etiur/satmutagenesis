@@ -244,7 +244,7 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                           radius=5.0, fixed_resids=[], cpus=25, dir_=None, hydrogen=True,
                           pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                          nord=False, steps=800):
+                          nord=False, steps=250):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
