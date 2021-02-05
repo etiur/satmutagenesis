@@ -83,7 +83,10 @@ class CreateYamlFiles:
         self.cu = cu
         self.seed = seed
         self.nord = nord
-        self.steps = steps
+        if single and steps == 800:
+            self.steps = 250
+        else:
+            self.steps = steps
         self.single = single
 
     def _match_dist(self):
@@ -96,7 +99,8 @@ class CreateYamlFiles:
         else:
             pass
 
-    def _search_round(self):
+    @staticmethod
+    def _search_round():
         """
         Looks at which round of the mutation it is
         """

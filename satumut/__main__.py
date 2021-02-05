@@ -72,12 +72,14 @@ def parse_args():
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue position"
                              "numbers)")
+    parser.add_argument("-cpt", "--cpus_per_task", required=False, default=2, type=int,
+                        help="Include the number of cpus per task desired")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
             args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
             args.sbatch, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
-            args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids]
+            args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids, args.cpus_per_task]
 
 
 class CreateSlurmFiles:
@@ -88,7 +90,7 @@ class CreateSlurmFiles:
     def __init__(self, input_, ligchain, ligname, atoms, position, cpus=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=800, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
-                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[]):
+                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], cpus_task=2):
         """
         Initialize the CreateLaunchFiles object
 
@@ -185,6 +187,7 @@ class CreateSlurmFiles:
         self.pluri = plurizyme_at_and_res
         self.radius = radius
         self.avoid = fixed_resids
+        self.cpus_task = cpus_task
 
     def slurm_creation(self):
         """
@@ -204,9 +207,10 @@ class CreateSlurmFiles:
                 real_cpus = self.cpus * self.len
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
             else:
-                real_cpus = self.cpus * self.len + 50
-                lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
-                #lines.append("#SBATCH --constraint=highmem")
+                real_cpus = self.cpus * self.len + 1
+                lines.append("#SBATCH --ntasks={}\n".format(real_cpus))
+                lines.append("#SBATCH --cpus-per-task={}\n\n".format(self.cpus_task))
+                # lines.append("#SBATCH --constraint=highmem")
 
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
@@ -239,7 +243,7 @@ class CreateSlurmFiles:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.test:
                 argument_list.append("--test ")
-            if self.steps != 800:
+            if self.single != 800:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))
@@ -311,12 +315,12 @@ class CreateSlurmFiles:
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, cpus_per_task = parse_args()
 
     run = CreateSlurmFiles(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                            multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                            out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                           fixed_resids)
+                           fixed_resids, cpus_per_task)
     slurm = run.slurm_creation()
     if sbatch:
         call(["sbatch", "{}".format(slurm)])

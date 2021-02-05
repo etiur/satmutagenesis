@@ -151,6 +151,7 @@ class Log():
             The name of the log file
         """
         self._logger = logging.getLogger(__name__)
+        self._logger.handlers = []
         self.fh = logging.FileHandler("{}.log".format(name))
         self.fh.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
