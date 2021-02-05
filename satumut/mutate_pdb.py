@@ -65,6 +65,8 @@ class Mutagenesis:
         self.chain = None
         self.position = None
         self._invert_aa = {v: k for k, v in _aacids_dic.items()}
+        another = {"CYX": "C", "HIE": "H", "HID": "H", "HIP": "H", "ASH": "D", "LYN": "K"}
+        self._invert_aa.update(another)
         self.folder = folder
         self.chain_id = None
         self.consec = consec
