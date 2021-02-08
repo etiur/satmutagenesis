@@ -7,7 +7,7 @@ from pmx.rotamer import load_bbdep
 import argparse
 import os
 from helper import map_atom_string
-from pmx.library import _aacids_dic, _aacids_ext_amber
+from pmx.library import _aacids_ext_amber
 from pmx.rotamer import get_rotamers, select_best_rotamer
 from os.path import basename
 from multiprocessing import Process
@@ -85,7 +85,7 @@ class Mutagenesis:
             A boolean, leave it to True because False cause problems with cysteine
         """
         if len(new_aa) == 1:
-            new_aa = _aacids_dic[new_aa]
+            new_aa = _aacids_ext_amber[new_aa]
         phi = residue.get_phi()
         psi = residue.get_psi()
         rotamers = get_rotamers(bbdep, new_aa, phi, psi, residue=residue, full=True, hydrogens=hydrogens)
