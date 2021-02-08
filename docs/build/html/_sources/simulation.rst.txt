@@ -61,7 +61,7 @@ This script combines the functions and classes from all the other modules to cre
         -sm SINGLE_MUTAGENESIS, --single_mutagenesis SINGLE_MUTAGENESIS
                         Specifiy the name of the residue that you want the
                         original residue to be mutated to. Both 3 letter code
-                        and 1 letter code can be used.
+                        and 1 letter code can be used. You can even specify the protonated states
         -PR PLURIZYME_AT_AND_RES, --plurizyme_at_and_res PLURIZYME_AT_AND_RES
                         Specify the chain ID, residue number and the PDB atom
                         name thatwill set the list of the neighbouring

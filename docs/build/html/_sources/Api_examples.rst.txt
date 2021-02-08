@@ -38,14 +38,18 @@ The mutate_pdb module
     new_aa = "CYS"
     file_ = run.single_mutagnesis(new_aa, hydrogens=True, mode=0) #we don't need the accelerated insert in this case, since it is a single mutation
     
-``generate_mutations`` is function that uses the class to mutate at several positions at once, 20 X 20 mutations or consecutively mutate at several positions.
+``generate_mutations`` is function that uses the class to mutate at several positions at once given a list of positions.  
+
+
 
 .. code-block:: python
     
-    pdbs = generate_mutations("test.pdb", "A:145", hydrogens=True, multiple=False, folder="pdb_files", consec=False)
+    pdbs = generate_mutations("test.pdb", "A:145", hydrogens=True, multiple=False, folder="pdb_files", consec=False, single=None)
 
 | The *multiple* argument is used when we want to perform 20 X 20 mutations
 | The *consec* argument is used when you select 1 of the mutations of the first round of mutagenesis to start a second round, it will preserve the name of the PDB.
+| if *sinlge=None* the function will mutate the positions to all the other 19 residues and when *single=LYS* it will perform single mutagenesis to the user specified residue.
+In single mutagenesis you can specify also the protonated state for example LYN or O instead of LYS or K if you want the lysine to be unprotonated.
 
 The pele_files module
 =======================

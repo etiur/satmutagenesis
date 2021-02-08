@@ -201,14 +201,16 @@
 <span class="n">file_</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">single_mutagnesis</span><span class="p">(</span><span class="n">new_aa</span><span class="p">,</span> <span class="n">hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1">#we don&#39;t need the accelerated insert in this case, since it is a single mutation</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">generate_mutations</span></code> is function that uses the class to mutate at several positions at once, 20 X 20 mutations or consecutively mutate at several positions.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pdbs</span> <span class="o">=</span> <span class="n">generate_mutations</span><span class="p">(</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;A:145&quot;</span><span class="p">,</span> <span class="n">hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="s2">&quot;pdb_files&quot;</span><span class="p">,</span> <span class="n">consec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<p><code class="docutils literal notranslate"><span class="pre">generate_mutations</span></code> is function that uses the class to mutate at several positions at once given a list of positions.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pdbs</span> <span class="o">=</span> <span class="n">generate_mutations</span><span class="p">(</span><span class="s2">&quot;test.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;A:145&quot;</span><span class="p">,</span> <span class="n">hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="s2">&quot;pdb_files&quot;</span><span class="p">,</span> <span class="n">consec</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">single</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="line-block">
 <div class="line">The <em>multiple</em> argument is used when we want to perform 20 X 20 mutations</div>
 <div class="line">The <em>consec</em> argument is used when you select 1 of the mutations of the first round of mutagenesis to start a second round, it will preserve the name of the PDB.</div>
+<div class="line">if <em>sinlge=None</em> the function will mutate the positions to all the other 19 residues and when <em>single=LYS</em> it will perform single mutagenesis to the user specified residue.</div>
 </div>
+<p>In single mutagenesis you can specify also the protonated state for example LYN or O instead of LYS or K if you want the lysine to be unprotonated.</p>
 </div>
 <div class="section" id="the-pele-files-module">
 <h2>The pele_files module<a class="headerlink" href="#the-pele-files-module" title="Permalink to this headline">¶</a></h2>

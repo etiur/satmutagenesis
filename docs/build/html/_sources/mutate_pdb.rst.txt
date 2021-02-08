@@ -28,7 +28,7 @@ Now let's look at the individual scripts starting with the mutate_pdb.py which c
         -sm SINGLE_MUTAGENESIS, --single_mutagenesis SINGLE_MUTAGENESIS
                             Specifiy the name of the residue that you want the
                             original residue to be mutated to. Both 3 letter code
-                            and 1 letter code can be used.
+                            and 1 letter code can be used. You can even specify the protonated states
         
 There are 2 necessary arguments, input or the wildtype PDB file and the position or positions to mutate, for example:
 
@@ -38,4 +38,4 @@ There are 2 necessary arguments, input or the wildtype PDB file and the position
 
 | If the flag ``--multiple`` is present and there are 2 positions to mutate to, it will generate 400 PDBs as a result of the combination of 20 X 20 mutations.
 | If the flag ``--consec`` is present, it means that you have mutated 20 residues the first time, and you are selecting 1 of those 20 mutations to start the second round fo mutations. The flag preserves the name of the PDB file so you know from which PDB file it came from the second mutation.
-
+| If the flag ``-sm`` is present it will not perform saturated mutagenesis but single mutagenesis of the positions indicated. Use 3 letter codes or 1 letter codes to specify the aminoacid and protonated states, for example LYN or O to indicated the unprotonated state of the Lysine and other amber FF codes. 

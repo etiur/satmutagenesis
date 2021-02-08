@@ -59,7 +59,7 @@ def parse_args():
     parser.add_argument("-sm", "--single_mutagenesis", required=False,
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
-                             "code and 1 letter code can be used.")
+                             "code and 1 letter code can be used. You can even specify the protonated states")
     parser.add_argument("-PR", "--plurizyme_at_and_res", required=False,
                         help="Specify the chain ID, residue number and the PDB atom name that"
                              "will set the list of the neighbouring residues for the"

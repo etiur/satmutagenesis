@@ -30,8 +30,8 @@ def parse_args():
     parser.add_argument("-sm","--single_mutagenesis",required=False,
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
-                             "code and 1 letter code can be used.")
-    # arguments = vars(parser.parse_args())
+                             "code and 1 letter code can be used. You can even specify the protonated states")
+
     args = parser.parse_args()
     return args.input, args.position, args.hydrogen, args.multiple, args.pdb_dir, args.consec, args.single_mutagenesis
 
@@ -284,6 +284,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         run = Mutagenesis(input_, mutation, pdb_dir, consec)
         if single:
             # If the single_mutagenesis flag is used, execute this
+            single = single.upper()
             mutant = run.single_mutagenesis(single, hydrogens)
             pdbs.append(mutant)
         else:
