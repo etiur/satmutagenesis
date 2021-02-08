@@ -210,10 +210,11 @@ class CreateSlurmFiles:
                 real_cpus = self.cpus * self.len
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
             else:
-                real_cpus = self.cpus * self.len + 1
+                real_cpus = self.cpus * self.len
+                #lines.append("#SBATCH --nodes={}\n".format(self.cpus))
                 lines.append("#SBATCH --ntasks={}\n".format(real_cpus))
                 lines.append("#SBATCH --cpus-per-task={}\n\n".format(self.cpus_task))
-                # lines.append("#SBATCH --constraint=highmem")
+                #lines.append("#SBATCH --constraint=highmem\n\n")
 
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',

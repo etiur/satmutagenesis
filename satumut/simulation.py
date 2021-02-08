@@ -244,7 +244,7 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
-                         radius=5.0, fixed_resids=[], cpus=25, dir_=None, hydrogen=True,
+                         radius=5.0, fixed_resids=[], cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                          nord=False, steps=250):
     """
@@ -298,7 +298,6 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
                                  file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis)
     simulation.submit(yaml_files)
-
 
 
 def main():
