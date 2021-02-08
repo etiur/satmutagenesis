@@ -65,6 +65,7 @@ class Mutagenesis:
         self.chain = None
         self.position = None
         self._invert_aa = {v: k for k, v in _aacids_ext_amber.items()}
+        self._invert_aa["HIS"] = "H"
         self.folder = folder
         self.chain_id = None
         self.consec = consec
