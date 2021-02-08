@@ -7,7 +7,7 @@ from pmx.rotamer import load_bbdep
 import argparse
 import os
 from helper import map_atom_string
-from pmx.library import _aacids_dic
+from pmx.library import _aacids_dic, _aacids_ext_amber
 from pmx.rotamer import get_rotamers, select_best_rotamer
 from os.path import basename
 from multiprocessing import Process
@@ -64,9 +64,7 @@ class Mutagenesis:
         self.final_pdbs = []
         self.chain = None
         self.position = None
-        self._invert_aa = {v: k for k, v in _aacids_dic.items()}
-        another = {"CYX": "C", "HIE": "X", "HID": "H", "HIP": "Z", "ASH": "B", "LYN": "O", "GLH": "J"}
-        self._invert_aa.update(another)
+        self._invert_aa = {v: k for k, v in _aacids_ext_amber.items()}
         self.folder = folder
         self.chain_id = None
         self.consec = consec
