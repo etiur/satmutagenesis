@@ -87,7 +87,10 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="manual.html">The manual</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">The generation of mutations</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The generation of mutations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#list-of-aa-codes">List of aa codes</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of yaml files for PELE platform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Running the PELE simulations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Api_examples.html">The API guide</a></li>
@@ -197,7 +200,37 @@ optional arguments:
 <div class="line-block">
 <div class="line">If the flag <code class="docutils literal notranslate"><span class="pre">--multiple</span></code> is present and there are 2 positions to mutate to, it will generate 400 PDBs as a result of the combination of 20 X 20 mutations.</div>
 <div class="line">If the flag <code class="docutils literal notranslate"><span class="pre">--consec</span></code> is present, it means that you have mutated 20 residues the first time, and you are selecting 1 of those 20 mutations to start the second round fo mutations. The flag preserves the name of the PDB file so you know from which PDB file it came from the second mutation.</div>
-<div class="line">If the flag <code class="docutils literal notranslate"><span class="pre">-sm</span></code> is present it will not perform saturated mutagenesis but single mutagenesis of the positions indicated. Use 3 letter codes or 1 letter codes to specify the aminoacid and protonated states, for example LYN or O to indicated the unprotonated state of the Lysine and other amber FF codes.</div>
+<div class="line">If the flag <code class="docutils literal notranslate"><span class="pre">-sm</span></code> is present it will not perform saturated mutagenesis but single mutagenesis of the positions indicated. Use 3 letter codes or 1 letter codes to specify the aminoacid and protonated states, for example LYN or O to indicated the unprotonated state of the Lysine.</div>
+</div>
+<div class="section" id="list-of-aa-codes">
+<h2>List of aa codes<a class="headerlink" href="#list-of-aa-codes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>A : ALA</li>
+<li>B : ASH</li>
+<li>R : ARG</li>
+<li>N : ASN</li>
+<li>D : ASP</li>
+<li>C : CYS</li>
+<li>E : GLU</li>
+<li>J : GLH</li>
+<li>Q : GLN</li>
+<li>G : GLY</li>
+<li>H : HID</li>
+<li>X : HIE</li>
+<li>Z : HIP</li>
+<li>I : ILE</li>
+<li>L : LEU</li>
+<li>K : LYS</li>
+<li>O : LYN</li>
+<li>M : MET</li>
+<li>F : PHE</li>
+<li>P : PRO</li>
+<li>S : SER</li>
+<li>T : THR</li>
+<li>W : TRP</li>
+<li>Y : TYR</li>
+<li>V : VAL</li>
+</ul>
 </div>
 </div>
 

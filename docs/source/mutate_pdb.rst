@@ -38,4 +38,33 @@ There are 2 necessary arguments, input or the wildtype PDB file and the position
 
 | If the flag ``--multiple`` is present and there are 2 positions to mutate to, it will generate 400 PDBs as a result of the combination of 20 X 20 mutations.
 | If the flag ``--consec`` is present, it means that you have mutated 20 residues the first time, and you are selecting 1 of those 20 mutations to start the second round fo mutations. The flag preserves the name of the PDB file so you know from which PDB file it came from the second mutation.
-| If the flag ``-sm`` is present it will not perform saturated mutagenesis but single mutagenesis of the positions indicated. Use 3 letter codes or 1 letter codes to specify the aminoacid and protonated states, for example LYN or O to indicated the unprotonated state of the Lysine and other amber FF codes. 
+| If the flag ``-sm`` is present it will not perform saturated mutagenesis but single mutagenesis of the positions indicated. Use 3 letter codes or 1 letter codes to specify the aminoacid and protonated states, for example LYN or O to indicated the unprotonated state of the Lysine.
+
+List of aa codes
+===================
+- A : ALA
+- B : ASH
+- R : ARG
+- N : ASN
+- D : ASP
+- C : CYS
+- E : GLU
+- J : GLH
+- Q : GLN
+- G : GLY
+- H : HID
+- X : HIE
+- Z : HIP
+- I : ILE
+- L : LEU
+- K : LYS
+- O : LYN
+- M : MET
+- F : PHE
+- P : PRO
+- S : SER
+- T : THR
+- W : TRP
+- Y : TYR
+- V : VAL
+

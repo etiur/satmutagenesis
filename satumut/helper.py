@@ -37,8 +37,7 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
         # extract coordinates from user input
         for i in initial_lines:
             if (i.startswith("HETATM") or i.startswith("ATOM")) and i[21].strip() == chain.strip() and i[
-                                                                                                       22:26].strip() == resnum.strip() and i[
-                                                                                                                                            12:16].strip() == atom_name.strip():
+                                        22:26].strip() == resnum.strip() and i[12:16].strip() == atom_name.strip():
 
                 coords = i[30:54].split()
 
