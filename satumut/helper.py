@@ -132,8 +132,8 @@ def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
     # Take the output of the neighbour search with biopython and take the positions of the residues that will be mutated
     for close_res in Close_residues:
         if not close_res == Target_residue:
-            if str(close_res.id[1]) not in fixed_resids:
-                Updated_positions.append('A' + ':' + str(close_res.id[1]))
+            if str(close_res.id[1]) not in fixed_resids and close_res.id[0].isspace():
+                Updated_positions.append(str(close_res.get_parent().id) + ':' + str(close_res.id[1]))
 
     return Updated_positions
 
