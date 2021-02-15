@@ -10,7 +10,7 @@ __email__ = "ruite.xiang@bsc.es"
 import argparse
 import os
 from os.path import basename
-from helper import Neighbourresidues, Log
+from helper import Neighbourresidues
 from Bio import PDB
 
 
@@ -166,9 +166,7 @@ class CreateSlurmFiles:
         if multiple and len(position) == 2:
             self.len = 400
         elif single_mutagenesis and plurizyme_at_and_res:
-            log = Log("positions")
             _ = Neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
-            log.info("These positions were mutated: {}".format(_))
             self.len = len(_)
         else:
             self.len = len(position) * 19 + 1
