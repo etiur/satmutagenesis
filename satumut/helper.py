@@ -209,7 +209,6 @@ class Log():
             The messages to log
         exc_info : bool, optional
             Set to true to include the exception error message
-            :rtype: object
         """
         self._logger.error(messages, exc_info=exc_info)
 
