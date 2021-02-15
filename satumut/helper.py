@@ -55,7 +55,7 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
         chain, resnum = atom_string.split(":")
         for i in initial_lines:
             if (i.startswith("HETATM") or i.startswith("ATOM")) and i[21].strip() == chain.strip() and i[
-                                                                                                       22:26].strip() == resnum.strip():
+                                                            22:26].strip() == resnum.strip():
                 coords = i[30:54].split()
 
                 # extract coordinates from preprocessed file
@@ -92,7 +92,6 @@ def isiterable(p_object):
         return False
     return True
 
-
 def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=[]):
     """
     It gives the list of residues near a specific atom according to a radius
@@ -108,9 +107,11 @@ def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
                     Value of the minimum distance between the atom and any of the residues
     fixed_resids: list of integers
                     List of residue numbers of the residues that the user don't want to mutate
-    Returns
+
+    Return
     _______
     Updated_positions : The list of neighbour residues of the specified atom
+
     """
     specific_at_res_chainid = specific_at_res_chainid.split(":")
     Updated_positions = []
@@ -159,72 +160,68 @@ class Log():
         self.fh.setFormatter(formatter)
         self._logger.addHandler(self.fh)
 
-    def debug(self, *messages):
+    def debug(self, messages, exc_info=False):
         """
         It pulls a debug message.
 
         Parameters
         ----------
-        messages : list[str]
-            The list of messages to print
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message            
         """
-        if len(messages) > 1:
-            self._logger.debug(' '.join(map(str, messages)))
-        else:
-            self._logger.debug(messages[0])
+        self._logger.debug(messages, exc_info=exc_info)
 
-    def info(self, *messages):
+    def info(self, messages, exc_info=False):
         """
         It pulls an info message.
 
         Parameters
         ----------
-        messages : list[str]
-            The list of messages to print
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message            
         """
-        if len(messages) > 1:
-            self._logger.info(' '.join(map(str, messages)))
-        else:
-            self._logger.info(messages[0])
+        self._logger.info(messages, exc_info=exc_info)
 
-    def warning(self, *messages):
+    def warning(self, messages, exc_info=False):
         """
         It pulls a warning message.
 
         Parameters
         ----------
-        messages : list[str]
-            The list of messages to print
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message            
         """
-        if len(messages) > 1:
-            self._logger.warning(' '.join(map(str, messages)))
-        else:
-            self._logger.warning(messages[0])
+        self._logger.warning(messages, exc_info=exc_info)
 
-    def error(self, *messages):
+    def error(self, messages, exc_info=False):
         """
         It pulls a error message.
 
         Parameters
         ----------
-        messages : list[str]
-            The list of messages to print
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message
+            :rtype: object
         """
-        if len(messages) > 1:
-            self._logger.error(' '.join(map(str, messages)))
-        else:
-            self._logger.error(messages[0])
+        self._logger.error(messages, exc_info=exc_info)
 
-    def critical(self, *messages):
+    def critical(self, messages, exc_info=False):
         """
         It pulls a critical message.
 
         Parameters
         ----------
-        messages : list[str]
-            The list of messages to print
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message
         """
-        if len(messages) > 1:
-            self._logger.critical(' '.join(map(str, messages)))
-        else:
-            self._logger.critical(messages[0])
+        self._logger.critical(messages, exc_info=exc_info)

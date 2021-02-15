@@ -548,10 +548,10 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
         log.info(
-            ["{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, thres)])
+            "{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, thres))
         create_report(res_dir, mutation_dict, position_num, output, analysis)
     else:
-        log.warning(["No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres)])
+        log.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
 
 
 def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",

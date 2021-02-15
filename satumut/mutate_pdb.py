@@ -11,23 +11,24 @@ from pmx.library import _aacids_ext_amber
 from pmx.rotamer import get_rotamers, select_best_rotamer
 from os.path import basename
 from multiprocessing import Process
+from helper import Log
 
 
 # Argument parsers
 def parse_args():
     parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
     # main required arguments
-    parser.add_argument("-i","--input", required=True, help="Include PDB file's path")
-    parser.add_argument("-p","--position", required=True, nargs="+",
+    parser.add_argument("-i", "--input", required=True, help="Include PDB file's path")
+    parser.add_argument("-p", "--position", required=True, nargs="+",
                         help="Include one or more chain IDs and positions -> Chain ID:position")
-    parser.add_argument("-m","--multiple", required=False, action="store_true",
+    parser.add_argument("-m", "--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
-    parser.add_argument("-hy","--hydrogen", required=False, action="store_false", help="leave it to default")
-    parser.add_argument("-co","--consec", required=False, action="store_true",
+    parser.add_argument("-hy", "--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-co", "--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
-    parser.add_argument("-pd","--pdb_dir", required=False, default="pdb_files",
+    parser.add_argument("-pd", "--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("-sm","--single_mutagenesis",required=False,
+    parser.add_argument("-sm", "--single_mutagenesis",required=False,
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
                              "code and 1 letter code can be used. You can even specify the protonated states")
@@ -62,13 +63,13 @@ class Mutagenesis:
         self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
                          'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
         self.final_pdbs = []
-        self.chain = None
         self.position = None
         self._invert_aa = {v: k for k, v in _aacids_ext_amber.items()}
         self._invert_aa["HIS"] = "H"
-        self.folder = folder
         self.chain_id = None
+        self.folder = folder
         self.consec = consec
+        self.log = Log("mutate_errors")
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
@@ -109,10 +110,6 @@ class Mutagenesis:
         self.chain_id = after.split(":")[0]
         self.position = int(after.split(":")[1]) - 1
 
-        for chain_ in self.model.chains:
-            if chain_.id == self.chain_id:
-                self.chain = chain_
-
     def saturated_mutagenesis(self, hydrogens=True):
         """
         Generate all the other 19 mutations
@@ -130,11 +127,15 @@ class Mutagenesis:
             A list of the new files
         """
         self._check_coords()
-        aa_init_resname = self.chain.residues[self.position].resname
+        aa_init_resname = self.model.residues[self.position].resname
         aa_name = self._invert_aa[aa_init_resname]
         for new_aa in self.residues:
             if new_aa != aa_init_resname:
-                self.mutate(self.chain.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
+                try:
+                    self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
+                except KeyError:
+                    self.log.error("position {}:{} has no rotamer in the library so it was skipped".format(self.chain_id,
+                                                        self.position+1), exc_info=True)
                 # writing into a pdb
                 if self.consec:
                     name = basename(self.input).replace("pdb", "")
@@ -166,17 +167,18 @@ class Mutagenesis:
             The name of the new pdb file
         """
         self._check_coords()
-        aa_init_resname = self.chain.residues[self.position].resname
+        aa_init_resname = self.model.residues[self.position].resname
         aa_name = self._invert_aa[aa_init_resname]
-        self.mutate(self.chain.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
+        try:
+            self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
+        except KeyError:
+            self.log.error("position {}:{} has no rotamer in the library so it was skipped".format(self.chain_id,
+                                                        self.position + 1), exc_info=True)
         # writing into a pdb
         if len(new_aa) == 1:
             new = new_aa
-        elif self._invert_aa.get(new_aa):
-            new = self._invert_aa[new_aa]
         else:
-            raise Exception("Aminoacid not recognized")
-
+            new = self._invert_aa[new_aa]
         if self.consec:
             name = basename(self.input).replace("pdb", "")
             output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, new)
@@ -252,7 +254,8 @@ class Mutagenesis:
             p.join()
 
 
-def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False, single=None):
+def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False,
+                       single=None):
     """
     To generate up to 2 mutations per pdb
 

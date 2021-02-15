@@ -8,9 +8,10 @@ __maintainer__ = "Ruite Xiang"
 __email__ = "ruite.xiang@bsc.es"
 
 import argparse
-from subprocess import call
+import os
 from os.path import basename
-from helper import Neighbourresidues
+from helper import Neighbourresidues, Log
+from Bio import PDB
 
 
 def parse_args():
@@ -165,7 +166,9 @@ class CreateSlurmFiles:
         if multiple and len(position) == 2:
             self.len = 400
         elif single_mutagenesis and plurizyme_at_and_res:
+            log = Log("positions")
             _ = Neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
+            log.info("These positions were mutated: {}".format(_))
             self.len = len(_)
         else:
             self.len = len(position) * 19 + 1
@@ -192,6 +195,20 @@ class CreateSlurmFiles:
         self.avoid = fixed_resids
         self.cpus_task = cpus_task
 
+    def _size(self):
+        """
+        A function to calculate the size of the PDB file
+
+        Returns
+        ________
+        residues length: int
+        """
+        parser = PDB.PDBParser(QUIET=True)
+        structure = parser.get_structure(self.input[:-4], self.input)
+        residues = list(structure.get_residues())
+
+        return len(residues)
+
     def slurm_creation(self):
         """
         Creates the slurm running files for PELE in sbatch managed systems
@@ -211,10 +228,11 @@ class CreateSlurmFiles:
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
             else:
                 real_cpus = self.cpus * self.len
-                #lines.append("#SBATCH --nodes={}\n".format(self.cpus))
                 lines.append("#SBATCH --ntasks={}\n".format(real_cpus))
-                lines.append("#SBATCH --cpus-per-task={}\n\n".format(self.cpus_task))
-                #lines.append("#SBATCH --constraint=highmem\n\n")
+                if self.single and self.pluri:
+                    lines.append("#SBATCH --cpus-per-task={}\n\n".format(self.cpus_task))
+                else:
+                    lines.append("#SBATCH --constraint=highmem\n\n")
 
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
@@ -247,7 +265,7 @@ class CreateSlurmFiles:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.test:
                 argument_list.append("--test ")
-            if self.single != 800:
+            if self.steps != 800:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))
@@ -327,7 +345,7 @@ def main():
                            fixed_resids, cpus_per_task)
     slurm = run.slurm_creation()
     if sbatch:
-        call(["sbatch", "{}".format(slurm)])
+        os.system("sbatch {}".format(slurm))
 
 
 if __name__ == "__main__":
