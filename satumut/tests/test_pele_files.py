@@ -12,13 +12,13 @@ from ..__main__ import CreateSlurmFiles
 
 @pytest.fixture()
 def data_p():
-    run = CreateYamlFiles("data/test/PK2_F454T.pdb", "L", "ANL", "C:1:CU", "L:1:N1", 5, test=True)
+    run = CreateYamlFiles("data/test/PK2_F454T.pdb", "L", "ANL", ["C:1:CU", "L:1:N1"], 5, test=True)
     return run
 
 
 @pytest.fixture()
 def data_sl():
-    run = CreateSlurmFiles("data/test/PK2_F454T.pdb", "L", "ANL", "C:1:CU", "L:1:N1", 5, ["A:134", "A:32"], test=True)
+    run = CreateSlurmFiles("data/test/PK2_F454T.pdb", "L", "ANL", ["C:1:CU", "L:1:N1"], ["A:134", "A:32"], 5, test=True)
     return run
 
 
@@ -66,7 +66,7 @@ def test_create_20sbatch():
     """
     A function to test the create_20sbatch function
     """
-    yaml_files = create_20sbatch("L", "ANL", "C:1:CU", "L:1:N1", ["data/test/PK2_F454T.pdb"], test=True)
+    yaml_files = create_20sbatch("L", "ANL", ["C:1:CU", "L:1:N1"], ["data/test/PK2_F454T.pdb"], test=True)
 
     with open(yaml_files[0], "r") as fi:
         assert fi.readline() == "#!/bin/bash\n", "yaml file not created"

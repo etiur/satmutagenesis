@@ -92,6 +92,7 @@ def isiterable(p_object):
         return False
     return True
 
+
 def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=[]):
     """
     It gives the list of residues near a specific atom according to a radius
@@ -114,31 +115,31 @@ def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
 
     """
     specific_at_res_chainid = specific_at_res_chainid.split(":")
-    Updated_positions = []
+    updated_positions = []
     parser = Bio.PDB.PDBParser(QUIET=True)
 
     # Open the PDB file with the Bio module and get the topology of the desired atom to get the coordinates
-    Structure = parser.get_structure(input_[:-4], input_)
-    Target_residue = Structure[0][specific_at_res_chainid[0]][int(specific_at_res_chainid[1])]
-    Target_atom = Target_residue[specific_at_res_chainid[2]]
+    structure = parser.get_structure(input_[:-4], input_)
+    target_residue = structure[0][specific_at_res_chainid[0]][int(specific_at_res_chainid[1])]
+    target_atom = target_residue[specific_at_res_chainid[2]]
 
     # Get all atoms of the structure and create an instance for a neighbour search around the desired atom
-    Atoms = Bio.PDB.Selection.unfold_entities(Structure[0], 'A')
-    ns = Bio.PDB.NeighborSearch(Atoms)
+    atoms = Bio.PDB.Selection.unfold_entities(structure[0], 'A')
+    ns = Bio.PDB.NeighborSearch(atoms)
 
     # Get the close residues to the desired atom by a neighbour search
-    Close_residues = ns.search(Target_atom.coord, radius, level='R')
+    close_residues = ns.search(target_atom.coord, radius, level='R')
 
     # Take the output of the neighbour search with biopython and take the positions of the residues that will be mutated
-    for close_res in Close_residues:
-        if not close_res == Target_residue:
+    for close_res in close_residues:
+        if not close_res == target_residue:
             if str(close_res.id[1]) not in fixed_resids and close_res.id[0].isspace():
-                Updated_positions.append(str(close_res.get_parent().id) + ':' + str(close_res.id[1]))
+                updated_positions.append(str(close_res.get_parent().id) + ':' + str(close_res.id[1]))
 
-    return Updated_positions
+    return updated_positions
 
 
-class Log():
+class Log:
     """
     A class to keep log of the output from different modules
     """
@@ -154,6 +155,7 @@ class Log():
         """
         self._logger = logging.getLogger(__name__)
         self._logger.handlers = []
+        self._logger.setLevel(logging.DEBUG)
         self.fh = logging.FileHandler("{}.log".format(name))
         self.fh.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')

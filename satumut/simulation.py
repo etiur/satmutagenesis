@@ -99,6 +99,7 @@ class SimulationRunner:
         self.proc = None
         self.dir = dir_
         self.single = single
+        self.log = Log("simulation_time")
 
     def side_function(self):
         """
@@ -168,10 +169,8 @@ class SimulationRunner:
         for p in self.proc:
             p.wait()
         end = time.time()
-
         # creating a log
-        log = Log("simulation_time")
-        log.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
+        self.log.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
 
 
 def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, dir_=None, hydrogen=True,

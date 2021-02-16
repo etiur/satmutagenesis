@@ -51,9 +51,9 @@ class Mutagenesis:
            path to the PDB file
         position: str
            chain ID:position of the residue, for example A:132
-        folder: str
+        folder: str, optional
            The folder where the pdbs are written
-        consec: bool
+        consec: bool, optional
            If this is the second round of mutation
         """
         self.model = Model(model)
