@@ -232,6 +232,8 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
        choose if to analyse distance, energy or both
     thres : float, optional
        The threshold for the mutations to be included in the pdf
+    factor: int, optional
+        The number to divide the metal charges
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -283,13 +285,15 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     test: bool, optional
         Setting the simulation to test mode
     cu: bool, optional
-        Set it to true if there are coppers in the system
+        Set it to true if there are metals in the system
     seed: int, optional
         A seed number to make the simulations reproducible
     nord: bool, optional
         True if the system is managed by LSF
     steps: int, optional
         The number of PELE steps
+    factor: int, optional
+        The number to divide the metal charges
     """
     simulation = SimulationRunner(input_, dir_, single_mutagenesis)
     input_ = simulation.side_function()

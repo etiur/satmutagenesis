@@ -594,33 +594,6 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
-<dt id="satumut.helper.Neighbourresidues">
-<code class="descclassname">satumut.helper.</code><code class="descname">Neighbourresidues</code><span class="sig-paren">(</span><em>input_</em>, <em>specific_at_res_chainid</em>, <em>radius=5.0</em>, <em>fixed_resids=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.Neighbourresidues" title="Permalink to this definition">¶</a></dt>
-<dd><p>It gives the list of residues near a specific atom according to a radius
-in a PDB file.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input</strong> (<em>string</em>) – PDB file where the specific atoms resides</li>
-<li><strong>specific_at_res_chainid</strong> (<em>strings</em>) – Chain_ID:position:atom_name, which will be the center around the search for neighbours.</li>
-<li><strong>radius</strong> (<em>float</em>) – Value of the minimum distance between the atom and any of the residues</li>
-<li><strong>fixed_resids</strong> (<em>list of integers</em>) – List of residue numbers of the residues that the user don’t want to mutate</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>Updated_positions</strong></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">The list of neighbour residues of the specified atom</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="satumut.helper.isiterable">
 <code class="descclassname">satumut.helper.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>p_object</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.isiterable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test if the parameter is an iterable (not a string or a dict) or a file</p>
@@ -657,6 +630,33 @@ in a PDB file.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="satumut.helper.neighbourresidues">
+<code class="descclassname">satumut.helper.</code><code class="descname">neighbourresidues</code><span class="sig-paren">(</span><em>input_</em>, <em>specific_at_res_chainid</em>, <em>radius=5.0</em>, <em>fixed_resids=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.neighbourresidues" title="Permalink to this definition">¶</a></dt>
+<dd><p>It gives the list of residues near a specific atom according to a radius
+in a PDB file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input</strong> (<em>string</em>) – PDB file where the specific atoms resides</li>
+<li><strong>specific_at_res_chainid</strong> (<em>strings</em>) – Chain_ID:position:atom_name, which will be the center around the search for neighbours.</li>
+<li><strong>radius</strong> (<em>float</em>) – Value of the minimum distance between the atom and any of the residues</li>
+<li><strong>fixed_resids</strong> (<em>list of integers</em>) – List of residue numbers of the residues that the user don’t want to mutate</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>updated_positions</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">The list of neighbour residues of the specified atom</p>
 </td>
 </tr>
 </tbody>
@@ -825,11 +825,11 @@ in a PDB file.</p>
 <p>This script is used to generate the yaml files for pele platform</p>
 <dl class="class">
 <dt id="satumut.pele_files.CreateYamlFiles">
-<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the 2 necessary files for the pele simulations</p>
 <dl class="method">
 <dt id="satumut.pele_files.CreateYamlFiles.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the CreateLaunchFiles object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -843,11 +843,12 @@ in a PDB file.</p>
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – How many cpus do you want to use</li>
 <li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
 <li><strong>initial</strong> (<em>file</em><em>, </em><em>optional</em>) – The initial PDB file before the modification by pmx</li>
-<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
+<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are metals with more than 2 charges (positive or negative) in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
 <li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
 <li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
 <li><strong>single</strong> (<em>str</em>) – Anything that indicates that we are in purizyme mode</li>
+<li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
 </ul>
 </td>
 </tr>
@@ -873,7 +874,7 @@ in a PDB file.</p>
 
 <dl class="function">
 <dt id="satumut.pele_files.create_20sbatch">
-<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>file_</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>file_</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates for each of the mutants the yaml and slurm files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -888,11 +889,12 @@ or a file of the path to the different pdb files</li>
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – how many cpus do you want to use</li>
 <li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
 <li><strong>initial</strong> (<em>file</em><em>, </em><em>optional</em>) – The initial PDB file before the modification by pmx if the residue number are changed</li>
-<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
+<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are metals in the system in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
 <li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
 <li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
 <li><strong>single</strong> (<em>str</em><em>, </em><em>optional</em>) – Anything that indicates that we are in plurizyme mode</li>
+<li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the charges of the metals</li>
 </ul>
 </td>
 </tr>
@@ -984,7 +986,7 @@ or a file of the path to the different pdb files</li>
 
 <dl class="function">
 <dt id="satumut.simulation.plurizyme_simulation">
-<code class="descclassname">satumut.simulation.</code><code class="descname">plurizyme_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>single_mutagenesis</em>, <em>plurizyme_at_and_res</em>, <em>radius=5.0</em>, <em>fixed_resids=[]</em>, <em>cpus=30</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=250</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.plurizyme_simulation" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.simulation.</code><code class="descname">plurizyme_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>single_mutagenesis</em>, <em>plurizyme_at_and_res</em>, <em>radius=5.0</em>, <em>fixed_resids=[]</em>, <em>cpus=30</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=250</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.plurizyme_simulation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the simulations for the plurizyme’s projct which is based on single mutations</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1005,10 +1007,11 @@ or a file of the path to the different pdb files</li>
 <li><strong>pdb_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the folder where the mutated PDB files will be stored</li>
 <li><strong>consec</strong> (<em>bool</em><em>, </em><em>optional</em>) – Consecutively mutate the PDB file for several rounds</li>
 <li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
-<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
+<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are metals in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
 <li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
 <li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
+<li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
 </ul>
 </td>
 </tr>
@@ -1018,7 +1021,7 @@ or a file of the path to the different pdb files</li>
 
 <dl class="function">
 <dt id="satumut.simulation.saturated_simulation">
-<code class="descclassname">satumut.simulation.</code><code class="descname">saturated_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.saturated_simulation" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.simulation.</code><code class="descname">saturated_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>thres=-0.1</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.saturated_simulation" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that uses the SimulationRunner class to run saturated mutagenesis simulations</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1048,6 +1051,7 @@ or a file of the path to the different pdb files</li>
 <li><strong>plot_dir</strong> (<em>str</em>) – Name for the results folder</li>
 <li><strong>opt</strong> (<em>str</em><em>, </em><em>optional</em>) – choose if to analyse distance, energy or both</li>
 <li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – The threshold for the mutations to be included in the pdf</li>
+<li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
 </ul>
 </td>
 </tr>
