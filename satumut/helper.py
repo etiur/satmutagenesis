@@ -1,3 +1,6 @@
+import logging
+
+
 def map_atom_string(atom_string, initial_pdb, prep_pdb):
     """
     Maps the chain ID and residue number of the original PDb file to the PDB file after pmx
