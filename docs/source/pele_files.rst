@@ -9,8 +9,8 @@ The second script is used when you have the PDB files and you want to generate t
 .. code-block:: bash
 
     usage: pele_files.py [-h] --folder FOLDER -lc LIGCHAIN -ln LIGNAME -at ATOMS
-                     [ATOMS ...] [--cpus CPUS] [--cu] [-t] [-n] [-s SEED]
-                     [-st STEPS]
+                     [ATOMS ...] [--cpus CPUS] [-po] [-fa POLARIZATION_FACTOR] 
+                     [-t] [-n] [-s SEED] [-st STEPS]
 
     Generate running files for PELE
 
@@ -27,7 +27,10 @@ The second script is used when you have the PDB files and you want to generate t
                         Series of atoms of the residues to follow in this
                         format -> chain ID:position:atom name
         --cpus CPUS           Include the number of cpus desired
-        --cu                  used if there are copper in the system
+        -po, --polarize_metals
+                            used if there are metals in the system
+        -fa POLARIZATION_FACTOR, --polarization_factor POLARIZATION_FACTOR
+                              The number to divide the charges
         -t, --test            Used if you want to run a test before
         -n, --nord            used if LSF is the utility managing the jobs
         -s SEED, --seed SEED  Include the seed number to make the simulation
@@ -39,7 +42,7 @@ The ``--folder`` flag accepts folders where the PDB files are located, files con
 
 .. code-block:: bash
 
-    $ python -m satumut.mutate_pdb --folder pdb_files --ligchain 'L' --ligname 'ANL' --atoms "C:1:CU" "L:1:N1" --cu --test
+    $ python -m satumut.mutate_pdb --folder pdb_files --ligchain 'L' --ligname 'ANL' --atoms "C:1:CU" "L:1:N1" -po --test
     
 As a result, it will create the yaml files which are the input files for the PELE platform. 
 

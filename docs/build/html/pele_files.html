@@ -168,8 +168,8 @@
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: pele_files.py <span class="o">[</span>-h<span class="o">]</span> --folder FOLDER -lc LIGCHAIN -ln LIGNAME -at ATOMS
-                 <span class="o">[</span>ATOMS ...<span class="o">]</span> <span class="o">[</span>--cpus CPUS<span class="o">]</span> <span class="o">[</span>--cu<span class="o">]</span> <span class="o">[</span>-t<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span>
-                 <span class="o">[</span>-st STEPS<span class="o">]</span>
+                 <span class="o">[</span>ATOMS ...<span class="o">]</span> <span class="o">[</span>--cpus CPUS<span class="o">]</span> <span class="o">[</span>-po<span class="o">]</span> <span class="o">[</span>-fa POLARIZATION_FACTOR<span class="o">]</span>
+                 <span class="o">[</span>-t<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-st STEPS<span class="o">]</span>
 
 Generate running files <span class="k">for</span> PELE
 
@@ -186,7 +186,10 @@ optional arguments:
                     Series of atoms of the residues to follow in this
                     format -&gt; chain ID:position:atom name
     --cpus CPUS           Include the number of cpus desired
-    --cu                  used <span class="k">if</span> there are copper in the system
+    -po, --polarize_metals
+                        used <span class="k">if</span> there are metals in the system
+    -fa POLARIZATION_FACTOR, --polarization_factor POLARIZATION_FACTOR
+                          The number to divide the charges
     -t, --test            Used <span class="k">if</span> you want to run a <span class="nb">test</span> before
     -n, --nord            used <span class="k">if</span> LSF is the utility managing the <span class="nb">jobs</span>
     -s SEED, --seed SEED  Include the seed number to make the simulation
@@ -196,7 +199,7 @@ optional arguments:
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">--folder</span></code> flag accepts folders where the PDB files are located, files containing the path to the different PDBs (one path per line) or lists of paths to the PDBs, for example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.mutate_pdb --folder pdb_files --ligchain <span class="s1">&#39;L&#39;</span> --ligname <span class="s1">&#39;ANL&#39;</span> --atoms <span class="s2">&quot;C:1:CU&quot;</span> <span class="s2">&quot;L:1:N1&quot;</span> --cu --test
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.mutate_pdb --folder pdb_files --ligchain <span class="s1">&#39;L&#39;</span> --ligname <span class="s1">&#39;ANL&#39;</span> --atoms <span class="s2">&quot;C:1:CU&quot;</span> <span class="s2">&quot;L:1:N1&quot;</span> -po --test
 </pre></div>
 </div>
 <p>As a result, it will create the yaml files which are the input files for the PELE platform.</p>

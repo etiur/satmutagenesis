@@ -168,8 +168,9 @@
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: simulation.py <span class="o">[</span>-h<span class="o">]</span> -i INPUT <span class="o">[</span>-p POSITION <span class="o">[</span>POSITION ...<span class="o">]]</span> -lc LIGCHAIN
-                 -ln LIGNAME -at ATOMS <span class="o">[</span>ATOMS ...<span class="o">]</span> <span class="o">[</span>--cpus CPUS<span class="o">]</span> <span class="o">[</span>--cu<span class="o">]</span>
-                 <span class="o">[</span>-t<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-m<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-d DIR<span class="o">]</span> <span class="o">[</span>-pd PDB_DIR<span class="o">]</span> <span class="o">[</span>-hy<span class="o">]</span>
+                 -ln LIGNAME -at ATOMS <span class="o">[</span>ATOMS ...<span class="o">]</span> <span class="o">[</span>--cpus CPUS<span class="o">]</span> <span class="o">[</span>-po<span class="o">]</span>
+                 <span class="o">[</span>-fa POLARIZATION_FACTOR<span class="o">]</span> <span class="o">[</span>-t<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-m<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-d DIR<span class="o">]</span>
+                 <span class="o">[</span>-pd PDB_DIR<span class="o">]</span> <span class="o">[</span>-hy<span class="o">]</span>
                  <span class="o">[</span>-co<span class="o">]</span>   <span class="o">[</span>-st STEPS<span class="o">]</span> <span class="o">[</span>--dpi DPI<span class="o">]</span> <span class="o">[</span>--box BOX<span class="o">]</span>
                  <span class="o">[</span>--traj TRAJ<span class="o">]</span> <span class="o">[</span>--out OUT<span class="o">]</span> <span class="o">[</span>--plot PLOT<span class="o">]</span>
                  <span class="o">[</span>-an <span class="o">{</span>energy,distance,both<span class="o">}]</span> <span class="o">[</span>--thres THRES<span class="o">]</span>
@@ -193,7 +194,10 @@ optional arguments:
 <span class="s1">                    Series of atoms of the residues to follow in this</span>
 <span class="s1">                    format -&gt; chain ID:position:atom name</span>
 <span class="s1">    --cpus CPUS           Include the number of cpus desired</span>
-<span class="s1">    --cu                  used if there are copper in the system</span>
+<span class="s1">    -po, --polarize_metals</span>
+<span class="s1">                        used if there are metals in the system</span>
+<span class="s1">    -fa POLARIZATION_FACTOR, --polarization_factor POLARIZATION_FACTOR</span>
+<span class="s1">                          The number to divide the charges</span>
 <span class="s1">    -t, --test            Used if you want to run a test before</span>
 <span class="s1">    -n, --nord            used if LSF is the utility managing the jobs</span>
 <span class="s1">    -m, --multiple        if you want to mutate 2 residue in the same pdb</span>
@@ -238,7 +242,7 @@ optional arguments:
 <div class="line">It has all the required arguments for the classes and functions from the other modules if the falgs <code class="docutils literal notranslate"><span class="pre">-sm</span></code> and <code class="docutils literal notranslate"><span class="pre">-PR</span></code> are present it runs <code class="docutils literal notranslate"><span class="pre">plurizymes_simulation</span></code> instead of <code class="docutils literal notranslate"><span class="pre">saturated_simulation</span></code>.</div>
 <div class="line">An example would be:</div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.simulation --input PK2_F454T.pdb --position A:454 --ligchain L --ligname ANL --atoms C:1:CU L:1:N1 --cpus <span class="m">5</span> --cu --test
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.simulation --input PK2_F454T.pdb --position A:454 --ligchain L --ligname ANL --atoms C:1:CU L:1:N1 --cpus <span class="m">5</span> -po --test
 </pre></div>
 </div>
 </div>

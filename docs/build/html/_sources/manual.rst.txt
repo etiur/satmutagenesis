@@ -16,13 +16,15 @@ Introduction
 .. code-block:: bash
 
     usage: __main__.py [-h] -i INPUT [-p POSITION [POSITION ...]] -lc LIGCHAIN -ln
-                   LIGNAME -at ATOMS [ATOMS ...] [--cpus CPUS] [--cu] [-t]
-                   [-n] [-m] [-s SEED] [-d DIR] [-pd PDB_DIR] [-hy] [-co]
-                   [-sb] [-st STEPS] [--dpi DPI] [--box BOX] [--traj TRAJ]
-                   [--out OUT] [--plot PLOT] [-an {energy,distance,both}]
-                   [--thres THRES] [-sm SINGLE_MUTAGENESIS]
-                   [-PR PLURIZYME_AT_AND_RES] [-r RADIUS]
-                   [-f FIXED_RESIDS [FIXED_RESIDS ...]]
+                   LIGNAME -at ATOMS [ATOMS ...] [--cpus CPUS] [-po]
+                   [-fa POLARIZATION_FACTOR] [-t] [-n] [-m] [-s SEED] [-d DIR]
+                   [-pd PDB_DIR] [-hy] [-co] [-sb] [-st STEPS] [--dpi DPI]
+                   [--box BOX] [--traj TRAJ] [--out OUT] [--plot PLOT]
+                   [-an {energy,distance,both}] [--thres THRES]
+                   [-sm SINGLE_MUTAGENESIS] [-PR PLURIZYME_AT_AND_RES]
+                   [-r RADIUS] [-f FIXED_RESIDS [FIXED_RESIDS ...]]
+                   [-cpt CPUS_PER_TASK]
+
 
     Generate the mutant PDB and the corresponding running files
 
@@ -41,7 +43,10 @@ Introduction
                               Series of atoms of the residues to follow in this
                               format -> chain ID:position:atom name
         --cpus CPUS           Include the number of cpus desired
-        --cu                  used if there are copper in the system
+        -po, --polarize_metals
+                            used if there are metals in the system
+        -fa POLARIZATION_FACTOR, --polarization_factor POLARIZATION_FACTOR
+                              The number to divide the charges
         -t, --test            Used if you want to run a test before
         -n, --nord            used if LSF is the utility managing the jobs
         -m, --multiple        if you want to mutate 2 residue in the same pdb
@@ -82,12 +87,14 @@ Introduction
                               Specify the list of residues that you don't wantto
                               have mutated (Must write the list of residue
                               positionnumbers)
+        -cpt CPUS_PER_TASK, --cpus_per_task CPUS_PER_TASK
+                              Include the number of cpus per task desired
                               
 The first 6 arguments are necessary and the rest are optional, for example:
 
 .. code-block:: bash
 
-    $ python -m satumut --input PK2_F454T.pdb --position A:454 --ligchain 'L' --ligname 'ANL' --atoms "C:1:CU" "L:1:N1" --cu --test
+    $ python -m satumut --input PK2_F454T.pdb --position A:454 --ligchain 'L' --ligname 'ANL' --atoms "C:1:CU" "L:1:N1" -po --test
 
 The code will produce a slurm file ``.sh`` and will lanch it as a job in marenostrum, then all the other files will be generated and the simulations be started by the job.
     

@@ -19,7 +19,8 @@ The main script
     
     run = CreateSlurmFiles(input_="test.pdb", ligchain="L", ligname="ligand", atoms=["C:1:CU","L:1:N1"],
     position=["A:154"], dir_=None, hydrogen=True, multiple=False, cpus=25, pdb_dir="pdb_files", test=False, consec=False, cu=False, seed=12345, nord=False, stesp=700,
-    dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1, single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[])
+    dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1, single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], 
+    factor=None)
     
     slurm = run.slurm_creation() # creates the slurm file
 
@@ -31,12 +32,12 @@ The mutate_pdb module
 .. code-block:: python
     
     run = Mutagenesis("test.pdb", "A:145", "pdb_files") #Arguments are PDB, Chain ID:position num and the name of a folder for the output
-    pdbs = run.saturated_mutagenesis(hydrogens=True, mode=0)
+    pdbs = run.saturated_mutagenesis(hydrogens=True)
     run.accelerated_insert() # The pmx package removes the last column of the PDB file so it needs to be reinserted
 
     run = Mutagenesis("test.pdb", "A:145", "pdb_files")
     new_aa = "CYS"
-    file_ = run.single_mutagnesis(new_aa, hydrogens=True, mode=0) #we don't need the accelerated insert in this case, since it is a single mutation
+    file_ = run.single_mutagnesis(new_aa, hydrogens=True) #we don't need the accelerated insert in this case, since it is a single mutation
     
 ``generate_mutations`` is function that uses the class to mutate at several positions at once given a list of positions.  
 
@@ -58,7 +59,7 @@ The pele_files module
 .. code-block:: python
 
     run = CreateYamlFiles(input_="test.pdb", ligchain="L", ligname="ligand", atoms=["C:1:CU","L:1:N1"],
-    cpus=25, test=False, initial=None, cu=False, seed=12345, nord=False, stesp=700)
+    cpus=25, test=False, initial=None, cu=False, seed=12345, nord=False, stesp=700, factor=None)
     
     run.input_creation("yaml_name")
 
@@ -69,7 +70,7 @@ The pele_files module
 
     pdbs = generate_mutations("test.pdb", ["A:145"], hydrogens=True, multiple=False, folder="pdb_files", consec=False)
     yaml_files = create_20sbatch(ligchain="L", ligname="ligand", atoms=["C:1:CU", "L:1:N1"], file_= pdbs, cpus=25, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, stesp=700)
+                    cu=False, seed=12345, nord=False, stesp=700, factor=None)
                     
 The simulation module
 ======================
@@ -86,7 +87,7 @@ The simulation module
 .. code-block:: python
 
     saturated_simulation(input_="test.pdb", position=["A:145"], ligchain="L", ligname="ligand", atoms=["C:1:CU","L:1:N1"], cpus=25, dir_=None, hydrogen=True,
-                         multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False, steps=700, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1)
+                         multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False, steps=700, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1, factor=None)
 
 ``plurizyme_simulation`` is a function that uses the different functions from the 3 previouys modules to perform single mutagenesis on various positions found around a user specified atom, the *plurizyme_at_and_res* argument,
 
@@ -94,7 +95,7 @@ The simulation module
 
     plurizyme_simulation(input_="test.pdb", ligchain="L", ligname="ligand", atoms=["C:1:CU","L:1:N1"], single_mutagenesis="SER", plurizyme_at_and_res="A:132:CA", 
                         radius=5.0, fixed_resids=[], cpus=25, dir_=None, hydrogen=True, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, 
-                        nord=False, steps=800)
+                        nord=False, steps=800, factor=None)
 
 The Analysis module
 ====================

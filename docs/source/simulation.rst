@@ -9,8 +9,9 @@ This script combines the functions and classes from all the other modules to cre
 .. code-block:: bash
 
     usage: simulation.py [-h] -i INPUT [-p POSITION [POSITION ...]] -lc LIGCHAIN
-                     -ln LIGNAME -at ATOMS [ATOMS ...] [--cpus CPUS] [--cu]
-                     [-t] [-n] [-m] [-s SEED] [-d DIR] [-pd PDB_DIR] [-hy]
+                     -ln LIGNAME -at ATOMS [ATOMS ...] [--cpus CPUS] [-po]
+                     [-fa POLARIZATION_FACTOR] [-t] [-n] [-m] [-s SEED] [-d DIR] 
+                     [-pd PDB_DIR] [-hy]
                      [-co]   [-st STEPS] [--dpi DPI] [--box BOX]
                      [--traj TRAJ] [--out OUT] [--plot PLOT]
                      [-an {energy,distance,both}] [--thres THRES]
@@ -34,7 +35,10 @@ This script combines the functions and classes from all the other modules to cre
                         Series of atoms of the residues to follow in this
                         format -> chain ID:position:atom name
         --cpus CPUS           Include the number of cpus desired
-        --cu                  used if there are copper in the system
+        -po, --polarize_metals
+                            used if there are metals in the system
+        -fa POLARIZATION_FACTOR, --polarization_factor POLARIZATION_FACTOR
+                              The number to divide the charges
         -t, --test            Used if you want to run a test before
         -n, --nord            used if LSF is the utility managing the jobs
         -m, --multiple        if you want to mutate 2 residue in the same pdb
@@ -79,6 +83,6 @@ This script combines the functions and classes from all the other modules to cre
 
 .. code-block:: bash
     
-    $ python -m satumut.simulation --input PK2_F454T.pdb --position A:454 --ligchain L --ligname ANL --atoms C:1:CU L:1:N1 --cpus 5 --cu --test
+    $ python -m satumut.simulation --input PK2_F454T.pdb --position A:454 --ligchain L --ligname ANL --atoms C:1:CU L:1:N1 --cpus 5 -po --test
 
     
