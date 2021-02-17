@@ -84,3 +84,85 @@ def isiterable(p_object):
     except TypeError:
         return False
     return True
+
+class Log:
+    """
+    A class to keep log of the output from different modules
+    """
+
+    def __init__(self, name):
+        """
+        Initialize the Log class
+        Parameters
+        __________
+        name: str
+            The name of the log file
+        """
+        self._logger = logging.getLogger(__name__)
+        self._logger.handlers = []
+        self._logger.setLevel(logging.DEBUG)
+        self.fh = logging.FileHandler("{}.log".format(name))
+        self.fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self.fh.setFormatter(formatter)
+        self._logger.addHandler(self.fh)
+
+    def debug(self, messages, exc_info=False):
+        """
+        It pulls a debug message.
+        Parameters
+        ----------
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message
+        """
+        self._logger.debug(messages, exc_info=exc_info)
+
+    def info(self, messages, exc_info=False):
+        """
+        It pulls an info message.
+        Parameters
+        ----------
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message
+        """
+        self._logger.info(messages, exc_info=exc_info)
+
+    def warning(self, messages, exc_info=False):
+        """
+        It pulls a warning message.
+        Parameters
+        ----------
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message
+        """
+        self._logger.warning(messages, exc_info=exc_info)
+
+    def error(self, messages, exc_info=False):
+        """
+        It pulls a error message.
+        Parameters
+        ----------
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message
+        """
+        self._logger.error(messages, exc_info=exc_info)
+
+    def critical(self, messages, exc_info=False):
+        """
+        It pulls a critical message.
+        Parameters
+        ----------
+        messages : str
+            The messages to log
+        exc_info : bool, optional
+            Set to true to include the exception error message
+        """
+        self._logger.critical(messages, exc_info=exc_info)

@@ -52,96 +52,107 @@ def parse_args():
             args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec]
 
 
-def submit(slurm_folder, nord=False):
+class SimulationRunner:
     """
-    Given a folder submits the job to the supercomputer
+    A class that configures and runs simulations
+    """
 
-    Parameters
-    __________
-    slurm_folder: list[path]
-        A list of the slurm files path's
-    nord: bool, optional
-        True if it will run on NORD
-    """
-    for files in slurm_folder:
-        if not nord:
-            call(["sbatch", "{}".format(files)])
+    def __init__(self, input_, dir_=None, single=None, nord=False):
+        """
+        Initialize the Simulation Runner class
+        Parameters
+        ___________
+        input_: str
+            The path to the PDB file
+        dir_: str, optional
+            The name of the directory for the simulations to run and the outputs to be stored
+        nord: bool, optional
+            Set to True if you want to run the simulation on NORDIII
+        """
+
+        self.input = input_
+        self.dir = dir_
+        self.single = single
+        self.nord = nord
+
+    def side_function(self):
+        """
+        Change the working directory to store all the simulations in one place
+        Returns
+        _______
+        input_: str
+            The new path of the input
+        """
+        self.input = abspath(self.input)
+        if not self.dir:
+            base = basename(self.input)
+            base = base.replace(".pdb", "")
         else:
-            os.system("bsub < {}".format(files))
+            base = self.dir
+        if not os.path.exists("{}_mutations".format(base)):
+            os.mkdir("{}_mutations".format(base))
+        os.chdir("{}_mutations".format(base))
 
+        return self.input
 
-def side_function(input_, dir_=None):
-    """
-    Put all the necessary previous steps here
+    def pele_folders(self, pdb_list):
+        """
+        Creates a file with the names of the different folders where the pele simulations are contained
+        Parameters
+        ___________
+        pdb_list: list[path]
+            list of pdb files path created during the saturated mutagenesis
+        single: str
+            Anything that indiucates that the plurizymes is used
+        """
+        os.chdir("../")
+        if not self.dir:
+            base = basename(self.input)
+            base = base.replace(".pdb", "")
+        else:
+            base = basename(self.dir)
+        hold = "bla"
+        folder = []
+        if not self.single:
+            for files in pdb_list:
+                name = basename(files).replace(".pdb", "")
+                if name != "original" and hold != name[:-1]:
+                    hold = name[:-1]
+                    folder.append("{}_mutations/{}\n".format(base, hold))
+            dirname = "dirnames_{}.txt".format(base)
+            with open(dirname, "w") as txt:
+                txt.writelines(folder)
 
-    Parameters
-    ___________
-    input_: str
-        The wild type PDB file path
-    dir_: str, optional
-        Name of the folder for the simulations
+            return dirname
 
-    Returns
-    _______
-    input_: str
-        The new path of the input
-    """
-    input_ = abspath(input_)
-    if not dir_:
-        base = basename(input_)
-        base = base.replace(".pdb", "")
-    else:
-        base = dir_
-    if not os.path.exists("{}_mutations".format(base)):
-        os.mkdir("{}_mutations".format(base))
-    os.chdir("{}_mutations".format(base))
+    def submit(self, slurm_folder):
+        """
+        Given a folder submits the job to the supercomputer
 
-    return input_
-
-
-def pele_folders(input_, file_list, dir_=None):
-    """
-    Creates a file with the names of the different folders where the pele simulations are contained
-
-    Parameters
-    ___________
-    input_: str
-        The wild type PDB file path
-    file_list: list[path]
-        list of pdb files path created during the saturated mutagenesis
-    dir_: str, optional
-        Name of the folder ofr the simulations
-    """
-    os.chdir("../")
-    if not dir_:
-        base = basename(input_)
-        base = base.replace(".pdb", "")
-    else:
-        base = dir_
-    count = 0
-    folder = []
-    for files in file_list:
-        name = basename(files)
-        name = name.replace(".pdb", "")
-        if not count:
-            hold = "bla"
-            count += 1
-        if name != "original" and hold != name[:-1]:
-            hold = name[:-1]
-            folder.append("{}_mutations/{}\n".format(base, hold))
-    with open("dirnames_{}.txt".format(base), "w") as txt:
-        txt.writelines(folder)
+        Parameters
+        __________
+        slurm_folder: list[path]
+            A list of the slurm files path's
+        nord: bool, optional
+            True if it will run on NORD
+        """
+        for files in slurm_folder:
+            if not self.nord:
+                call(["sbatch", "{}".format(files)])
+            else:
+                os.system("bsub < {}".format(files))
 
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec = parse_args()
-    input_ = side_function(input_, dir_)
+    simulation = SimulationRunner(input_, dir_, nord=nord)
+    input_ = simulation.side_function()
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, folder=pdb_dir, consec=consec)
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
                                   file_=pdb_names, cu=cu, seed=seed, nord=nord)
-    submit(slurm_files, nord)
-    pele_folders(input_, pdb_names, dir_)
+    simulation.submit(slurm_files)
+    simulation.pele_folders(pdb_names)
 
 
 if __name__ == "__main__":
