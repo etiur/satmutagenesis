@@ -19,37 +19,41 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
     # main required arguments
-    parser.add_argument("--input", required=True, help="Include PDB file's path")
-    parser.add_argument("--position", required=True, nargs="+",
+    parser.add_argument("-i", "--input", required=True, help="Include PDB file's path")
+    parser.add_argument("-p", "--position", required=True, nargs="+",
                         help="Include one or more chain IDs and positions -> Chain ID:position")
-    parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
-    parser.add_argument("--ligname", required=True, help="The ligand residue name")
-    parser.add_argument("--atom1", required=True,
+    parser.add_argument("-lc", "--ligchain", required=True, help="Include the chain ID of the ligand")
+    parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
+    parser.add_argument("-at1", "--atom1", required=True,
                         help="atom of the residue to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--atom2", required=True,
+    parser.add_argument("-at2", "--atom2", required=True,
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
-    parser.add_argument("--test", required=False, action="store_true", help="Used if you want to run a test before")
-    parser.add_argument("--nord", required=False, action="store_true",
+    parser.add_argument("-t", "--test", required=False, action="store_true",
+                        help="Used if you want to run a test before")
+    parser.add_argument("-n", "--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
-    parser.add_argument("--multiple", required=False, action="store_true",
+    parser.add_argument("-m", "--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
-    parser.add_argument("--seed", required=False, default=12345, type=int,
+    parser.add_argument("-s", "--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
-    parser.add_argument("--dir", required=False,
+    parser.add_argument("-d", "--dir", required=False,
                         help="The name of the folder for all the simulations")
-    parser.add_argument("--pdb_dir", required=False, default="pdb_files",
+    parser.add_argument("-pd", "--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("--hydrogen", required=False, action="store_false", help="leave it to default")
-    parser.add_argument("--consec", required=False, action="store_true",
+    parser.add_argument("-hy", "--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-co", "--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
+    parser.add_argument("-st", "--steps", required=False, type=int, default=1000,
+                        help="The number of PELE steps")
 
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec]
+            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
+            args.steps]
 
 
 class SimulationRunner:
@@ -145,12 +149,12 @@ class SimulationRunner:
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec = parse_args()
+    hydrogen, consec, steps = parse_args()
     simulation = SimulationRunner(input_, dir_, nord=nord)
     input_ = simulation.side_function()
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, folder=pdb_dir, consec=consec)
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
-                                  file_=pdb_names, cu=cu, seed=seed, nord=nord)
+                                  file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps)
     simulation.submit(slurm_files)
     simulation.pele_folders(pdb_names)
 

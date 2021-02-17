@@ -7,27 +7,30 @@ from os.path import basename, join, isfile, isdir
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
-    parser.add_argument("--folder", required=True,
+    parser.add_argument("-f", "--folder", required=True,
                         help="An iterable of the path to different pdb files, a name of the folder or a file of the "
                              "path to the different pdb files")
-    parser.add_argument("--ligchain", required=True, help="Include the chain ID of the ligand")
-    parser.add_argument("--ligname", required=True, help="The ligand residue name")
-    parser.add_argument("--atom1", required=True,
+    parser.add_argument("-lc", "--ligchain", required=True, help="Include the chain ID of the ligand")
+    parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
+    parser.add_argument("-at1", "--atom1", required=True,
                         help="atom of the residue to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--atom2", required=True,
+    parser.add_argument("-at2", "--atom2", required=True,
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
-    parser.add_argument("--test", required=False, action="store_true", help="Used if you want to run a test before")
-    parser.add_argument("--nord", required=False, action="store_true",
+    parser.add_argument("-t", "--test", required=False, action="store_true",
+                        help="Used if you want to run a test before")
+    parser.add_argument("-n", "--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
-    parser.add_argument("--seed", required=False, default=12345, type=int,
+    parser.add_argument("-s", "--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
+    parser.add_argument("-st", "--steps", required=False, type=int, default=1000,
+                        help="The number of PELE steps")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.cu,
-            args.seed, args.nord]
+            args.seed, args.nord, args.steps]
 
 
 class CreateLaunchFiles:
@@ -35,7 +38,7 @@ class CreateLaunchFiles:
     Creates the 2 necessary files for the pele simulations
     """
     def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24,
-                 test=False, initial=None, cu=False, seed=12345, nord=False):
+                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=1000):
         """
         Initialize the CreateLaunchFiles object
 
@@ -63,6 +66,8 @@ class CreateLaunchFiles:
             A seed number to make the simulations reproducible
         nord: bool, optional
             True if the system is managed by LSF
+        steps: int, optional
+            The number of PELE steps
         """
 
         self.input = input_
@@ -78,6 +83,7 @@ class CreateLaunchFiles:
         self.cu = cu
         self.seed = seed
         self.nord = nord
+        self.steps = steps
 
     def _match_dist(self):
         """
@@ -112,6 +118,8 @@ class CreateLaunchFiles:
                 lines.append("working_folder: {}/PELE_{}\n".format(yaml_name[:-1], yaml_name))
             else:
                 lines.append("working_folder: PELE_{}\n".format(yaml_name))
+            if self.steps != 1000:
+                lines.append("steps: {}\n".format(self.steps))
             if self.test:
                 lines.append("test: true\n")
                 self.cpus = 5
@@ -196,7 +204,7 @@ class CreateLaunchFiles:
 
 
 def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False, initial=None,
-                    cu=False, seed=12345, nord=False):
+                    cu=False, seed=12345, nord=False, steps=1000):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -225,6 +233,8 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         A seed number to make the simulations reproducible
     nord: bool, optional
         True if the system is managed by LSF
+    steps: int, optional
+        The number of PELE steps
 
     Returns
     _______
@@ -248,7 +258,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         name = basename(files)
         name = name.replace(".pdb", "")
         run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
-                                initial=initial, cu=cu, seed=seed, nord=nord)
+                                initial=initial, cu=cu, seed=seed, nord=nord, steps=steps)
         run.input_creation(name)
         if not nord:
             run.slurm_creation(name)
@@ -260,9 +270,9 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
 
 
 def main():
-    folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord = parse_args()
+    folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord, steps = parse_args()
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2,
-                                  cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord)
+                                  cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord, steps=steps)
 
     return slurm_files
 
