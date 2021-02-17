@@ -9,7 +9,7 @@ from os.path import abspath, basename
 import os
 import time
 from analysis import consecutive_analysis
-from helper import Neighbourresidues, Log
+from helper import neighbourresidues, Log
 
 
 def parse_args():
@@ -24,7 +24,10 @@ def parse_args():
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
+    parser.add_argument("-po", "--polarize_metals", required=False, action="store_true",
+                        help="used if there are metals in the system")
+    parser.add_argument("-fa", "--polarization_factor", required=False, type=int,
+                        help="The number to divide the charges")
     parser.add_argument("-t", "--test", required=False, action="store_true",
                         help="Used if you want to run a test before")
     parser.add_argument("-n", "--nord", required=False, action="store_true",
@@ -73,9 +76,10 @@ def parse_args():
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
-            args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
-            args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids]
+            args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
+            args.consec, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
+            args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
+            args.polarization_factor]
 
 
 class SimulationRunner:
@@ -176,7 +180,7 @@ class SimulationRunner:
 def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                          nord=False, steps=800, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", thres=-0.1):
+                         plot_dir=None, opt="distance", thres=-0.1, factor=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -234,7 +238,7 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
                                    consec=consec)
     yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
-                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps)
+                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, factor=factor)
     simulation.submit(yaml_files)
     dirname = simulation.pele_folders(pdb_names)
     if not test:
@@ -244,7 +248,7 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                          radius=5.0, fixed_resids=[], cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                         nord=False, steps=250):
+                         nord=False, steps=250, factor=None):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -290,11 +294,12 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     simulation = SimulationRunner(input_, dir_, single_mutagenesis)
     input_ = simulation.side_function()
     # Using the neighbours search to obtain a list of positions to mutate
-    position = Neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
+    position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec,
                                    single=single_mutagenesis)
     yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
-                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis)
+                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
+                                 factor=factor)
     simulation.submit(yaml_files)
 
 

@@ -10,36 +10,40 @@ __email__ = "ruite.xiang@bsc.es"
 import argparse
 import os
 from os.path import basename
-from helper import Neighbourresidues
+from helper import neighbourresidues
 from Bio import PDB
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
     # main required arguments
-    parser.add_argument("-i","--input", required=True, help="Include PDB file's path")
-    parser.add_argument("-p","--position", required=False, nargs="+",
+    parser.add_argument("-i", "--input", required=True, help="Include PDB file's path")
+    parser.add_argument("-p", "--position", required=False, nargs="+",
                         help="Include one or more chain IDs and positions -> Chain ID:position")
-    parser.add_argument("-lc","--ligchain", required=True, help="Include the chain ID of the ligand")
-    parser.add_argument("-ln","--ligname", required=True, help="The ligand residue name")
-    parser.add_argument("-at","--atoms", required=True, nargs="+",
+    parser.add_argument("-lc", "--ligchain", required=True, help="Include the chain ID of the ligand")
+    parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
+    parser.add_argument("-at", "--atoms", required=True, nargs="+",
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
-    parser.add_argument("-t","--test", required=False, action="store_true", help="Used if you want to run a test before")
-    parser.add_argument("-n","--nord", required=False, action="store_true",
+    parser.add_argument("-po", "--polarize_metals", required=False, action="store_true",
+                        help="used if there are metals in the system")
+    parser.add_argument("-fa", "--polarization_factor", required=False, type=int,
+                        help="The number to divide the charges")
+    parser.add_argument("-t", "--test", required=False, action="store_true",
+                        help="Used if you want to run a test before")
+    parser.add_argument("-n", "--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
-    parser.add_argument("-m","--multiple", required=False, action="store_true",
+    parser.add_argument("-m", "--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
-    parser.add_argument("-s","--seed", required=False, default=12345, type=int,
+    parser.add_argument("-s", "--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
-    parser.add_argument("-d","--dir", required=False,
+    parser.add_argument("-d", "--dir", required=False,
                         help="The name of the folder for all the simulations")
-    parser.add_argument("-pd","--pdb_dir", required=False, default="pdb_files",
+    parser.add_argument("-pd", "--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("-hy","--hydrogen", required=False, action="store_false", help="leave it to default")
-    parser.add_argument("-co","--consec", required=False, action="store_true",
+    parser.add_argument("-hy", "--hydrogen", required=False, action="store_false", help="leave it to default")
+    parser.add_argument("-co", "--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-sb", "--sbatch", required=False, action="store_false",
                         help="True if you want to lanch the simulation right after creating the slurm file")
@@ -59,17 +63,17 @@ def parse_args():
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
-    parser.add_argument("-sm","--single_mutagenesis",required=False,
+    parser.add_argument("-sm", "--single_mutagenesis", required=False,
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
                              "code and 1 letter code can be used. You can even specify the protonated states")
-    parser.add_argument("-PR","--plurizyme_at_and_res", required=False,
+    parser.add_argument("-PR", "--plurizyme_at_and_res", required=False,
                         help="Specify the chain ID, residue number and the PDB atom name that"
                              "will set the list of the neighbouring residues for the"
                              "next round. Example: chain ID:position:atom name")
-    parser.add_argument("-r","--radius", required=False, default=5.0, type=float,
+    parser.add_argument("-r", "--radius", required=False, default=5.0, type=float,
                         help="The radius around the selected atom to search for the other residues")
-    parser.add_argument("-f","--fixed_resids",required=False, default=[], nargs='+',
+    parser.add_argument("-f", "--fixed_resids", required=False, default=[], nargs='+',
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue position"
                              "numbers)")
@@ -78,9 +82,10 @@ def parse_args():
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
-            args.sbatch, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
-            args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids, args.cpus_per_task]
+            args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
+            args.consec, args.sbatch, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse,
+            args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
+            args.cpus_per_task, args.polarization_factor]
 
 
 class CreateSlurmFiles:
@@ -91,7 +96,8 @@ class CreateSlurmFiles:
     def __init__(self, input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=800, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
-                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], cpus_task=2):
+                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], cpus_task=2,
+                 factor=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -122,7 +128,7 @@ class CreateSlurmFiles:
         test: bool, optional
             Setting the simulation to test mode
         cu: bool, optional
-            Set it to true if there are coppers in the system
+            Set it to true if there are metals in the system
         seed: int, optional
             A seed number to make the simulations reproducible
         nord: bool, optional
@@ -151,6 +157,8 @@ class CreateSlurmFiles:
             The radius for the neighbours search
         fixed_resids. list[position_num]
             A list of residues positions to avoid mutating
+        factor: int, optional
+            The number to divide the metal charges
         """
         assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
         self.input = input_
@@ -166,7 +174,7 @@ class CreateSlurmFiles:
         if multiple and len(position) == 2:
             self.len = 400
         elif single_mutagenesis and plurizyme_at_and_res:
-            _ = Neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
+            _ = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
             self.len = len(_)
         else:
             self.len = len(position) * 19 + 1
@@ -192,6 +200,7 @@ class CreateSlurmFiles:
         self.radius = radius
         self.avoid = fixed_resids
         self.cpus_task = cpus_task
+        self.factor = factor
 
     def _size(self):
         """
@@ -254,7 +263,7 @@ class CreateSlurmFiles:
             if self.multiple:
                 argument_list.append("-m ")
             if self.cu:
-                argument_list.append("--cu ")
+                argument_list.append("-po ")
             if self.nord:
                 argument_list.append("--nord ")
             if self.pdb_dir != "pdb_files":
@@ -286,7 +295,8 @@ class CreateSlurmFiles:
                     argument_list.append("-r {} ".format(self.radius))
                 if len(self.avoid) != 0:
                     argument_list.append("-f {} ".format(self.avoid))
-
+            if self.cu and self.factor:
+                argument_list.append("-fa {} ".format(self.factor))
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
@@ -326,7 +336,7 @@ class CreateSlurmFiles:
                       'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/external_deps/:$PYTHONPATH\n',
                       'export PYTHONPATH=/gpfs/projects/bsc72/lib/site-packages_mn3:$PYTHONPATH\n',
                       'export MPLBACKEND=Agg\n', 'export OMPI_MCA_coll_hcoll_enable=0\n', 'export OMPI_MCA_mtl=^mxm\n'
-                                                                                          'python -m pele_platform.main {}\n']
+                      'python -m pele_platform.main {}\n']
 
             lines.extend(lines2)
             slurm.writelines(lines)
@@ -335,12 +345,12 @@ class CreateSlurmFiles:
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, cpus_per_task = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, cpus_per_task, factor = parse_args()
 
     run = CreateSlurmFiles(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                            multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                            out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                           fixed_resids, cpus_per_task)
+                           fixed_resids, cpus_per_task, factor)
     slurm = run.slurm_creation()
     if sbatch:
         os.system("sbatch {}".format(slurm))

@@ -93,13 +93,13 @@ def isiterable(p_object):
     return True
 
 
-def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=[]):
+def neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=[]):
     """
     It gives the list of residues near a specific atom according to a radius
     in a PDB file.
 
     PARAMETERS
-    ----------
+    ------------
     input_ : string
                     PDB file where the specific atoms resides
     specific_at_res_chainid : strings
@@ -110,8 +110,8 @@ def Neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
                     List of residue numbers of the residues that the user don't want to mutate
 
     Return
-    _______
-    Updated_positions : The list of neighbour residues of the specified atom
+    -------
+    updated_positions : The list of neighbour residues of the specified atom
 
     """
     specific_at_res_chainid = specific_at_res_chainid.split(":")

@@ -20,7 +20,10 @@ def parse_args():
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
+    parser.add_argument("-po", "--polarize_metals", required=False, action="store_true",
+                        help="used if there are metals in the system")
+    parser.add_argument("-fa", "--polarization_factor", required=False, type=int,
+                        help="The number to divide the charges")
     parser.add_argument("-t", "--test", required=False, action="store_true",
                         help="Used if you want to run a test before")
     parser.add_argument("-n", "--nord", required=False, action="store_true",
@@ -31,8 +34,8 @@ def parse_args():
                         help="The number of PELE steps")
     args = parser.parse_args()
 
-    return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus, args.test, args.cu,
-            args.seed, args.nord, args.steps]
+    return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus, args.test, args.polarize_metals,
+            args.seed, args.nord, args.steps, args.polarization_factor]
 
 
 class CreateYamlFiles:
@@ -41,7 +44,7 @@ class CreateYamlFiles:
     """
 
     def __init__(self, input_, ligchain, ligname, atoms, cpus=25,
-                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=800, single=None):
+                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=800, single=None, factor=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -62,7 +65,7 @@ class CreateYamlFiles:
         initial: file, optional
             The initial PDB file before the modification by pmx
         cu: bool, optional
-            Set it to true if there are coppers in the system
+            Set it to true if there are metals with more than 2 charges (positive or negative) in the system
         seed: int, optional
             A seed number to make the simulations reproducible
         nord: bool, optional
@@ -71,6 +74,8 @@ class CreateYamlFiles:
             The number of PELE steps
         single: str
             Anything that indicates that we are in purizyme mode
+        factor: int, optional
+            The number to divide the metal charges
         """
         self.input = input_
         self.ligchain = ligchain
@@ -88,6 +93,7 @@ class CreateYamlFiles:
         else:
             self.steps = steps
         self.single = single
+        self.factor = factor
 
     def _match_dist(self):
         """
@@ -148,8 +154,9 @@ class CreateYamlFiles:
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n",
                       "pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n"]
             if self.cu:
-                path = "/gpfs/projects/bsc72/ruite/examples/cuz"
-                lines2.append("templates:\n- '{}'\n".format(path))
+                lines2.append("polarize_metals: true\n")
+            if self.cu and self.factor:
+                lines2.append("polarization_factor: {}\n".format(self.factor))
             lines.extend(lines2)
             inp.writelines(lines)
 
@@ -157,7 +164,7 @@ class CreateYamlFiles:
 
 
 def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, steps=800, single=None):
+                    cu=False, seed=12345, nord=False, steps=800, single=None, factor=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -179,7 +186,7 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
     initial: file, optional
         The initial PDB file before the modification by pmx if the residue number are changed
     cu: bool, optional
-        Set it to true if there are coppers in the system
+        Set it to true if there are metals in the system in the system
     seed: int, optional
         A seed number to make the simulations reproducible
     nord: bool, optional
@@ -188,6 +195,8 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
             The number of PELE steps
     single: str, optional
         Anything that indicates that we are in plurizyme mode
+    factor: int, optional
+        The number to divide the charges of the metals
 
     Returns
     _______
@@ -211,7 +220,7 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
         files = files.strip("\n")
         name = basename(files).replace(".pdb", "")
         run = CreateYamlFiles(files, ligchain, ligname, atoms, cpus, test=test,
-                              initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single)
+                              initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single, factor=factor)
         yaml = run.input_creation(name)
         yaml_files.append(yaml)
 
@@ -219,13 +228,13 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
 
 
 def main():
-    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps = parse_args()
-    yaml_files = create_20sbatch(ligchain, ligname, atoms,
-                                 cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord, steps=steps)
+    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor = parse_args()
+    yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, file_=folder, test=test, cu=cu,
+                                 seed=seed, nord=nord, steps=steps, factor=factor)
 
     return yaml_files
 
 
 if __name__ == "__main__":
     # Run this if this file is executed from command line but not if is imported as API
-    yaml_list, slurm_list = main()
+    yaml_list = main()
