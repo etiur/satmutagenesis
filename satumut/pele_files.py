@@ -18,7 +18,10 @@ def parse_args():
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
+    parser.add_argument("-po", "--polarize_metals", required=False, action="store_true",
+                        help="used if there are metals in the system")
+    parser.add_argument("-fa", "--polarization_factor", required=False, type=int,
+                        help="The number to divide the charges")
     parser.add_argument("-t", "--test", required=False, action="store_true",
                         help="Used if you want to run a test before")
     parser.add_argument("-n", "--nord", required=False, action="store_true",
@@ -29,8 +32,8 @@ def parse_args():
                         help="The number of PELE steps")
     args = parser.parse_args()
 
-    return [args.folder, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.cu,
-            args.seed, args.nord, args.steps]
+    return [args.folder, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test, args.polarize_metals,
+            args.seed, args.nord, args.steps, args.polarization_factor]
 
 
 class CreateLaunchFiles:
@@ -38,7 +41,7 @@ class CreateLaunchFiles:
     Creates the 2 necessary files for the pele simulations
     """
     def __init__(self, input_, ligchain, ligname, atom1, atom2, cpus=24,
-                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=1000):
+                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=1000, factor=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -61,13 +64,15 @@ class CreateLaunchFiles:
         initial: file, optional
             The initial PDB file before the modification by pmx
         cu: bool, optional
-            Set it to true if there are coppers in the system
+            Set it to true if there are charged metals in the system
         seed: int, optional
             A seed number to make the simulations reproducible
         nord: bool, optional
             True if the system is managed by LSF
         steps: int, optional
             The number of PELE steps
+        factor: int, optional
+            The number to divide the metal charges
         """
 
         self.input = input_
@@ -84,6 +89,7 @@ class CreateLaunchFiles:
         self.seed = seed
         self.nord = nord
         self.steps = steps
+        self.factor = factor
 
     def _match_dist(self):
         """
@@ -127,8 +133,9 @@ class CreateLaunchFiles:
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n",
                       "pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n"]
             if self.cu:
-                path = "/gpfs/projects/bsc72/ruite/examples/cuz"
-                lines2.append("templates:\n- '{}'\n".format(path))
+                lines2.append("polarize_metals: true\n")
+            if self.cu and self.factor:
+                lines2.append("polarization_factor: {}\n".format(self.factor))
             lines.extend(lines2)
             inp.writelines(lines)
 
@@ -204,7 +211,7 @@ class CreateLaunchFiles:
 
 
 def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, steps=1000):
+                    cu=False, seed=12345, nord=False, steps=1000, factor=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -228,13 +235,15 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
     initial: file, optional
         The initial PDB file before the modification by pmx if the residue number are changed
     cu: bool, optional
-        Set it to true if there are coppers in the system
+        Set it to true if there are charged metals in the system
     seed: int, optional
         A seed number to make the simulations reproducible
     nord: bool, optional
         True if the system is managed by LSF
     steps: int, optional
         The number of PELE steps
+    factor: int, optional
+        The number to divide the metal charges
 
     Returns
     _______
@@ -258,7 +267,7 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
         name = basename(files)
         name = name.replace(".pdb", "")
         run = CreateLaunchFiles(files, ligchain, ligname, atom1, atom2, cpus, test=test,
-                                initial=initial, cu=cu, seed=seed, nord=nord, steps=steps)
+                                initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, factor=factor)
         run.input_creation(name)
         if not nord:
             run.slurm_creation(name)
@@ -270,9 +279,9 @@ def create_20sbatch(ligchain, ligname, atom1, atom2, file_, cpus=24, test=False,
 
 
 def main():
-    folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord, steps = parse_args()
-    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2,
-                                  cpus=cpus, file_=folder, test=test, cu=cu, seed=seed, nord=nord, steps=steps)
+    folder, ligchain, ligname, atom1, atom2, cpus, test, cu, seed, nord, steps, factor = parse_args()
+    slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, file_=folder, test=test,
+                                  cu=cu, seed=seed, nord=nord, steps=steps, factor=factor)
 
     return slurm_files
 

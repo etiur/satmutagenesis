@@ -30,7 +30,10 @@ def parse_args():
                         help="atom of the ligand to follow in this format -> chain ID:position:atom name")
     parser.add_argument("--cpus", required=False, default=24, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--cu", required=False, action="store_true", help="used if there are copper in the system")
+    parser.add_argument("-po", "--polarize_metals", required=False, action="store_true",
+                        help="used if there are metals in the system")
+    parser.add_argument("-fa", "--polarization_factor", required=False, type=int,
+                        help="The number to divide the charges")
     parser.add_argument("-t", "--test", required=False, action="store_true",
                         help="Used if you want to run a test before")
     parser.add_argument("-n", "--nord", required=False, action="store_true",
@@ -52,8 +55,8 @@ def parse_args():
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atom1, args.atom2, args.cpus, args.test,
-            args.cu, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
-            args.steps]
+            args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen, args.consec,
+            args.steps, args.polarization_factor]
 
 
 class SimulationRunner:
@@ -149,12 +152,12 @@ class SimulationRunner:
 
 def main():
     input_, position, ligchain, ligname, atom1, atom2, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, steps = parse_args()
+    hydrogen, consec, steps, factor = parse_args()
     simulation = SimulationRunner(input_, dir_, nord=nord)
     input_ = simulation.side_function()
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, folder=pdb_dir, consec=consec)
     slurm_files = create_20sbatch(ligchain, ligname, atom1, atom2, cpus=cpus, test=test, initial=input_,
-                                  file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps)
+                                  file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, factor=factor)
     simulation.submit(slurm_files)
     simulation.pele_folders(pdb_names)
 

@@ -479,6 +479,70 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </div>
 <div class="section" id="module-satumut.helper">
 <span id="satumut-helper-module"></span><h2>satumut.helper module<a class="headerlink" href="#module-satumut.helper" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="satumut.helper.Log">
+<em class="property">class </em><code class="descclassname">satumut.helper.</code><code class="descname">Log</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.Log" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to keep log of the output from different modules</p>
+<dl class="method">
+<dt id="satumut.helper.Log.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.Log.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Log class
+:param name: The name of the log file
+:type name: str</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="satumut.helper.Log.critical">
+<code class="descname">critical</code><span class="sig-paren">(</span><em>messages</em>, <em>exc_info=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.Log.critical" title="Permalink to this definition">¶</a></dt>
+<dd><p>It pulls a critical message.
+:param messages: The messages to log
+:type messages: str
+:param exc_info: Set to true to include the exception error message
+:type exc_info: bool, optional</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="satumut.helper.Log.debug">
+<code class="descname">debug</code><span class="sig-paren">(</span><em>messages</em>, <em>exc_info=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.Log.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>It pulls a debug message.
+:param messages: The messages to log
+:type messages: str
+:param exc_info: Set to true to include the exception error message
+:type exc_info: bool, optional</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="satumut.helper.Log.error">
+<code class="descname">error</code><span class="sig-paren">(</span><em>messages</em>, <em>exc_info=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.Log.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>It pulls a error message.
+:param messages: The messages to log
+:type messages: str
+:param exc_info: Set to true to include the exception error message
+:type exc_info: bool, optional</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="satumut.helper.Log.info">
+<code class="descname">info</code><span class="sig-paren">(</span><em>messages</em>, <em>exc_info=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.Log.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>It pulls an info message.
+:param messages: The messages to log
+:type messages: str
+:param exc_info: Set to true to include the exception error message
+:type exc_info: bool, optional</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="satumut.helper.Log.warning">
+<code class="descname">warning</code><span class="sig-paren">(</span><em>messages</em>, <em>exc_info=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.Log.warning" title="Permalink to this definition">¶</a></dt>
+<dd><p>It pulls a warning message.
+:param messages: The messages to log
+:type messages: str
+:param exc_info: Set to true to include the exception error message
+:type exc_info: bool, optional</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="satumut.helper.isiterable">
 <code class="descclassname">satumut.helper.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>p_object</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.isiterable" title="Permalink to this definition">¶</a></dt>
@@ -681,11 +745,11 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <span id="satumut-pele-files-module"></span><h2>satumut.pele_files module<a class="headerlink" href="#module-satumut.pele_files" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="satumut.pele_files.CreateLaunchFiles">
-<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateLaunchFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateLaunchFiles" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateLaunchFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateLaunchFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the 2 necessary files for the pele simulations</p>
 <dl class="method">
 <dt id="satumut.pele_files.CreateLaunchFiles.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateLaunchFiles.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateLaunchFiles.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the CreateLaunchFiles object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -700,9 +764,11 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – How many cpus do you want to use</li>
 <li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
 <li><strong>initial</strong> (<em>file</em><em>, </em><em>optional</em>) – The initial PDB file before the modification by pmx</li>
-<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
+<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are charged metals in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
 <li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
+<li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
+<li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
 </ul>
 </td>
 </tr>
@@ -756,7 +822,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 
 <dl class="function">
 <dt id="satumut.pele_files.create_20sbatch">
-<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>file_</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atom1</em>, <em>atom2</em>, <em>file_</em>, <em>cpus=24</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates for each of the mutants the yaml and slurm files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -772,9 +838,11 @@ or a file of the path to the different pdb files</li>
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – how many cpus do you want to use</li>
 <li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
 <li><strong>initial</strong> (<em>file</em><em>, </em><em>optional</em>) – The initial PDB file before the modification by pmx if the residue number are changed</li>
-<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
+<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are charged metals in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
 <li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
+<li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
+<li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
 </ul>
 </td>
 </tr>

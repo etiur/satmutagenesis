@@ -15,12 +15,12 @@ The mutate_pdb module
 .. code-block:: python
     
     run = Mutagenesis("test.pdb", "A:145", "pdb_files") #Arguments are PDB, Chain ID:position num and the name of a folder for the output
-    pdbs = run.saturated_mutagenesis(hydrogens=True, mode=0)
+    pdbs = run.saturated_mutagenesis(hydrogens=True)
     run.accelerated_insert() # The pmx package removes the last column of the PDB file so it needs to be reinserted
 
     run = Mutagenesis("test.pdb", "A:145", "pdb_files")
     new_aa = "CYS"
-    file_ = run.single_mutagnesis(new_aa, hydrogens=True, mode=0) #we don't need the accelerated insert in this case, since it is a single mutation
+    file_ = run.single_mutagnesis(new_aa, hydrogens=True) #we don't need the accelerated insert in this case, since it is a single mutation
     
 ``generate_mutations`` is function that uses the class to mutate at several positions at once, 20 X 20 mutations or consecutively mutate at several positions.
 
@@ -38,7 +38,7 @@ The pele_files module
 .. code-block:: python
 
     run = CreateLaunchFiles(input_="test.pdb", ligchain="L", ligname="ligand", atom1="C:1:CU", 
-    atom2="L:1:N1", cpus=24, test=False, initial=None, cu=False, seed=12345, nord=False)
+    atom2="L:1:N1", cpus=24, test=False, initial=None, cu=False, seed=12345, nord=False, steps=1000, factor=None)
     
     run.input_creation("yaml_name")
     run.slurm_creation("slurm_name")
@@ -49,7 +49,7 @@ The pele_files module
 
     pdbs = generate_mutations("test.pdb", "A:145", hydrogens=True, multiple=False, folder="pdb_files", consec=False)
     slurm_files = create_20sbatch(ligchain="L", ligname="ligand", atom1="C:1:CU", atom2="L:1:N1", file_= pdbs, cpus=24, test=False, initial=None,
-                    cu=False, seed=12345, nord=False)
+                    cu=False, seed=12345, nord=False, steps=1000, factor=None)
 
 The Analysis module
 ====================
