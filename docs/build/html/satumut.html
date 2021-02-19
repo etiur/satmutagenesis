@@ -825,11 +825,11 @@ in a PDB file.</p>
 <p>This script is used to generate the yaml files for pele platform</p>
 <dl class="class">
 <dt id="satumut.pele_files.CreateYamlFiles">
-<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>analysis=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the 2 necessary files for the pele simulations</p>
 <dl class="method">
 <dt id="satumut.pele_files.CreateYamlFiles.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>analysis=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the CreateLaunchFiles object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -849,6 +849,7 @@ in a PDB file.</p>
 <li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
 <li><strong>single</strong> (<em>str</em>) – Anything that indicates that we are in purizyme mode</li>
 <li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
+<li><strong>analysis</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if you want the analysis by pele</li>
 </ul>
 </td>
 </tr>
@@ -874,7 +875,7 @@ in a PDB file.</p>
 
 <dl class="function">
 <dt id="satumut.pele_files.create_20sbatch">
-<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>file_</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>file_</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>analysis=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates for each of the mutants the yaml and slurm files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -895,6 +896,7 @@ or a file of the path to the different pdb files</li>
 <li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
 <li><strong>single</strong> (<em>str</em><em>, </em><em>optional</em>) – Anything that indicates that we are in plurizyme mode</li>
 <li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the charges of the metals</li>
+<li><strong>analysis</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if you want the analysis by pele</li>
 </ul>
 </td>
 </tr>
@@ -1021,7 +1023,7 @@ or a file of the path to the different pdb files</li>
 
 <dl class="function">
 <dt id="satumut.simulation.saturated_simulation">
-<code class="descclassname">satumut.simulation.</code><code class="descname">saturated_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>thres=-0.1</em>, <em>factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.saturated_simulation" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.simulation.</code><code class="descname">saturated_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>thres=-0.1</em>, <em>factor=None</em>, <em>analysis=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.saturated_simulation" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that uses the SimulationRunner class to run saturated mutagenesis simulations</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1052,6 +1054,7 @@ or a file of the path to the different pdb files</li>
 <li><strong>opt</strong> (<em>str</em><em>, </em><em>optional</em>) – choose if to analyse distance, energy or both</li>
 <li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – The threshold for the mutations to be included in the pdf</li>
 <li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
+<li><strong>analysis</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if you want the analysis by pele</li>
 </ul>
 </td>
 </tr>

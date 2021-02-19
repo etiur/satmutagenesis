@@ -188,7 +188,7 @@
                <span class="o">[</span>-an <span class="o">{</span>energy,distance,both<span class="o">}]</span> <span class="o">[</span>--thres THRES<span class="o">]</span>
                <span class="o">[</span>-sm SINGLE_MUTAGENESIS<span class="o">]</span> <span class="o">[</span>-PR PLURIZYME_AT_AND_RES<span class="o">]</span>
                <span class="o">[</span>-r RADIUS<span class="o">]</span> <span class="o">[</span>-f FIXED_RESIDS <span class="o">[</span>FIXED_RESIDS ...<span class="o">]]</span>
-               <span class="o">[</span>-cpt CPUS_PER_TASK<span class="o">]</span>
+               <span class="o">[</span>-cpt CPUS_PER_TASK<span class="o">]</span> <span class="o">[</span>-pa<span class="o">]</span>
 
 
 Generate the mutant PDB and the corresponding running files
@@ -254,6 +254,7 @@ optional arguments:
                           positionnumbers<span class="o">)</span>
     -cpt CPUS_PER_TASK, --cpus_per_task CPUS_PER_TASK
                           Include the number of cpus per task desired
+    -pa, --pele_analysis  <span class="k">if</span> you want to turn on the analysis by PELE
 </pre></div>
 </div>
 <p>The first 6 arguments are necessary and the rest are optional, for example:</p>

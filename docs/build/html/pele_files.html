@@ -169,7 +169,7 @@
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: pele_files.py <span class="o">[</span>-h<span class="o">]</span> --folder FOLDER -lc LIGCHAIN -ln LIGNAME -at ATOMS
                  <span class="o">[</span>ATOMS ...<span class="o">]</span> <span class="o">[</span>--cpus CPUS<span class="o">]</span> <span class="o">[</span>-po<span class="o">]</span> <span class="o">[</span>-fa POLARIZATION_FACTOR<span class="o">]</span>
-                 <span class="o">[</span>-t<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-st STEPS<span class="o">]</span>
+                 <span class="o">[</span>-t<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-st STEPS<span class="o">]</span> <span class="o">[</span>-pa<span class="o">]</span>
 
 Generate running files <span class="k">for</span> PELE
 
@@ -196,6 +196,7 @@ optional arguments:
                     reproducible
     -st STEPS, --steps STEPS
                     The number of PELE steps
+    -pa, --pele_analysis  <span class="k">if</span> you want to turn on the analysis by PELE
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">--folder</span></code> flag accepts folders where the PDB files are located, files containing the path to the different PDBs (one path per line) or lists of paths to the PDBs, for example:</p>

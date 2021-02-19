@@ -16,7 +16,7 @@ This script combines the functions and classes from all the other modules to cre
                      [--traj TRAJ] [--out OUT] [--plot PLOT]
                      [-an {energy,distance,both}] [--thres THRES]
                      [-sm SINGLE_MUTAGENESIS] [-PR PLURIZYME_AT_AND_RES]
-                     [-r RADIUS] [-f FIXED_RESIDS [FIXED_RESIDS ...]]
+                     [-r RADIUS] [-f FIXED_RESIDS [FIXED_RESIDS ...]] [-pa]
 
     Generate the mutant PDB and the corresponding running files
 
@@ -77,6 +77,7 @@ This script combines the functions and classes from all the other modules to cre
         -f FIXED_RESIDS [FIXED_RESIDS ...], --fixed_resids FIXED_RESIDS [FIXED_RESIDS ...]
                         Specify the list of residues that you don't wantto
                         have mutated (Must write the list of residuenumbers)
+        -pa, --pele_analysis  if you want to turn on the analysis by PELE
                         
 | It has all the required arguments for the classes and functions from the other modules if the falgs ``-sm`` and ``-PR`` are present it runs ``plurizymes_simulation`` instead of ``saturated_simulation``. 
 | An example would be:

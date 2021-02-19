@@ -158,9 +158,13 @@ class Log:
         self._logger.setLevel(logging.DEBUG)
         self.fh = logging.FileHandler("{}.log".format(name))
         self.fh.setLevel(logging.DEBUG)
+        self.ch = logging.StreamHandler()
+        self.ch.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         self.fh.setFormatter(formatter)
+        self.ch.setFormatter(formatter)
         self._logger.addHandler(self.fh)
+        self._logger.addHandler(self.ch)
 
     def debug(self, messages, exc_info=False):
         """

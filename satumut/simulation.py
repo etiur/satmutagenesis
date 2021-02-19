@@ -73,13 +73,15 @@ def parse_args():
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue"
                              "numbers)")
+    parser.add_argument("-pa", "--pele_analysis", required=False, action="store_true",
+                        help="if you want to turn on the analysis by PELE")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
             args.consec, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.polarization_factor]
+            args.polarization_factor, args.pele_analysis]
 
 
 class SimulationRunner:
@@ -180,7 +182,7 @@ class SimulationRunner:
 def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                          nord=False, steps=800, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", thres=-0.1, factor=None):
+                         plot_dir=None, opt="distance", thres=-0.1, factor=None, analysis=False):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -234,13 +236,16 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
        The threshold for the mutations to be included in the pdf
     factor: int, optional
         The number to divide the metal charges
+    analysis: bool, optional
+        True if you want the analysis by pele
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
                                    consec=consec)
     yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
-                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, factor=factor)
+                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
+                                 analysis=analysis)
     simulation.submit(yaml_files)
     dirname = simulation.pele_folders(pdb_names)
     if not test:
@@ -309,18 +314,19 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
 
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids = parse_args()
+    hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
+    plurizyme_at_and_res, radius, fixed_resids, factor, analysis = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
-                             radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps)
+                             radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps,
+                             factor)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, position, ligchain, ligname, atoms, cpus, dir_, hydrogen,
                              multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
-                             plot_dir, analysis, thres)
+                             plot_dir, analyze, thres, factor, analysis)
 
 
 if __name__ == "__main__":

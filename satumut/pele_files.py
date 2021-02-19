@@ -32,10 +32,12 @@ def parse_args():
                         help="Include the seed number to make the simulation reproducible")
     parser.add_argument("-st", "--steps", required=False, type=int, default=800,
                         help="The number of PELE steps")
+    parser.add_argument("-pa", "--pele_analysis", required=False, action="store_true",
+                        help="if you want to turn on the analysis by PELE")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus, args.test, args.polarize_metals,
-            args.seed, args.nord, args.steps, args.polarization_factor]
+            args.seed, args.nord, args.steps, args.polarization_factor, args.pele_analysis]
 
 
 class CreateYamlFiles:
@@ -44,7 +46,8 @@ class CreateYamlFiles:
     """
 
     def __init__(self, input_, ligchain, ligname, atoms, cpus=25,
-                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=800, single=None, factor=None):
+                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=800, single=None, factor=None,
+                 analysis=False):
         """
         Initialize the CreateLaunchFiles object
 
@@ -76,6 +79,8 @@ class CreateYamlFiles:
             Anything that indicates that we are in purizyme mode
         factor: int, optional
             The number to divide the metal charges
+        analysis: bool, optional
+            True if you want the analysis by pele
         """
         self.input = input_
         self.ligchain = ligchain
@@ -94,6 +99,7 @@ class CreateYamlFiles:
             self.steps = steps
         self.single = single
         self.factor = factor
+        self.analysis = analysis
 
     def _match_dist(self):
         """
@@ -141,6 +147,8 @@ class CreateYamlFiles:
                      "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps), "atom_dist:\n"]
             lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
             lines.extend(lines_atoms)
+            if not self.analysis:
+                lines.append("analysis: false\n")
             if not self.nord:
                 lines.append("usesrun: true\n")
             if name != "original":
@@ -164,7 +172,7 @@ class CreateYamlFiles:
 
 
 def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, steps=800, single=None, factor=None):
+                    cu=False, seed=12345, nord=False, steps=800, single=None, factor=None, analysis=False):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -197,6 +205,8 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
         Anything that indicates that we are in plurizyme mode
     factor: int, optional
         The number to divide the charges of the metals
+    analysis: bool, optional
+        True if you want the analysis by pele
 
     Returns
     _______
@@ -220,7 +230,8 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
         files = files.strip("\n")
         name = basename(files).replace(".pdb", "")
         run = CreateYamlFiles(files, ligchain, ligname, atoms, cpus, test=test,
-                              initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single, factor=factor)
+                              initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single, factor=factor,
+                              analysis=analysis)
         yaml = run.input_creation(name)
         yaml_files.append(yaml)
 
@@ -228,9 +239,9 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
 
 
 def main():
-    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor = parse_args()
+    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor, analysis = parse_args()
     yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, file_=folder, test=test, cu=cu,
-                                 seed=seed, nord=nord, steps=steps, factor=factor)
+                                 seed=seed, nord=nord, steps=steps, factor=factor, analysis=analysis)
 
     return yaml_files
 

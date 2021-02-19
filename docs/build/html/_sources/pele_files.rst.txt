@@ -10,7 +10,7 @@ The second script is used when you have the PDB files and you want to generate t
 
     usage: pele_files.py [-h] --folder FOLDER -lc LIGCHAIN -ln LIGNAME -at ATOMS
                      [ATOMS ...] [--cpus CPUS] [-po] [-fa POLARIZATION_FACTOR] 
-                     [-t] [-n] [-s SEED] [-st STEPS]
+                     [-t] [-n] [-s SEED] [-st STEPS] [-pa]
 
     Generate running files for PELE
 
@@ -37,7 +37,7 @@ The second script is used when you have the PDB files and you want to generate t
                         reproducible
         -st STEPS, --steps STEPS
                         The number of PELE steps
-                             
+        -pa, --pele_analysis  if you want to turn on the analysis by PELE
 The ``--folder`` flag accepts folders where the PDB files are located, files containing the path to the different PDBs (one path per line) or lists of paths to the PDBs, for example:
 
 .. code-block:: bash

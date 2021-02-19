@@ -79,13 +79,15 @@ def parse_args():
                              "numbers)")
     parser.add_argument("-cpt", "--cpus_per_task", required=False, default=2, type=int,
                         help="Include the number of cpus per task desired")
+    parser.add_argument("-pa", "--pele_analysis", required=False, action="store_true",
+                        help="if you want to turn on the analysis by PELE")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
             args.consec, args.sbatch, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse,
             args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.cpus_per_task, args.polarization_factor]
+            args.cpus_per_task, args.polarization_factor, args.pele_analysis]
 
 
 class CreateSlurmFiles:
@@ -97,7 +99,7 @@ class CreateSlurmFiles:
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=800, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], cpus_task=2,
-                 factor=None):
+                 factor=None, analysis=False):
         """
         Initialize the CreateLaunchFiles object
 
@@ -159,6 +161,8 @@ class CreateSlurmFiles:
             A list of residues positions to avoid mutating
         factor: int, optional
             The number to divide the metal charges
+        analysis: bool, optional
+            Set to tru if you want the analysis from PELE
         """
         assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
         self.input = input_
@@ -201,6 +205,7 @@ class CreateSlurmFiles:
         self.avoid = fixed_resids
         self.cpus_task = cpus_task
         self.factor = factor
+        self.analysis = analysis
 
     def _size(self):
         """
@@ -234,7 +239,7 @@ class CreateSlurmFiles:
                 real_cpus = self.cpus * self.len
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
             else:
-                real_cpus = self.cpus * self.len
+                real_cpus = self.cpus * self.len + 2
                 lines.append("#SBATCH --ntasks={}\n".format(real_cpus))
                 if self.single and self.pluri:
                     lines.append("#SBATCH --cpus-per-task={}\n\n".format(self.cpus_task))
@@ -297,6 +302,8 @@ class CreateSlurmFiles:
                     argument_list.append("-f {} ".format(self.avoid))
             if self.cu and self.factor:
                 argument_list.append("-fa {} ".format(self.factor))
+            if self.analysis:
+                argument_list.append("-pa ")
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
