@@ -144,7 +144,8 @@ class CreateYamlFiles:
         with open(self.yaml, "w") as inp:
             lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
-                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps), "atom_dist:\n"]
+                     "seed: {}\n".format(self.seed), "clustering: 'null'\n", "steps: {}\n".format(self.steps),
+                     "atom_dist:\n"]
             lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
             lines.extend(lines_atoms)
             if not self.analysis:
