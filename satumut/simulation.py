@@ -249,6 +249,8 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
     simulation.submit(yaml_files)
     dirname = simulation.pele_folders(pdb_names)
     if not test:
+        if dir_ and not plot_dir:
+            plot_dir = dir_
         consecutive_analysis(dirname, dpi, box, traj, output, plot_dir, opt, cpus, thres)
 
 
