@@ -179,10 +179,11 @@ class SimulationRunner:
         self.log.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
 
 
-def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, dir_=None, hydrogen=True,
+def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                          nord=False, steps=800, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", thres=-0.1, factor=None, analysis=False):
+                         plot_dir=None, opt="distance", thres=-0.1, factor=None, analysis=False, single_mutagenesis=None,
+                         plurizyme_at_and_res=None, radius=5.0, fixed_resids=[]):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -190,14 +191,14 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
     __________
     input_: str
         The wild type PDB file path
-    position: list[str]
-        [chain ID:position] of the residue, for example [A:139,..]
     ligchain: str
         the chain ID where the ligand is located
     ligname: str
         the residue name of the ligand in the PDB
     atoms: list[str]
             list of atom of the residue to follow, in this format --> chain ID:position:atom name
+    position: list[str]
+        [chain ID:position] of the residue, for example [A:139,..]
     cpus: int, optional
         how many cpus do you want to use
     dir_: str, optional
@@ -241,6 +242,8 @@ def saturated_simulation(input_, position, ligchain, ligname, atoms, cpus=25, di
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
+    if not position and single_mutagenesis and plurizyme_at_and_res:
+        position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
                                    consec=consec)
     yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
@@ -326,7 +329,7 @@ def main():
                              factor)
     else:
         # Else, perform saturated mutagenesis
-        saturated_simulation(input_, position, ligchain, ligname, atoms, cpus, dir_, hydrogen,
+        saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                              multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
                              plot_dir, analyze, thres, factor, analysis)
 

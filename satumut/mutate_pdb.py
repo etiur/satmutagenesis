@@ -103,6 +103,7 @@ class Mutagenesis:
         if not os.path.exists("{}/original.pdb".format(self.folder)):
             self.model.write("{}/original.pdb".format(self.folder))
             self.final_pdbs.append("{}/original.pdb".format(self.folder))
+            self.insert_atomtype("{}/original.pdb".format(self.folder))
         if self.consec:
             self.final_pdbs.remove("{}/original.pdb".format(self.folder))
 
@@ -247,9 +248,10 @@ class Mutagenesis:
         if file_list:
             self.final_pdbs = file_list
         for prep_pdb in self.final_pdbs:
-            p = Process(target=self.insert_atomtype, args=(prep_pdb,))
-            p.start()
-            pros.append(p)
+            if "original" not in prep_pdb:
+                p = Process(target=self.insert_atomtype, args=(prep_pdb,))
+                p.start()
+                pros.append(p)
         for p in pros:
             p.join()
 
@@ -304,6 +306,9 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
+
+    if single and not consec:
+        pdbs.append("{}/original.pdb".format(pdb_dir))
 
     return pdbs
 
