@@ -4,21 +4,23 @@ This script is used to generate the yaml files for pele platform
 
 import argparse
 import os
-from helper import map_atom_string, isiterable
-from os.path import basename, join, isfile, isdir
+from helper import map_atom_string
+import glob
+from os.path import basename
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate running files for PELE")
     # main required arguments
     parser.add_argument("--folder", required=True,
-                        help="An iterable of the path to different pdb files, a name of the folder or a file with the "
-                             "path to the different pdb files")
+                        help="An iterable of the path to different pdb files, a name of the folder with the pdbs")
     parser.add_argument("-lc", "--ligchain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
     parser.add_argument("-at", "--atoms", required=True, nargs="+",
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--cpus", required=False, default=25, type=int,
+    parser.add_argument("-cpm", "--cpus_per_mutant", required=False, default=25, type=int,
+                        help="Include the number of cpus desired")
+    parser.add_argument("-tcpus", "--total_cpus", required=False, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("-po", "--polarize_metals", required=False, action="store_true",
                         help="used if there are metals in the system")
@@ -32,29 +34,27 @@ def parse_args():
                         help="Include the seed number to make the simulation reproducible")
     parser.add_argument("-st", "--steps", required=False, type=int, default=800,
                         help="The number of PELE steps")
-    parser.add_argument("-pa", "--pele_analysis", required=False, action="store_true",
-                        help="if you want to turn on the analysis by PELE")
+
     args = parser.parse_args()
 
-    return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus, args.test, args.polarize_metals,
-            args.seed, args.nord, args.steps, args.polarization_factor, args.pele_analysis]
+    return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test, args.polarize_metals,
+            args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus]
 
 
 class CreateYamlFiles:
     """
     Creates the 2 necessary files for the pele simulations
     """
-
-    def __init__(self, input_, ligchain, ligname, atoms, cpus=25,
+    def __init__(self, input_path,  ligchain, ligname, atoms, cpus=25,
                  test=False, initial=None, cu=False, seed=12345, nord=False, steps=800, single=None, factor=None,
-                 analysis=False):
+                 total_cpus=None):
         """
         Initialize the CreateLaunchFiles object
 
         Parameters
         ___________
-        input_: str
-            A PDB file's path
+        input_path: list[str]
+            A list of the path to the mutant pdbs
         ligchain: str
             the chain ID where the ligand is located
         ligname: str
@@ -81,8 +81,10 @@ class CreateYamlFiles:
             The number to divide the metal charges
         analysis: bool, optional
             True if you want the analysis by pele
+        total_cpus: int, optional
+            The total number of cpus, it should be a multiple of the number of cpus
         """
-        self.input = input_
+        self.input = input_path
         self.ligchain = ligchain
         self.ligname = ligname
         self.atoms = atoms[:]
@@ -99,7 +101,10 @@ class CreateYamlFiles:
             self.steps = steps
         self.single = single
         self.factor = factor
-        self.analysis = analysis
+        if total_cpus:
+            self.total_cpu = total_cpus
+        else:
+            self.total_cpu = len(self.input) * self.cpus
 
     def _match_dist(self):
         """
@@ -107,7 +112,7 @@ class CreateYamlFiles:
         """
         if self.initial:
             for i in range(len(self.atoms)):
-                self.atoms[i] = map_atom_string(self.atoms[i], self.initial, self.input)
+                self.atoms[i] = map_atom_string(self.atoms[i], self.initial, self.input[0])
         else:
             pass
 
@@ -124,42 +129,33 @@ class CreateYamlFiles:
 
         return round_
 
-    def input_creation(self, name):
+    def input_creation(self):
         """
         create the .yaml input files for PELE
-
-        Parameters
-        ___________
-        yaml_name: str
-            Name for the input file for the simulation
         """
         self._match_dist()
         if self.single:
             folder = self._search_round()
         else:
-            folder = name[:-1]
+            folder = "simulations"
         if not os.path.exists("yaml_files"):
             os.mkdir("yaml_files")
-        self.yaml = "yaml_files/{}.yaml".format(name)
+        self.yaml = "yaml_files/simulation.yaml"
         with open(self.yaml, "w") as inp:
-            lines = ["system: '{}'\n".format(self.input), "chain: '{}'\n".format(self.ligchain),
-                     "resname: '{}'\n".format(self.ligname), "induced_fit_exhaustive: true\n",
-                     "seed: {}\n".format(self.seed), "clustering: 'null'\n", "steps: {}\n".format(self.steps),
+            lines = ["system: '{}/*.pdbs'\n".format(basename(self.input[0])), "chain: '{}'\n".format(self.ligchain),
+                     "resname: '{}'\n".format(self.ligname), "saturated_mutagenes: True\n",
+                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps),
                      "atom_dist:\n"]
             lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
             lines.extend(lines_atoms)
-            if not self.analysis:
-                lines.append("analysis: false\n")
             if not self.nord:
                 lines.append("usesrun: true\n")
-            if name != "original":
-                lines.append("working_folder: {}/PELE_{}\n".format(folder, name))
-            else:
-                lines.append("working_folder: PELE_{}\n".format(name))
+            lines.append("working_folder: {}\n".format(folder))
             if self.test:
                 lines.append("test: true\n")
                 self.cpus = 5
-            lines2 = ["cpus: {}\n".format(self.cpus),
+                self.total_cpu = len(self.input) * self.cpus
+            lines2 = ["cpus: {}\n".format(self.total_cpu),"cpus_per_mutation: {}\n".format(self.cpus),
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n",
                       "pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n"]
             if self.cu:
@@ -172,22 +168,22 @@ class CreateYamlFiles:
         return self.yaml
 
 
-def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, steps=800, single=None, factor=None, analysis=False):
+def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, initial=None,
+                    cu=False, seed=12345, nord=False, steps=800, single=None, factor=None,
+                    total_cpus=None):
     """
     creates for each of the mutants the yaml and slurm files
 
     Parameters
     ___________
+    pdb_files: str, list[str]
+        the directory to the pdbs or a list of the paths to the mutant pdbs
     ligchain: str
         the chain ID where the ligand is located
     ligname: str
         the residue name of the ligand in the PDB
     atoms: list[str]
         list of atom of the residue to follow, in this format --> chain ID:position:atom name
-    file_: iterable (not string or dict), dir or a file
-        An iterable of the path to different pdb files, a name of the folder
-        or a file of the path to the different pdb files
     cpus: int, optional
         how many cpus do you want to use
     test: bool, optional
@@ -208,41 +204,29 @@ def create_20sbatch(ligchain, ligname, atoms, file_, cpus=25, test=False, initia
         The number to divide the charges of the metals
     analysis: bool, optional
         True if you want the analysis by pele
+    total_cpus: int, optional
+        The number of total cpus, it should be a multiple of the number of cpus
 
     Returns
     _______
     slurm_files: list[path]
         A list of the files generated
     """
-    if isdir(str(file_)):
-        file_list = list(filter(lambda x: ".pdb" in x, os.listdir(file_)))
-        file_list = [join(file_, files) for files in file_list]
-    elif isfile(str(file_)):
-        with open("{}".format(file_), "r") as pdb:
-            file_list = pdb.readlines()
-    elif isiterable(file_):
-        file_list = file_[:]
+    if type(pdb_files) == str:
+        pdb_list = glob.glob("{}/*.pdb".format(pdb_files))
     else:
-        raise Exception("No directory or iterable passed")
-
-    # Create the launching files
-    yaml_files = []
-    for files in file_list:
-        files = files.strip("\n")
-        name = basename(files).replace(".pdb", "")
-        run = CreateYamlFiles(files, ligchain, ligname, atoms, cpus, test=test,
-                              initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single, factor=factor,
-                              analysis=analysis)
-        yaml = run.input_creation(name)
-        yaml_files.append(yaml)
-
-    return yaml_files
+        pdb_list = pdb_files
+    run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, test=test,
+                          initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single, factor=factor,
+                          total_cpus=total_cpus)
+    yaml = run.input_creation()
+    return yaml
 
 
 def main():
-    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor, analysis = parse_args()
-    yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, file_=folder, test=test, cu=cu,
-                                 seed=seed, nord=nord, steps=steps, factor=factor, analysis=analysis)
+    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor, total_cpus = parse_args()
+    yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, test=test, cu=cu,
+                                 seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus)
 
     return yaml_files
 

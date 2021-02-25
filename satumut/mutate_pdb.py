@@ -119,8 +119,6 @@ class Mutagenesis:
         ___________
         hydrogens: bool, optional
             Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
-        mode: 0/1, optional
-            Acts as a switch, 0 if only 1 mutation per PDB, 1 if 2 mutations per PDB
 
         Returns
         _______
@@ -159,8 +157,6 @@ class Mutagenesis:
             The aa to mutate to, in 3 letter code or 1 letter code
         hydrogens: bool, optional
             Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
-        mode: 0/1, optional
-            0 if it is just 1 mutation per PDB, 1 if there are more than one mutations
 
         Returns
         ______

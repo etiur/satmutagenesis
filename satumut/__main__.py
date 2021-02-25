@@ -24,7 +24,9 @@ def parse_args():
     parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
     parser.add_argument("-at", "--atoms", required=True, nargs="+",
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--cpus", required=False, default=25, type=int,
+    parser.add_argument("-cpm", "--cpus_per_mutant", required=False, default=25, type=int,
+                        help="Include the number of cpus desired")
+    parser.add_argument("-tcpus", "--total_cpus", required=False, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("-po", "--polarize_metals", required=False, action="store_true",
                         help="used if there are metals in the system")
@@ -53,7 +55,7 @@ def parse_args():
                         help="Set the quality of the plots")
     parser.add_argument("--box", required=False, default=30, type=int,
                         help="Set how many data points are used for the boxplot")
-    parser.add_argument("--traj", required=False, default=10, type=int,
+    parser.add_argument("-tr", "--trajectory", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
@@ -79,15 +81,13 @@ def parse_args():
                              "numbers)")
     parser.add_argument("-cpt", "--cpus_per_task", required=False, default=2, type=int,
                         help="Include the number of cpus per task desired")
-    parser.add_argument("-pa", "--pele_analysis", required=False, action="store_true",
-                        help="if you want to turn on the analysis by PELE")
     args = parser.parse_args()
 
-    return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
+    return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
-            args.consec, args.sbatch, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse,
+            args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse,
             args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.cpus_per_task, args.polarization_factor, args.pele_analysis]
+            args.cpus_per_task, args.polarization_factor, args.total_cpus]
 
 
 class CreateSlurmFiles:
@@ -95,11 +95,11 @@ class CreateSlurmFiles:
     Creates the 2 necessary files for the pele simulations
     """
 
-    def __init__(self, input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
+    def __init__(self, input_, ligchain, ligname, atoms, position=(), cpus_mutant=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=800, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], cpus_task=2,
-                 factor=None, analysis=False):
+                 factor=None, total_cpus=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -115,7 +115,7 @@ class CreateSlurmFiles:
             list of atom of the residue to follow, in this format --> chain ID:position:atom name
         position: list[str]
             [chain ID:position] of the residue, for example [A:139,..]
-        cpus: int, optional
+        cpus_mutant: int, optional
             how many cpus do you want to use
         dir_: str, optional
             Name of the folder ofr the simulations
@@ -161,15 +161,15 @@ class CreateSlurmFiles:
             A list of residues positions to avoid mutating
         factor: int, optional
             The number to divide the metal charges
-        analysis: bool, optional
-            Set to tru if you want the analysis from PELE
+        Total_cpus: int, optional
+            The total number of cpus available
         """
         assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
         self.input = input_
         self.ligchain = ligchain
         self.ligname = ligname
         self.atoms = " ".join(atoms)
-        self.cpus = cpus
+        self.cpus = cpus_mutant
         self.test = test
         self.slurm = None
         self.cu = cu
@@ -182,7 +182,7 @@ class CreateSlurmFiles:
             self.len = len(_)
         else:
             self.len = len(position) * 19 + 1
-        if position:
+        if len(position) != 0:
             self.position = " ".join(position)
         else:
             self.position = None
@@ -205,7 +205,7 @@ class CreateSlurmFiles:
         self.avoid = fixed_resids
         self.cpus_task = cpus_task
         self.factor = factor
-        self.analysis = analysis
+        self.total_cpus = total_cpus
 
     def _size(self):
         """
@@ -239,7 +239,10 @@ class CreateSlurmFiles:
                 real_cpus = self.cpus * self.len
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
             else:
-                real_cpus = self.cpus * self.len + 2
+                if self.total_cpus:
+                    real_cpus = self.total_cpus
+                else:
+                    real_cpus = self.cpus * self.len + 2
                 lines.append("#SBATCH --ntasks={}\n".format(real_cpus))
                 if self.single and self.pluri:
                     lines.append("#SBATCH --cpus-per-task={}\n\n".format(self.cpus_task))
@@ -260,7 +263,9 @@ class CreateSlurmFiles:
             if self.seed != 12345:
                 argument_list.append("--seed {} ".format(self.seed))
             if self.cpus != 25:
-                argument_list.append("--cpus {} ".format(self.cpus))
+                argument_list.append("-cpm {} ".format(self.cpus))
+            if self.total_cpus:
+                argument_list.append("-tcpus {} ".format(self.total_cpus))
             if not self.hydrogen:
                 argument_list.append("-hy ")
             if self.consec:
@@ -284,7 +289,7 @@ class CreateSlurmFiles:
             if self.box != 30:
                 argument_list.append("--box {} ".format(self.box))
             if self.traj != 10:
-                argument_list.append("--traj {} ".format(self.traj))
+                argument_list.append("-tr {} ".format(self.traj))
             if self.output != "summary":
                 argument_list.append("--out {} ".format(self.output))
             if self.plot_dir:
@@ -352,12 +357,12 @@ class CreateSlurmFiles:
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, cpus_per_task, factor = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, cpus_per_task, factor, total_cpus = parse_args()
 
     run = CreateSlurmFiles(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                            multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                            out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                           fixed_resids, cpus_per_task, factor)
+                           fixed_resids, cpus_per_task, factor, total_cpus)
     slurm = run.slurm_creation()
     if sbatch:
         os.system("sbatch {}".format(slurm))

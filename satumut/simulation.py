@@ -22,7 +22,9 @@ def parse_args():
     parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
     parser.add_argument("-at", "--atoms", required=True, nargs="+",
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
-    parser.add_argument("--cpus", required=False, default=25, type=int,
+    parser.add_argument("-cpm", "--cpus_per_mutant", required=False, default=25, type=int,
+                        help="Include the number of cpus desired")
+    parser.add_argument("-tcpus", "--total_cpus", required=False, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("-po", "--polarize_metals", required=False, action="store_true",
                         help="used if there are metals in the system")
@@ -49,7 +51,7 @@ def parse_args():
                         help="Set the quality of the plots")
     parser.add_argument("--box", required=False, default=30, type=int,
                         help="Set how many data points are used for the boxplot")
-    parser.add_argument("--traj", required=False, default=10, type=int,
+    parser.add_argument("-tr", "--trajectory", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
@@ -73,15 +75,13 @@ def parse_args():
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue"
                              "numbers)")
-    parser.add_argument("-pa", "--pele_analysis", required=False, action="store_true",
-                        help="if you want to turn on the analysis by PELE")
     args = parser.parse_args()
 
-    return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus, args.test,
+    return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
-            args.consec, args.steps, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse, args.thres,
+            args.consec, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.polarization_factor, args.pele_analysis]
+            args.polarization_factor, args.total_cpus]
 
 
 class SimulationRunner:
@@ -182,8 +182,8 @@ class SimulationRunner:
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                          nord=False, steps=800, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", thres=-0.1, factor=None, analysis=False, single_mutagenesis=None,
-                         plurizyme_at_and_res=None, radius=5.0, fixed_resids=[]):
+                         plot_dir=None, opt="distance", thres=-0.1, factor=None, single_mutagenesis=None,
+                         plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], total_cpus=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -237,8 +237,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
        The threshold for the mutations to be included in the pdf
     factor: int, optional
         The number to divide the metal charges
-    analysis: bool, optional
-        True if you want the analysis by pele
+    total_cpus: int, optional
+        Set the total number of cpus, it should be a multiple of the number of cpus
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -246,9 +246,9 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
                                    consec=consec)
-    yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
-                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
-                                 analysis=analysis)
+    yaml_files = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
+                                 cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
+                                 total_cpus=total_cpus)
     simulation.submit(yaml_files)
     dirname = simulation.pele_folders(pdb_names)
     if not test:
@@ -258,9 +258,9 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
-                         radius=5.0, fixed_resids=[], cpus=30, dir_=None, hydrogen=True,
+                         radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                         nord=False, steps=250, factor=None):
+                         nord=False, steps=250, factor=None, total_cpus=None):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -304,6 +304,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
         The number of PELE steps
     factor: int, optional
         The number to divide the metal charges
+    total_cpus: int, optional
+        Set the total number of cpus, it should be a multiple of the number of cpus
     """
     simulation = SimulationRunner(input_, dir_, single_mutagenesis)
     input_ = simulation.side_function()
@@ -311,27 +313,27 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec,
                                    single=single_mutagenesis)
-    yaml_files = create_20sbatch(ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
-                                 file_=pdb_names, cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
-                                 factor=factor)
+    yaml_files = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
+                                 cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
+                                 factor=factor, total_cpus=total_cpus)
     simulation.submit(yaml_files)
 
 
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, factor, analysis = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                              radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps,
-                             factor)
+                             factor, total_cpus)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                              multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
-                             plot_dir, analyze, thres, factor, analysis)
+                             plot_dir, analyze, thres, factor, total_cpus)
 
 
 if __name__ == "__main__":
