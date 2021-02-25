@@ -191,10 +191,10 @@ class SimulationRunner:
         platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
         command = ["{}".format(platform), "-m", "pele_platform.main", "{}".format(yaml)]
         start = time.time()
-        call(command, close_fds=False)
+        retun_code = call(command, close_fds=False)
         end = time.time()
         # creating a log
-        self.log.info("It took {} to run the simulation".format(end - start))
+        self.log.info("It took {} to run the simulation with return code {}".format(end - start, retun_code))
 
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
