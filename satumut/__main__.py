@@ -79,7 +79,7 @@ def parse_args():
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue position"
                              "numbers)")
-    parser.add_argument("-cpt", "--cpus_per_task", required=False, default=2, type=int,
+    parser.add_argument("-cpt", "--cpus_per_task", required=False, default=1, type=int,
                         help="Include the number of cpus per task desired")
     args = parser.parse_args()
 
@@ -244,10 +244,7 @@ class CreateSlurmFiles:
                 else:
                     real_cpus = self.cpus * self.len + 2
                 lines.append("#SBATCH --ntasks={}\n".format(real_cpus))
-                if self.single and self.pluri:
-                    lines.append("#SBATCH --cpus-per-task={}\n\n".format(self.cpus_task))
-                else:
-                    lines.append("#SBATCH --constraint=highmem\n\n")
+                lines.append("#SBATCH --cpus-per-task={}\n\n".format(self.cpus_task))
 
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
@@ -307,8 +304,6 @@ class CreateSlurmFiles:
                     argument_list.append("-f {} ".format(self.avoid))
             if self.cu and self.factor:
                 argument_list.append("-fa {} ".format(self.factor))
-            if self.analysis:
-                argument_list.append("-pa ")
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
