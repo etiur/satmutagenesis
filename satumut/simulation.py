@@ -4,7 +4,7 @@ This script is used to create and control the simulations
 import argparse
 from mutate_pdb import generate_mutations
 from pele_files import create_20sbatch
-from subprocess import Popen
+from subprocess import call, Popen
 from os.path import abspath, basename
 import os
 import time
@@ -89,7 +89,7 @@ class SimulationRunner:
     A class that configures and runs simulations
     """
 
-    def __init__(self, input_, dir_=None, single=None):
+    def __init__(self, input_, dir_=None, single=None, yaml=None):
         """
         Initialize the Simulation Runner class
 
@@ -106,6 +106,7 @@ class SimulationRunner:
         self.dir = dir_
         self.single = single
         self.log = Log("simulation_time")
+        self.yaml = yaml
 
     def side_function(self):
         """
@@ -159,7 +160,7 @@ class SimulationRunner:
 
             return dirname
 
-    def submit(self, yaml_list):
+    def submit_list(self, yaml_list):
         """
         Tries to parallelize the call to the pele_platform
 
@@ -177,6 +178,23 @@ class SimulationRunner:
         end = time.time()
         # creating a log
         self.log.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
+
+    def submit(self, yaml):
+        """
+        Tries to parallelize the call to the pele_platform
+
+        Parameters
+        __________
+        yaml_list: list[path]
+            A list of paths to the yaml files
+        """
+        platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
+        command = ["{}".format(platform), "-m", "pele_platform.main", "{}".format(yaml)]
+        start = time.time()
+        call(command, close_fds=False)
+        end = time.time()
+        # creating a log
+        self.log.info("It took {} to run the simulation".format(end - start))
 
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
