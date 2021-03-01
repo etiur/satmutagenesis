@@ -6,7 +6,7 @@ import argparse
 import os
 from helper import map_atom_string
 import glob
-from os.path import basename
+from os.path import dirname
 
 
 def parse_args():
@@ -142,7 +142,7 @@ class CreateYamlFiles:
             os.mkdir("yaml_files")
         self.yaml = "yaml_files/simulation.yaml"
         with open(self.yaml, "w") as inp:
-            lines = ["system: '{}/*.pdb'\n".format(basename(self.input[0])), "chain: '{}'\n".format(self.ligchain),
+            lines = ["system: '{}/*.pdb'\n".format(dirname(self.input[0])), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "saturated_mutagenes: True\n",
                      "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps),
                      "atom_dist:\n"]
