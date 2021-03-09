@@ -205,7 +205,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(data=data_dist, kind="box", palette="Accent", height=4.5, aspect=2.3)
+    ax = sns.catplot(data=data_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="box")
     ax.set(title="{} distance variation with respect to wild type".format(position_num))
     ax.set_ylabels("Distance variation", fontsize=8)
     ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
@@ -214,7 +214,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     ax.savefig("{}_results/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
 
     # Binding energy Box plot
-    ex = sns.catplot(data=data_bind, kind="box", palette="Accent", height=4.5, aspect=2.3)
+    ex = sns.catplot(data=data_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="box")
     ex.set(title="{} Binding energy variation with respect to wild type".format(position_num))
     ex.set_ylabels("Binding energy variation", fontsize=8)
     ex.set_xlabels("Mutations {}".format(position_num), fontsize=6)

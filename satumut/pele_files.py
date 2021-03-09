@@ -143,7 +143,7 @@ class CreateYamlFiles:
         self.yaml = "yaml_files/simulation.yaml"
         with open(self.yaml, "w") as inp:
             lines = ["system: '{}/*.pdb'\n".format(dirname(self.input[0])), "chain: '{}'\n".format(self.ligchain),
-                     "resname: '{}'\n".format(self.ligname), "saturated_mutagenes: True\n",
+                     "resname: '{}'\n".format(self.ligname), "saturated_mutagenesis: true\n",
                      "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps),
                      "atom_dist:\n"]
             lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
