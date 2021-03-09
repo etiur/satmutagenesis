@@ -39,17 +39,19 @@ def parse_args():
                         help="Include the number of cpus desired")
     parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
+    parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
+                        help="The distance considered to be catalytic")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse,
-            args.cpus, args.thres]
+            args.cpus, args.thres, args.catalytic_distance]
 
 
 class SimulationData:
     """
     A class to store data from the simulations
     """
-    def __init__(self, folder, points=30, pdb=10):
+    def __init__(self, folder, points=30, pdb=10, catalytic_dist=3.5):
         """
         Initialize the SimulationData Object
 
@@ -72,6 +74,8 @@ class SimulationData:
         self.pdb = pdb
         self.binding = None
         self.bind_diff = None
+        self.catalytic = catalytic_dist
+        self.frequency = None
 
     def filtering(self):
         """
@@ -93,10 +97,11 @@ class SimulationData:
 
         # for the PELE profiles
         self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
-        self.trajectory = self.dataframe.sort_values(by="distance0.5")
-        self.trajectory.reset_index(drop=True, inplace=True)
-        self.trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
-        self.trajectory = self.trajectory.iloc[:self.pdb]
+        trajectory = self.dataframe.sort_values(by="distance0.5")
+        trajectory.reset_index(drop=True, inplace=True)
+        trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
+        self.trajectory = trajectory.iloc[:self.pdb]
+        self.frequency = trajectory[trajectory["distance"] < self.catalytic]
 
         # For the box plots
         data_20 = self.dataframe.iloc[:len(self.dataframe) * 20 / 100]
@@ -135,8 +140,14 @@ class SimulationData:
         """
         self.bind_diff = self.binding - original_binding
 
+    def get_frequency(self):
+        """
+        return the frequency of pele stps with catalytic center smaller than the catalytic distance
+        """
+        return len(self.frequency)
 
-def analyse_all(folders=".", box=30, traj=10):
+
+def analyse_all(folders=".", box=30, traj=10, cata_dist=3.5):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -148,6 +159,8 @@ def analyse_all(folders=".", box=30, traj=10):
         How many points to use for the box plots
     traj: int, optional
         How many snapshots to extract from the trajectories
+    cata_dist: float, optional
+        The catalytic distance
 
     Returns
     _______
@@ -159,7 +172,7 @@ def analyse_all(folders=".", box=30, traj=10):
         mutation_dir = dirname(folders)
         original = SimulationData("{}/PELE_original".format(mutation_dir), points=box, pdb=traj)
     else:
-        original = SimulationData("PELE_original", points=box, pdb=traj)
+        original = SimulationData("PELE_original", points=box, pdb=traj, catalytic_dist=cata_dist)
     original.filtering()
     data_dict["original"] = original
     for folder in glob("{}/PELE_*".format(folders)):
@@ -205,7 +218,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(data=data_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="box")
+    ax = sns.catplot(data=data_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
     ax.set(title="{} distance variation with respect to wild type".format(position_num))
     ax.set_ylabels("Distance variation", fontsize=8)
     ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
@@ -214,7 +227,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     ax.savefig("{}_results/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
 
     # Binding energy Box plot
-    ex = sns.catplot(data=data_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="box")
+    ex = sns.catplot(data=data_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
     ex.set(title="{} Binding energy variation with respect to wild type".format(position_num))
     ex.set_ylabels("Binding energy variation", fontsize=8)
     ex.set_xlabels("Mutations {}".format(position_num), fontsize=6)
@@ -413,7 +426,7 @@ def extract_all(res_dir, data_dict, folders, cpus=25):
     p.terminate()
 
 
-def create_report(res_dir, mutation, position_num, output="summary", analysis="distance"):
+def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5):
     """
     Create pdf files with the plots of chosen mutations and the path to the
 
@@ -429,6 +442,8 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
        The pdf filename without the extension
     analysis: str, optional
        Type of the analysis (distance, binding or all)
+    cata_dist: float, optional
+        The catalytic distance
 
     Returns
     _______
@@ -448,7 +463,9 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     for key, val in mutation.items():
         dis = val.dist_diff.median()
         bind = val.bind_diff.median()
-        message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
+        freq = val.get_frequency()
+        message = 'Mutation {}: median distance increment {}, median binding energy increment {} and with {} accepted ' \
+                  'steps with a distance less than {}'.format(key, dis, bind, freq, cata_dist)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
     pdf.ln(8)  # linebreaks
@@ -510,7 +527,8 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     return name
 
 
-def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=-0.1):
+def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=-0.1,
+                       cata_dist=3.5):
     """
     Finds those mutations that decreases the binding distance and binding energy and creates a report
 
@@ -528,6 +546,8 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
        Choose between ("distance", "binding" or "all") to specify how to filter the mutations to keep
     thres: float, optional
        Set the threshold for those mutations to be included in the pdf
+    cata_dist: float, optional
+        The catalytic distance
     """
     # Find top mutations
     log = Log("{}_results/analysis".format(res_dir))
@@ -549,13 +569,13 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     if len(mutation_dict) != 0:
         log.info(
             "{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, thres))
-        create_report(res_dir, mutation_dict, position_num, output, analysis)
+        create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist)
     else:
         log.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
 
 
 def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", cpus=25, thres=-0.1):
+                         plot_dir=None, opt="distance", cpus=25, thres=-0.1, cata_dist=3.5):
     """
     Creates all the plots for the different mutated positions
 
@@ -580,6 +600,8 @@ def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
        How many cpus to use to extract the top pdbs
     thres : float, optional
        The threshold for the mutations to be included in the pdf
+    cata_dist: float, optional
+        The catalytic distance
     """
     if isfile(str(file_name)):
         with open("{}".format(file_name), "r") as pele:
@@ -598,16 +620,16 @@ def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
     for folders in pele_folders:
         folders = folders.strip("\n")
         base = basename(folders)
-        data_dict = analyse_all(folders, box=box, traj=traj)
+        data_dict = analyse_all(folders, box=box, traj=traj, cata_dist=cata_dist)
         box_plot(plot_dir, data_dict, base, dpi)
         all_profiles(plot_dir, data_dict, base, dpi)
         extract_all(plot_dir, data_dict, folders, cpus=cpus)
-        find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres)
+        find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist)
 
 
 def main():
-    inp, dpi, box, traj, out, folder, analysis, cpus, thres = parse_args()
-    consecutive_analysis(inp, dpi, box, traj, out, folder, analysis, cpus, thres)
+    inp, dpi, box, traj, out, folder, analysis, cpus, thres, cata_dist = parse_args()
+    consecutive_analysis(inp, dpi, box, traj, out, folder, analysis, cpus, thres, cata_dist)
 
 
 if __name__ == "__main__":
