@@ -101,7 +101,7 @@ class SimulationData:
         trajectory.reset_index(drop=True, inplace=True)
         trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
-        self.frequency = trajectory[trajectory["distance"] < self.catalytic]
+        self.frequency = trajectory[trajectory["distance0.5"] < self.catalytic]
 
         # For the box plots
         data_20 = self.dataframe.iloc[:len(self.dataframe) * 20 / 100]
