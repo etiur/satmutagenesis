@@ -174,11 +174,11 @@
 <p>This script is used to analyse the results of the simulations</p>
 <dl class="class">
 <dt id="satumut.analysis.SimulationData">
-<em class="property">class </em><code class="descclassname">satumut.analysis.</code><code class="descname">SimulationData</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">satumut.analysis.</code><code class="descname">SimulationData</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em>, <em>catalytic_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class to store data from the simulations</p>
 <dl class="method">
 <dt id="satumut.analysis.SimulationData.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em>, <em>catalytic_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the SimulationData Object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -230,6 +230,20 @@ and a Series with the 100 best ligand distances</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="satumut.analysis.SimulationData.set_len">
+<code class="descname">set_len</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.set_len" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets the difference in frequency</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<em>int</em>) – The frequency of catalytic poses</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -254,7 +268,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.analyse_all">
-<code class="descclassname">satumut.analysis.</code><code class="descname">analyse_all</code><span class="sig-paren">(</span><em>folders='.'</em>, <em>box=30</em>, <em>traj=10</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.analyse_all" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">analyse_all</code><span class="sig-paren">(</span><em>folders='.'</em>, <em>box=30</em>, <em>traj=10</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.analyse_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analyse all the 19 simulations folders and build SimulationData objects for each of them</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -264,6 +278,7 @@ and a Series with the 100 best ligand distances</p>
 <li><strong>folders</strong> (<em>str</em><em>, </em><em>optional</em>) – path to the different PELE simulation folders to be analyzed</li>
 <li><strong>box</strong> (<em>int</em><em>, </em><em>optional</em>) – How many points to use for the box plots</li>
 <li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – How many snapshots to extract from the trajectories</li>
+<li><strong>cata_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – The catalytic distance</li>
 </ul>
 </td>
 </tr>
@@ -299,7 +314,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.consecutive_analysis">
-<code class="descclassname">satumut.analysis.</code><code class="descname">consecutive_analysis</code><span class="sig-paren">(</span><em>file_name</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>cpus=25</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.consecutive_analysis" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">consecutive_analysis</code><span class="sig-paren">(</span><em>file_name</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>cpus=25</em>, <em>thres=-0.1</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.consecutive_analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates all the plots for the different mutated positions</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -316,6 +331,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <li><strong>opt</strong> (<em>str</em><em>, </em><em>optional</em>) – choose if to analyse distance, energy or both</li>
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – How many cpus to use to extract the top pdbs</li>
 <li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – The threshold for the mutations to be included in the pdf</li>
+<li><strong>cata_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – The catalytic distance</li>
 </ul>
 </td>
 </tr>
@@ -325,7 +341,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 
 <dl class="function">
 <dt id="satumut.analysis.create_report">
-<code class="descclassname">satumut.analysis.</code><code class="descname">create_report</code><span class="sig-paren">(</span><em>res_dir</em>, <em>mutation</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.create_report" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">create_report</code><span class="sig-paren">(</span><em>res_dir</em>, <em>mutation</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.create_report" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create pdf files with the plots of chosen mutations and the path to the</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -337,6 +353,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <li><strong>position_num</strong> (<em>str</em>) – part of the path to the plots, the position that was mutated</li>
 <li><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – The pdf filename without the extension</li>
 <li><strong>analysis</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of the analysis (distance, binding or all)</li>
+<li><strong>cata_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – The catalytic distance</li>
 </ul>
 </td>
 </tr>
@@ -415,7 +432,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 
 <dl class="function">
 <dt id="satumut.analysis.find_top_mutations">
-<code class="descclassname">satumut.analysis.</code><code class="descname">find_top_mutations</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>thres=-0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.find_top_mutations" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">find_top_mutations</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>thres=-0.1</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.find_top_mutations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds those mutations that decreases the binding distance and binding energy and creates a report</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -428,6 +445,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 <li><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the reports created</li>
 <li><strong>analysis</strong> (<em>str</em><em>, </em><em>optional</em>) – Choose between (“distance”, “binding” or “all”) to specify how to filter the mutations to keep</li>
 <li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – Set the threshold for those mutations to be included in the pdf</li>
+<li><strong>cata_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – The catalytic distance</li>
 </ul>
 </td>
 </tr>
