@@ -76,6 +76,8 @@ class SimulationData:
         self.bind_diff = None
         self.catalytic = catalytic_dist
         self.frequency = None
+        self.len_diff = None
+        self.len = None
 
     def filtering(self):
         """
@@ -102,6 +104,7 @@ class SimulationData:
         trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
         self.frequency = trajectory[trajectory["distance0.5"] < self.catalytic]
+        self.len = len(self.frequency)
 
         # For the box plots
         data_20 = self.dataframe.iloc[:len(self.dataframe) * 20 / 100]
@@ -140,11 +143,16 @@ class SimulationData:
         """
         self.bind_diff = self.binding - original_binding
 
-    def get_frequency(self):
+    def set_len(self, length):
         """
-        return the frequency of pele stps with catalytic center smaller than the catalytic distance
+        sets the difference in frequency
+
+        Parameters
+        ____________
+        length: int
+            The frequency of catalytic poses
         """
-        return len(self.frequency)
+        self.len_diff = round(self.len / float(length), 2)
 
 
 def analyse_all(folders=".", box=30, traj=10, cata_dist=3.5):
@@ -181,6 +189,7 @@ def analyse_all(folders=".", box=30, traj=10, cata_dist=3.5):
         data.filtering()
         data.set_distance(original.distance)
         data.set_binding(original.binding)
+        data.set_len(original.len)
         data_dict[name[5:]] = data
 
     return data_dict
@@ -463,9 +472,10 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     for key, val in mutation.items():
         dis = val.dist_diff.median()
         bind = val.bind_diff.median()
-        freq = val.get_frequency()
-        message = 'Mutation {}: median distance increment {}, median binding energy increment {} and with {} accepted ' \
-                  'steps with a distance less than {}'.format(key, dis, bind, freq, cata_dist)
+        freq = val.len
+        freq_diff = val.len_diff
+        message = 'Mutation {}: median distance increment {}, median binding energy increment {}, {} accepted ' \
+                  'steps with a distance less than {} A, {} times more frequent than wild type'.format(key, dis, bind, freq, cata_dist, freq_diff)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
     pdf.ln(8)  # linebreaks
