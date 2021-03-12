@@ -3,7 +3,7 @@ This script contains helper functions
 """
 import Bio.PDB
 import logging
-
+from os.path import basename
 
 def map_atom_string(atom_string, initial_pdb, prep_pdb):
     """
@@ -93,7 +93,32 @@ def isiterable(p_object):
     return True
 
 
-def neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=[]):
+def commonlist(folder_list):
+    """
+    A function that separates the list into sublists grouping the common elements in one place
+
+    Parameters
+    ____________
+    folder_list: list[str]
+        A list of the folder paths
+    """
+    holder =[]
+    new_list = []
+    hold = basename(folder_list[0])[-1]
+    for paths in folder_list:
+        base = basename(paths)
+        if hold == base[-1]:
+            holder.append(paths)
+        if hold != base[-1]:
+            hold = base[-1]
+            new_list.append(holder)
+            holder = [paths]
+
+    assert len([item for sublist in new_list for item in sublist]) == len(folder_list)
+    return new_list
+
+
+def neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=()):
     """
     It gives the list of residues near a specific atom according to a radius
     in a PDB file.

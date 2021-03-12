@@ -104,8 +104,6 @@ class Mutagenesis:
             self.model.write("{}/original.pdb".format(self.folder))
             self.final_pdbs.append("{}/original.pdb".format(self.folder))
             self.insert_atomtype("{}/original.pdb".format(self.folder))
-        if self.consec:
-            self.final_pdbs.remove("{}/original.pdb".format(self.folder))
 
         after = map_atom_string(self.coords, self.input, "{}/original.pdb".format(self.folder))
         self.chain_id = after.split(":")[0]
@@ -281,6 +279,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     """
     pdbs = []
     # Perform single saturated mutations
+    count = 0
     for mutation in position:
         run = Mutagenesis(input_, mutation, pdb_dir, consec)
         if single:
@@ -293,11 +292,12 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
             final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
             pdbs.extend(final_pdbs)
             run.accelerated_insert()
+            count += 1
         # Mutate in a second position for each of the 20 single mutations
-        if multiple and len(position) == 2 and not single:
+        if multiple and len(position) == 2 and not single and count == 1:
             for files in final_pdbs:
                 name = basename(files).replace(".pdb", "")
-                if name != "original.pdb":
+                if name != "original":
                     run_ = Mutagenesis(files, position[1], pdb_dir, consec)
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
                     pdbs.extend(final_pdbs_2)

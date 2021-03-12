@@ -129,7 +129,7 @@ class SimulationRunner:
 
         return self.input
 
-    def pele_folders(self, pdb_list):
+    def pele_folders(self):
         """
         Creates a file with the names of the different folders where the pele simulations are contained
 
@@ -146,19 +146,16 @@ class SimulationRunner:
             base = base.replace(".pdb", "")
         else:
             base = basename(self.dir)
-        hold = "bla"
         folder = []
         if not self.single:
-            for files in pdb_list:
-                name = basename(files).replace(".pdb", "")
-                if name != "original" and hold != name[:-1]:
-                    hold = name[:-1]
-                    folder.append("{}_mutations/{}\n".format(base, hold))
-            dirname = "dirnames_{}.txt".format(base)
-            with open(dirname, "w") as txt:
-                txt.writelines(folder)
-
-            return dirname
+            with open("{}/simulations/completed_mutations.log".format(base)) as log:
+                for paths in log:
+                    dir_ = paths.split()
+                    if "original" in dir_[1]:
+                        original = "{}_mutations/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4])
+                    else:
+                        folder.append("{}_mutations/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4]))
+            return folder, original
 
     def submit_list(self, yaml_list):
         """
@@ -201,7 +198,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                          nord=False, steps=800, dpi=800, box=30, traj=10, output="summary",
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, single_mutagenesis=None,
-                         plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], total_cpus=None):
+                         plurizyme_at_and_res=None, radius=5.0, fixed_resids=(), total_cpus=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -268,11 +265,11 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                                  cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
                                  total_cpus=total_cpus)
     simulation.submit(yaml_files)
-    dirname = simulation.pele_folders(pdb_names)
+    dirname, original = simulation.pele_folders()
     if not test:
         if dir_ and not plot_dir:
             plot_dir = dir_
-        consecutive_analysis(dirname, dpi, box, traj, output, plot_dir, opt, cpus, thres)
+        consecutive_analysis(dirname, original, dpi, box, traj, output, plot_dir, opt, cpus, thres)
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,

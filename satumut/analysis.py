@@ -6,7 +6,7 @@ from glob import glob
 import pandas as pd
 import seaborn as sns
 import argparse
-from os.path import basename, dirname, abspath, isdir, isfile, join
+from os.path import basename, dirname, abspath, commonprefix
 import os
 import sys
 import re
@@ -14,7 +14,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from helper import isiterable, Log
+from helper import isiterable, Log, commonlist
 plt.switch_backend('agg')
 
 
@@ -86,7 +86,7 @@ class SimulationData:
         """
         pd.options.mode.chained_assignment = None
         reports = []
-        for files in glob("{}/output/0/report_*".format(self.folder)):
+        for files in glob("{}/report_*".format(self.folder)):
             rep = basename(files).split("_")[1]
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
@@ -155,14 +155,16 @@ class SimulationData:
         self.len_diff = round(self.len / float(length), 2)
 
 
-def analyse_all(folders=".", box=30, traj=10, cata_dist=3.5):
+def analyse_all(folders, wild, box=30, traj=10, cata_dist=3.5):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
     Parameters
     ___________
-    folders: str, optional
-        path to the different PELE simulation folders to be analyzed
+    folders: list[str]
+        List of paths to the different reports to be analyzed
+    wild: str
+        Path to the simulations of the wild type
     box: int, optional
         How many points to use for the box plots
     traj: int, optional
@@ -176,21 +178,17 @@ def analyse_all(folders=".", box=30, traj=10, cata_dist=3.5):
         Dictionary of SimulationData objects
     """
     data_dict = {}
-    if len(folders.split("/")) > 1:
-        mutation_dir = dirname(folders)
-        original = SimulationData("{}/PELE_original".format(mutation_dir), points=box, pdb=traj)
-    else:
-        original = SimulationData("PELE_original", points=box, pdb=traj, catalytic_dist=cata_dist)
+    original = SimulationData("{}".format(wild), points=box, pdb=traj, catalytic_dist=cata_dist)
     original.filtering()
     data_dict["original"] = original
-    for folder in glob("{}/PELE_*".format(folders)):
+    for folder in folders:
         name = basename(folder)
         data = SimulationData(folder, points=box, pdb=traj)
         data.filtering()
         data.set_distance(original.distance)
         data.set_binding(original.binding)
         data.set_len(original.len)
-        data_dict[name[5:]] = data
+        data_dict[name] = data
 
     return data_dict
 
@@ -359,7 +357,7 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
     if not os.path.exists("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
         os.makedirs("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
 
-    f_in = glob("{}/output/0/*trajectory*_{}.*".format(simulation_folder, f_id))
+    f_in = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
     if len(f_in) == 0:
         sys.exit("Trajectory_{} not found. Be aware that PELE trajectories must contain the label 'trajectory' in "
                  "their file name to be detected".format(f_id))
@@ -422,9 +420,9 @@ def extract_all(res_dir, data_dict, folders, cpus=25):
 
     """
     args = []
-    for pele in glob("{}/PELE_*".format(folders)):
-        name = basename(pele)[5:]
-        output = basename(dirname(pele))
+    for pele in folders:
+        name = basename(pele)
+        output = name[-1]
         args.append((pele, output, name))
 
     # parallelizing the function
@@ -475,7 +473,8 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         freq = val.len
         freq_diff = val.len_diff
         message = 'Mutation {}: median distance increment {}, median binding energy increment {}, {} accepted ' \
-                  'steps with a distance less than {} A, {} times more frequent than wild type'.format(key, dis, bind, freq, cata_dist, freq_diff)
+                  'steps with a distance less than {} angstroms, {} times more frequent than ' \
+                  'wild type'.format(key, dis, bind, freq, cata_dist, freq_diff)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
     pdf.ln(8)  # linebreaks
@@ -584,16 +583,17 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
         log.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
 
 
-def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
+def consecutive_analysis(file_name, wild, dpi=800, box=30, traj=10, output="summary",
                          plot_dir=None, opt="distance", cpus=25, thres=-0.1, cata_dist=3.5):
     """
     Creates all the plots for the different mutated positions
 
     Parameters
     ___________
-    file_name : str, iterable, directory
-       A file, an iterable that contains the path to the PELE simulations folders or
-       the path to the folders where the simulations are stored --> it is equivalent to dirname(iterable[0])
+    file_name : list[str]
+        An iterable that contains the path to the reports of the different simulations
+    wild: str
+        The path to the wild type simulation
     dpi : int, optional
        The quality of the plots
     box : int, optional
@@ -613,24 +613,17 @@ def consecutive_analysis(file_name, dpi=800, box=30, traj=10, output="summary",
     cata_dist: float, optional
         The catalytic distance
     """
-    if isfile(str(file_name)):
-        with open("{}".format(file_name), "r") as pele:
-            pele_folders = pele.readlines()
-    elif isdir(str(file_name)):
-        pele_folders = list(filter(isdir, os.listdir(file_name)))
-        pele_folders = [join(file_name, folder) for folder in pele_folders]
-    elif isiterable(file_name):
-        pele_folders = file_name[:]
+    if isiterable(file_name):
+        pele_folders = commonlist(file_name)
     else:
-        raise Exception("No file or iterable passed")
+        raise Exception("Pass a list of the path to the different folders")
 
     if not plot_dir:
-        plot_dir = pele_folders[0].strip("\n")
-        plot_dir = basename(dirname(plot_dir)).replace("_mutations", "")
+        plot_dir = commonprefix(pele_folders[0])
+        plot_dir = basename(dirname(dirname(plot_dir))).replace("_mutations", "")
     for folders in pele_folders:
-        folders = folders.strip("\n")
-        base = basename(folders)
-        data_dict = analyse_all(folders, box=box, traj=traj, cata_dist=cata_dist)
+        base = basename(folders[0])[-1]
+        data_dict = analyse_all(folders, wild, box=box, traj=traj, cata_dist=cata_dist)
         box_plot(plot_dir, data_dict, base, dpi)
         all_profiles(plot_dir, data_dict, base, dpi)
         extract_all(plot_dir, data_dict, folders, cpus=cpus)
