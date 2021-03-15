@@ -98,7 +98,7 @@ class CreateSlurmFiles:
     def __init__(self, input_, ligchain, ligname, atoms, position=(), cpus_mutant=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=800, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
-                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=[], cpus_task=2,
+                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(), cpus_task=1,
                  factor=None, total_cpus=None):
         """
         Initialize the CreateLaunchFiles object
@@ -249,8 +249,9 @@ class CreateSlurmFiles:
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
                       'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
-                      'export PATH=/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin:$PATH\n',
-                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0\n\n']
+                      'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0 ANACONDA/2019.10\n',
+                      'eval "$(conda shell.bash hook)"\n',
+                      "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.0\n\n"]
 
             argument_list = []
             arguments = "-i {} -lc {} -ln {} -at {} ".format(self.input, self.ligchain, self.ligname, self.atoms)

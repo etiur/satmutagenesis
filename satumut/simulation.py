@@ -75,13 +75,15 @@ def parse_args():
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue"
                              "numbers)")
+    parser.add_argument("-re", "--restart", required=False, action="store_true",
+                        help="Consecutively mutate the PDB file for several rounds")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
             args.consec, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.polarization_factor, args.total_cpus]
+            args.polarization_factor, args.total_cpus, args.restart]
 
 
 class SimulationRunner:
@@ -148,7 +150,7 @@ class SimulationRunner:
             base = basename(self.dir)
         folder = []
         if not self.single:
-            with open("{}/simulations/completed_mutations.log".format(base)) as log:
+            with open("{}_mutations/simulations/completed_mutations.log".format(base)) as log:
                 for paths in log:
                     dir_ = paths.split()
                     if "original" in dir_[1]:
@@ -185,8 +187,7 @@ class SimulationRunner:
         yaml_list: list[path]
             A list of paths to the yaml files
         """
-        platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
-        command = ["{}".format(platform), "-m", "pele_platform.main", "{}".format(yaml)]
+        command = ["python", "-m", "pele_platform.main", "{}".format(yaml)]
         start = time.time()
         retun_code = call(command, close_fds=False)
         end = time.time()
@@ -197,8 +198,8 @@ class SimulationRunner:
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                          nord=False, steps=800, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", thres=-0.1, factor=None, single_mutagenesis=None,
-                         plurizyme_at_and_res=None, radius=5.0, fixed_resids=(), total_cpus=None):
+                         plot_dir=None, opt="distance", thres=-0.1, factor=None,
+                         plurizyme_at_and_res=None, radius=5.0, fixed_resids=(), total_cpus=None, restart=False):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -252,19 +253,33 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
        The threshold for the mutations to be included in the pdf
     factor: int, optional
         The number to divide the metal charges
+    plurizyme_at_and_res: str
+        Chain_ID:position:atom_name, which will be the center around the search for neighbours
+    radius: float, optional
+        The radius for the neighbours search
+    fixed_resids. list[position_num]
+        A list of residues positions to avoid mutating
     total_cpus: int, optional
         Set the total number of cpus, it should be a multiple of the number of cpus
+    restart: bool, optional
+        True if the simulation has already run once
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
-    if not position and single_mutagenesis and plurizyme_at_and_res:
+    if not position and plurizyme_at_and_res:
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
-    pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
+    if not restart:
+        pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
                                    consec=consec)
-    yaml_files = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
-                                 cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
-                                 total_cpus=total_cpus)
-    simulation.submit(yaml_files)
+        yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
+                               cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
+                               total_cpus=total_cpus)
+    else:
+        yaml = "yaml_files/simulation.yaml"
+        with open(yaml, "a") as yml:
+            yml.write("adaptive_restart: true\n")
+
+    simulation.submit(yaml)
     dirname, original = simulation.pele_folders()
     if not test:
         if dir_ and not plot_dir:
@@ -337,7 +352,7 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations

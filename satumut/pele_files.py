@@ -209,8 +209,8 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
 
     Returns
     _______
-    slurm_files: list[path]
-        A list of the files generated
+    yaml: str
+        The input file path for the pele_platform
     """
     if type(pdb_files) == str:
         pdb_list = glob.glob("{}/*.pdb".format(pdb_files))
