@@ -81,13 +81,15 @@ def parse_args():
                              "numbers)")
     parser.add_argument("-cpt", "--cpus_per_task", required=False, default=1, type=int,
                         help="Include the number of cpus per task desired")
+    parser.add_argument("-x", "--xtc", required=False, action="store_true",
+                        help="Change the pdb format to xtc")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
             args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse,
             args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.cpus_per_task, args.polarization_factor, args.total_cpus]
+            args.cpus_per_task, args.polarization_factor, args.total_cpus, args.xtc]
 
 
 class CreateSlurmFiles:
@@ -99,7 +101,7 @@ class CreateSlurmFiles:
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=800, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(), cpus_task=1,
-                 factor=None, total_cpus=None):
+                 factor=None, total_cpus=None, xtc=False):
         """
         Initialize the CreateLaunchFiles object
 
@@ -163,6 +165,8 @@ class CreateSlurmFiles:
             The number to divide the metal charges
         Total_cpus: int, optional
             The total number of cpus available
+        xtc: bool, optional
+            Set to True if you want to change the pdb format to xtc
         """
         assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
         self.input = input_
@@ -206,6 +210,7 @@ class CreateSlurmFiles:
         self.cpus_task = cpus_task
         self.factor = factor
         self.total_cpus = total_cpus
+        self.xtc = xtc
 
     def _size(self):
         """
@@ -280,6 +285,8 @@ class CreateSlurmFiles:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.test:
                 argument_list.append("--test ")
+            if self.xtc:
+                argument_list.append("-x ")
             if self.steps != 800:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
@@ -353,12 +360,12 @@ class CreateSlurmFiles:
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, cpus_per_task, factor, total_cpus = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, cpus_per_task, factor, total_cpus, xtc = parse_args()
 
     run = CreateSlurmFiles(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                            multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                            out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                           fixed_resids, cpus_per_task, factor, total_cpus)
+                           fixed_resids, cpus_per_task, factor, total_cpus, xtc)
     slurm = run.slurm_creation()
     if sbatch:
         os.system("sbatch {}".format(slurm))

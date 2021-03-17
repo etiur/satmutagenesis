@@ -34,11 +34,13 @@ def parse_args():
                         help="Include the seed number to make the simulation reproducible")
     parser.add_argument("-st", "--steps", required=False, type=int, default=800,
                         help="The number of PELE steps")
+    parser.add_argument("-x", "--xtc", required=False, action="store_true",
+                        help="Change the pdb format to xtc")
 
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test, args.polarize_metals,
-            args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus]
+            args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc]
 
 
 class CreateYamlFiles:
@@ -47,7 +49,7 @@ class CreateYamlFiles:
     """
     def __init__(self, input_path,  ligchain, ligname, atoms, cpus=25,
                  test=False, initial=None, cu=False, seed=12345, nord=False, steps=800, single=None, factor=None,
-                 total_cpus=None):
+                 total_cpus=None, xtc=False):
         """
         Initialize the CreateLaunchFiles object
 
@@ -83,6 +85,8 @@ class CreateYamlFiles:
             True if you want the analysis by pele
         total_cpus: int, optional
             The total number of cpus, it should be a multiple of the number of cpus
+        xtc: bool, optional
+            Set to True if you want to change the pdb format to xtc
         """
         self.input = input_path
         self.ligchain = ligchain
@@ -95,6 +99,7 @@ class CreateYamlFiles:
         self.cu = cu
         self.seed = seed
         self.nord = nord
+        self.xtc = xtc
         if single and steps == 800:
             self.steps = 250
         else:
@@ -148,6 +153,8 @@ class CreateYamlFiles:
                      "atom_dist:\n"]
             lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
             lines.extend(lines_atoms)
+            if self.xtc:
+                lines.append("traj: trajectory.xtc\n")
             if not self.nord:
                 lines.append("usesrun: true\n")
             lines.append("working_folder: {}\n".format(folder))
@@ -170,7 +177,7 @@ class CreateYamlFiles:
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, initial=None,
                     cu=False, seed=12345, nord=False, steps=800, single=None, factor=None,
-                    total_cpus=None):
+                    total_cpus=None, xtc=False):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -206,6 +213,8 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
         True if you want the analysis by pele
     total_cpus: int, optional
         The number of total cpus, it should be a multiple of the number of cpus
+    xtc: bool, optional
+        Set to True if you want to change the pdb format to xtc
 
     Returns
     _______
@@ -218,15 +227,15 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
         pdb_list = pdb_files
     run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, test=test,
                           initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single, factor=factor,
-                          total_cpus=total_cpus)
+                          total_cpus=total_cpus, xtc=xtc)
     yaml = run.input_creation()
     return yaml
 
 
 def main():
-    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor, total_cpus = parse_args()
+    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor, total_cpus, xtc = parse_args()
     yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, test=test, cu=cu,
-                                 seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus)
+                                 seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc)
 
     return yaml_files
 

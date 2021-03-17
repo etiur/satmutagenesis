@@ -77,13 +77,15 @@ def parse_args():
                              "numbers)")
     parser.add_argument("-re", "--restart", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
+    parser.add_argument("-x", "--xtc", required=False, action="store_true",
+                        help="Change the pdb format to xtc")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
             args.consec, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.polarization_factor, args.total_cpus, args.restart]
+            args.polarization_factor, args.total_cpus, args.restart, args.xtc]
 
 
 class SimulationRunner:
@@ -198,8 +200,8 @@ class SimulationRunner:
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                          nord=False, steps=800, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", thres=-0.1, factor=None,
-                         plurizyme_at_and_res=None, radius=5.0, fixed_resids=(), total_cpus=None, restart=False):
+                         plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
+                         radius=5.0, fixed_resids=(), total_cpus=None, restart=False, xtc=False):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -263,6 +265,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         Set the total number of cpus, it should be a multiple of the number of cpus
     restart: bool, optional
         True if the simulation has already run once
+    xtc: bool, optional
+        Set to True if you want to change the pdb format to xtc
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -273,7 +277,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                                    consec=consec)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
                                cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
-                               total_cpus=total_cpus)
+                               total_cpus=total_cpus, xtc=xtc)
     else:
         yaml = "yaml_files/simulation.yaml"
         with open(yaml, "a") as yml:
@@ -290,7 +294,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                         nord=False, steps=250, factor=None, total_cpus=None):
+                         nord=False, steps=250, factor=None, total_cpus=None, xtc=False):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -336,6 +340,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
         The number to divide the metal charges
     total_cpus: int, optional
         Set the total number of cpus, it should be a multiple of the number of cpus
+    xtc: bool, optional
+        Set to True if you want to change the pdb format to xtc
     """
     simulation = SimulationRunner(input_, dir_, single_mutagenesis)
     input_ = simulation.side_function()
@@ -343,27 +349,27 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec,
                                    single=single_mutagenesis)
-    yaml_files = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
+    yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
                                  cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
-                                 factor=factor, total_cpus=total_cpus)
-    simulation.submit(yaml_files)
+                                 factor=factor, total_cpus=total_cpus, xtc=xtc)
+    simulation.submit(yaml)
 
 
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                              radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps,
-                             factor, total_cpus)
+                             factor, total_cpus, xtc)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                              multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
-                             plot_dir, analyze, thres, factor, total_cpus)
+                             plot_dir, analyze, thres, factor, total_cpus, xtc)
 
 
 if __name__ == "__main__":
