@@ -101,6 +101,11 @@ def commonlist(folder_list):
     ____________
     folder_list: list[str]
         A list of the folder paths
+
+    Returns
+    ________
+    new_list: list[list]
+        A list of a list of mutations in the same position
     """
     holder = []
     new_list = []
