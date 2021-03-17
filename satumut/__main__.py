@@ -75,7 +75,7 @@ def parse_args():
                              "next round. Example: chain ID:position:atom name")
     parser.add_argument("-r", "--radius", required=False, default=5.0, type=float,
                         help="The radius around the selected atom to search for the other residues")
-    parser.add_argument("-f", "--fixed_resids", required=False, default=[], nargs='+',
+    parser.add_argument("-f", "--fixed_resids", required=False, default=(), nargs='+',
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue position"
                              "numbers)")
