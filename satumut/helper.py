@@ -104,13 +104,13 @@ def commonlist(folder_list):
     """
     holder =[]
     new_list = []
-    hold = basename(folder_list[0])[-1]
+    hold = basename(folder_list[0])[:-1]
     for paths in folder_list:
         base = basename(paths)
-        if hold == base[-1]:
+        if hold == base[:-1]:
             holder.append(paths)
-        if hold != base[-1]:
-            hold = base[-1]
+        if hold != base[:-1]:
+            hold = base[:-1]
             new_list.append(holder)
             holder = [paths]
 
