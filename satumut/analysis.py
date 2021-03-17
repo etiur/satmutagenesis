@@ -622,7 +622,7 @@ def consecutive_analysis(file_name, wild, dpi=800, box=30, traj=10, output="summ
         plot_dir = commonprefix(pele_folders[0])
         plot_dir = basename(dirname(dirname(plot_dir))).replace("_mutations", "")
     for folders in pele_folders:
-        base = basename(folders[0])[-1]
+        base = basename(folders[0])[:-1]
         data_dict = analyse_all(folders, wild, box=box, traj=traj, cata_dist=cata_dist)
         box_plot(plot_dir, data_dict, base, dpi)
         all_profiles(plot_dir, data_dict, base, dpi)

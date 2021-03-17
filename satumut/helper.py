@@ -102,7 +102,7 @@ def commonlist(folder_list):
     folder_list: list[str]
         A list of the folder paths
     """
-    holder =[]
+    holder = []
     new_list = []
     hold = basename(folder_list[0])[:-1]
     for paths in folder_list:
