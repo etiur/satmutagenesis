@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
 from helper import isiterable, Log, commonlist
+import mdtraj as md
 plt.switch_backend('agg')
 
 
@@ -41,10 +42,12 @@ def parse_args():
                         help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
+    parser.add_argument("-x", "--xtc", required=False, action="store_true",
+                        help="Change the pdb format to xtc")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.box, args.traj, args.out, args.plot, args.analyse,
-            args.cpus, args.thres, args.catalytic_distance]
+            args.cpus, args.thres, args.catalytic_distance, args.xtc]
 
 
 class SimulationData:
@@ -331,6 +334,46 @@ def all_profiles(res_dir, data_dict, position_num, dpi=800):
         pele_profiles(type_, res_dir, data_dict, position_num, dpi)
 
 
+def extract_snapshot_xtc(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind):
+    """
+    A function that extracts pdbs from xtc files
+
+    Parameters
+    ___________
+    res_dir: str
+        Name of the results folder where to store the output
+    simulation_folder: str
+        Path to the simulation folder
+    f_id: str
+        trajectory file ID
+    position_num: str
+        The folder name for the output of this function for the different simulations
+    mutation: str
+        The folder name for the output of this function for one of the simulations
+    step: int
+        The step in the trajectory you want to keep
+    dist: float
+        The distance between ligand and protein (used as name for the result file - not essential)
+    bind: float
+        The binding energy between ligand and protein (used as name for the result file - not essential)
+
+    """
+
+    if not os.path.exists("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
+        os.makedirs("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
+
+    trajectories = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
+    topology = glob("{}/*topology*".format(simulation_folder))
+    if len(trajectories) == 0 or len(topology) == 0:
+        sys.exit("Trajectory_{} or topology file not found".format(f_id))
+
+    # load the trajectory and write it to pdb
+    traj = md.load_xtc(trajectories[0], topology[0])
+    name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
+    path_ = "{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
+    traj[int(step)].save_pdb(os.path.join(path_, name))
+
+
 def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind):
     """
     Extracts PDB files from trajectories
@@ -357,7 +400,7 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
     if not os.path.exists("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
         os.makedirs("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
 
-    f_in = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
+    f_in = "{}/*trajectory*_{}.*".format(simulation_folder, f_id)
     if len(f_in) == 0:
         sys.exit("Trajectory_{} not found. Be aware that PELE trajectories must contain the label 'trajectory' in "
                  "their file name to be detected".format(f_id))
@@ -380,7 +423,7 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
         f.write("\n".join(traj))
 
 
-def extract_10_pdb_single(info, res_dir, data_dict):
+def extract_10_pdb_single(info, res_dir, data_dict, xtc=False):
     """
     Extracts the top 10 distances for one mutation
 
@@ -392,6 +435,8 @@ def extract_10_pdb_single(info, res_dir, data_dict):
        Name of the results folder
     data_dict: dict
        A dictionary that contains SimulationData objects from the simulation folders
+    xtc: bool, optional
+        Set to true if the pdb is in xtc format
     """
     simulation_folder, position_num, mutation = info
     data = data_dict[mutation]
@@ -400,10 +445,13 @@ def extract_10_pdb_single(info, res_dir, data_dict):
         step = data.trajectory["numberOfAcceptedPeleSteps"][ind]
         dist = data.trajectory["distance0.5"][ind]
         bind = data.trajectory["Binding Energy"][ind]
-        extract_snapshot_from_pdb(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind)
+        if not xtc:
+            extract_snapshot_from_pdb(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind)
+        else:
+            extract_snapshot_xtc(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind)
 
 
-def extract_all(res_dir, data_dict, folders, cpus=25):
+def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
 
@@ -417,6 +465,8 @@ def extract_all(res_dir, data_dict, folders, cpus=25):
        Path to the folder that has all the simulations at the same position
     cpus: int, optional
        How many cpus to paralelize the function
+    xtc: bool, optional
+        Set to true if the pdb is in xtc format
 
     """
     args = []
@@ -427,7 +477,7 @@ def extract_all(res_dir, data_dict, folders, cpus=25):
 
     # parallelizing the function
     p = mp.Pool(cpus)
-    func = partial(extract_10_pdb_single, res_dir=res_dir, data_dict=data_dict)
+    func = partial(extract_10_pdb_single, res_dir=res_dir, data_dict=data_dict, xtc=xtc)
     p.map(func, args, 1)
     p.close()
     p.terminate()
@@ -584,7 +634,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
 
 def consecutive_analysis(file_name, wild, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", cpus=25, thres=-0.1, cata_dist=3.5):
+                         plot_dir=None, opt="distance", cpus=10, thres=-0.1, cata_dist=3.5, xtc=False):
     """
     Creates all the plots for the different mutated positions
 
@@ -612,6 +662,8 @@ def consecutive_analysis(file_name, wild, dpi=800, box=30, traj=10, output="summ
        The threshold for the mutations to be included in the pdf
     cata_dist: float, optional
         The catalytic distance
+    xtc: bool, optional
+        Set to true if the pdb is in xtc format
     """
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
@@ -626,13 +678,13 @@ def consecutive_analysis(file_name, wild, dpi=800, box=30, traj=10, output="summ
         data_dict = analyse_all(folders, wild, box=box, traj=traj, cata_dist=cata_dist)
         box_plot(plot_dir, data_dict, base, dpi)
         all_profiles(plot_dir, data_dict, base, dpi)
-        extract_all(plot_dir, data_dict, folders, cpus=cpus)
+        extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
         find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist)
 
 
 def main():
-    inp, dpi, box, traj, out, folder, analysis, cpus, thres, cata_dist = parse_args()
-    consecutive_analysis(inp, dpi, box, traj, out, folder, analysis, cpus, thres, cata_dist)
+    inp, dpi, box, traj, out, folder, analysis, cpus, thres, cata_dist, xtc = parse_args()
+    consecutive_analysis(inp, dpi, box, traj, out, folder, analysis, cpus, thres, cata_dist, xtc)
 
 
 if __name__ == "__main__":

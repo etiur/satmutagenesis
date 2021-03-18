@@ -1,31 +1,23 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html4" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>satumut &mdash; Saturated Mutagenesis 0.0.1 documentation</title>
   
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
+  
   
   
 
   
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -37,6 +29,10 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="The API guide" href="Api_examples.html" /> 
@@ -76,7 +72,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -95,9 +90,9 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">satumut</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-satumut.analysis">satumut.analysis module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-satumut.helper">satumut.helper module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-satumut.mutate_pdb">satumut.mutate_pdb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#satumut-mutate-pdb-module">satumut.mutate_pdb module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-satumut.pele_files">satumut.pele_files module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-satumut.simulation">satumut.simulation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#satumut-simulation-module">satumut.simulation module</a></li>
 </ul>
 </li>
 </ul>
@@ -105,7 +100,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -140,20 +134,18 @@
 
 
 
-
-
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>satumut</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-          
+            
             <a href="_sources/satumut.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -268,14 +260,15 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.analyse_all">
-<code class="descclassname">satumut.analysis.</code><code class="descname">analyse_all</code><span class="sig-paren">(</span><em>folders='.'</em>, <em>box=30</em>, <em>traj=10</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.analyse_all" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">analyse_all</code><span class="sig-paren">(</span><em>folders</em>, <em>wild</em>, <em>box=30</em>, <em>traj=10</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.analyse_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analyse all the 19 simulations folders and build SimulationData objects for each of them</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>folders</strong> (<em>str</em><em>, </em><em>optional</em>) – path to the different PELE simulation folders to be analyzed</li>
+<li><strong>folders</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of paths to the different reports to be analyzed</li>
+<li><strong>wild</strong> (<em>str</em>) – Path to the simulations of the wild type</li>
 <li><strong>box</strong> (<em>int</em><em>, </em><em>optional</em>) – How many points to use for the box plots</li>
 <li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – How many snapshots to extract from the trajectories</li>
 <li><strong>cata_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – The catalytic distance</li>
@@ -314,15 +307,15 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.consecutive_analysis">
-<code class="descclassname">satumut.analysis.</code><code class="descname">consecutive_analysis</code><span class="sig-paren">(</span><em>file_name</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>cpus=25</em>, <em>thres=-0.1</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.consecutive_analysis" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">consecutive_analysis</code><span class="sig-paren">(</span><em>file_name</em>, <em>wild</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>cpus=25</em>, <em>thres=-0.1</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.consecutive_analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates all the plots for the different mutated positions</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>file_name</strong> (<em>str</em><em>, </em><em>iterable</em><em>, </em><em>directory</em>) – A file, an iterable that contains the path to the PELE simulations folders or
-the path to the folders where the simulations are stored –&gt; it is equivalent to dirname(iterable[0])</li>
+<li><strong>file_name</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – An iterable that contains the path to the reports of the different simulations</li>
+<li><strong>wild</strong> (<em>str</em>) – The path to the wild type simulation</li>
 <li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The quality of the plots</li>
 <li><strong>box</strong> (<em>int</em><em>, </em><em>optional</em>) – how many points are used for the box plots</li>
 <li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – how many top pdbs are extracted from the trajectories</li>
@@ -612,6 +605,24 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 </dd></dl>
 
 <dl class="function">
+<dt id="satumut.helper.commonlist">
+<code class="descclassname">satumut.helper.</code><code class="descname">commonlist</code><span class="sig-paren">(</span><em>folder_list</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.commonlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that separates the list into sublists grouping the common elements in one place</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>folder_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – A list of the folder paths</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>new_list</strong> – A list of a list of mutations in the same position</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list[list]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="satumut.helper.isiterable">
 <code class="descclassname">satumut.helper.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>p_object</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.isiterable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test if the parameter is an iterable (not a string or a dict) or a file</p>
@@ -656,7 +667,7 @@ the path to the folders where the simulations are stored –&gt; it is equivalen
 
 <dl class="function">
 <dt id="satumut.helper.neighbourresidues">
-<code class="descclassname">satumut.helper.</code><code class="descname">neighbourresidues</code><span class="sig-paren">(</span><em>input_</em>, <em>specific_at_res_chainid</em>, <em>radius=5.0</em>, <em>fixed_resids=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.neighbourresidues" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.helper.</code><code class="descname">neighbourresidues</code><span class="sig-paren">(</span><em>input_</em>, <em>specific_at_res_chainid</em>, <em>radius=5.0</em>, <em>fixed_resids=()</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.neighbourresidues" title="Permalink to this definition">¶</a></dt>
 <dd><p>It gives the list of residues near a specific atom according to a radius
 in a PDB file.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -682,165 +693,19 @@ in a PDB file.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-satumut.mutate_pdb">
-<span id="satumut-mutate-pdb-module"></span><h2>satumut.mutate_pdb module<a class="headerlink" href="#module-satumut.mutate_pdb" title="Permalink to this headline">¶</a></h2>
-<p>This script used pmx to mutate the residues within proteins</p>
-<dl class="class">
-<dt id="satumut.mutate_pdb.Mutagenesis">
-<em class="property">class </em><code class="descclassname">satumut.mutate_pdb.</code><code class="descname">Mutagenesis</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis" title="Permalink to this definition">¶</a></dt>
-<dd><p>To perform mutations on PDB files</p>
-<dl class="method">
-<dt id="satumut.mutate_pdb.Mutagenesis.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>model</em>, <em>position</em>, <em>folder='pdb_files'</em>, <em>consec=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize the Mutagenesis object</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>model</strong> (<em>str</em>) – path to the PDB file</li>
-<li><strong>position</strong> (<em>str</em>) – chain ID:position of the residue, for example A:132</li>
-<li><strong>folder</strong> (<em>str</em><em>, </em><em>optional</em>) – The folder where the pdbs are written</li>
-<li><strong>consec</strong> (<em>bool</em><em>, </em><em>optional</em>) – If this is the second round of mutation</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.mutate_pdb.Mutagenesis.accelerated_insert">
-<code class="descname">accelerated_insert</code><span class="sig-paren">(</span><em>file_list=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.accelerated_insert" title="Permalink to this definition">¶</a></dt>
-<dd><p>Paralelizes the insert atomtype function</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_list</strong> (<em>list</em><em>[</em><em>path</em><em>]</em>) – optional if you want to include another list</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.mutate_pdb.Mutagenesis.insert_atomtype">
-<code class="descname">insert_atomtype</code><span class="sig-paren">(</span><em>prep_pdb</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.insert_atomtype" title="Permalink to this definition">¶</a></dt>
-<dd><p>modifies the pmx PDB files to include the atom type</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>prep_pdb</strong> (<em>path</em>) – PDB files to modify</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.mutate_pdb.Mutagenesis.mutate">
-<code class="descname">mutate</code><span class="sig-paren">(</span><em>residue</em>, <em>new_aa</em>, <em>bbdep</em>, <em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.mutate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mutate the wild type residue to a new residue</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>residue</strong> (<em>pmx object</em>) – The residue has to be a pmx object</li>
-<li><strong>new_aa</strong> (<em>str</em>) – A 3 letter or 1 letter code to represent the new residue</li>
-<li><strong>bbdep</strong> – A database that can be interpreted by pmx</li>
-<li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean, leave it to True because False cause problems with cysteine</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.mutate_pdb.Mutagenesis.saturated_mutagenesis">
-<code class="descname">saturated_mutagenesis</code><span class="sig-paren">(</span><em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.saturated_mutagenesis" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate all the other 19 mutations</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>final_pdbs</strong> – A list of the new files</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list[path]</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.mutate_pdb.Mutagenesis.single_mutagenesis">
-<code class="descname">single_mutagenesis</code><span class="sig-paren">(</span><em>new_aa</em>, <em>hydrogens=True</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.Mutagenesis.single_mutagenesis" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create single mutations</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>new_aa</strong> (<em>str</em>) – The aa to mutate to, in 3 letter code or 1 letter code</li>
-<li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>file_</strong> – The name of the new pdb file</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="satumut.mutate_pdb.generate_mutations">
-<code class="descclassname">satumut.mutate_pdb.</code><code class="descname">generate_mutations</code><span class="sig-paren">(</span><em>input_</em>, <em>position</em>, <em>hydrogens=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>single=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.mutate_pdb.generate_mutations" title="Permalink to this definition">¶</a></dt>
-<dd><p>To generate up to 2 mutations per pdb</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input</strong> (<em>str</em>) – Input pdb to be used to generate the mutations</li>
-<li><strong>position</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – [chain ID:position] of the residue, for example [A:139,..]</li>
-<li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS</li>
-<li><strong>multiple</strong> (<em>bool</em><em>, </em><em>optional</em>) – Specify if to mutate 2 positions at the same pdb</li>
-<li><strong>pdb_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the folder where the mutated PDB files will be stored</li>
-<li><strong>consec</strong> (<em>bool</em><em>, </em><em>optional</em>) – Consecutively mutate the PDB file for several rounds</li>
-<li><strong>single</strong> (<em>str</em>) – The new residue to mutate the positions to, in 3 letter or 1 letter code</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pdbs</strong> – The list of all generated pdbs’ path</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list[paths]</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<div class="section" id="satumut-mutate-pdb-module">
+<h2>satumut.mutate_pdb module<a class="headerlink" href="#satumut-mutate-pdb-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-satumut.pele_files">
 <span id="satumut-pele-files-module"></span><h2>satumut.pele_files module<a class="headerlink" href="#module-satumut.pele_files" title="Permalink to this headline">¶</a></h2>
 <p>This script is used to generate the yaml files for pele platform</p>
 <dl class="class">
 <dt id="satumut.pele_files.CreateYamlFiles">
-<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the 2 necessary files for the pele simulations</p>
 <dl class="method">
 <dt id="satumut.pele_files.CreateYamlFiles.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the CreateLaunchFiles object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -862,6 +727,7 @@ in a PDB file.</p>
 <li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
 <li><strong>analysis</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if you want the analysis by pele</li>
 <li><strong>total_cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – The total number of cpus, it should be a multiple of the number of cpus</li>
+<li><strong>xtc</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set to True if you want to change the pdb format to xtc</li>
 </ul>
 </td>
 </tr>
@@ -879,7 +745,7 @@ in a PDB file.</p>
 
 <dl class="function">
 <dt id="satumut.pele_files.create_20sbatch">
-<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>pdb_files</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>pdb_files</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates for each of the mutants the yaml and slurm files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -901,13 +767,14 @@ in a PDB file.</p>
 <li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the charges of the metals</li>
 <li><strong>analysis</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if you want the analysis by pele</li>
 <li><strong>total_cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of total cpus, it should be a multiple of the number of cpus</li>
+<li><strong>xtc</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set to True if you want to change the pdb format to xtc</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>slurm_files</strong> – A list of the files generated</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>yaml</strong> – The input file path for the pele_platform</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list[path]</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
 </td>
 </tr>
 </tbody>
@@ -915,172 +782,8 @@ in a PDB file.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-satumut.simulation">
-<span id="satumut-simulation-module"></span><h2>satumut.simulation module<a class="headerlink" href="#module-satumut.simulation" title="Permalink to this headline">¶</a></h2>
-<p>This script is used to create and control the simulations</p>
-<dl class="class">
-<dt id="satumut.simulation.SimulationRunner">
-<em class="property">class </em><code class="descclassname">satumut.simulation.</code><code class="descname">SimulationRunner</code><span class="sig-paren">(</span><em>input_</em>, <em>dir_=None</em>, <em>single=None</em>, <em>yaml=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.SimulationRunner" title="Permalink to this definition">¶</a></dt>
-<dd><p>A class that configures and runs simulations</p>
-<dl class="method">
-<dt id="satumut.simulation.SimulationRunner.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_</em>, <em>dir_=None</em>, <em>single=None</em>, <em>yaml=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.SimulationRunner.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize the Simulation Runner class</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input</strong> (<em>str</em>) – The path to the PDB file</li>
-<li><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the directory for the simulations to run and the outputs to be stored</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.simulation.SimulationRunner.pele_folders">
-<code class="descname">pele_folders</code><span class="sig-paren">(</span><em>pdb_list</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.SimulationRunner.pele_folders" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a file with the names of the different folders where the pele simulations are contained</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>pdb_list</strong> (<em>list</em><em>[</em><em>path</em><em>]</em>) – list of pdb files path created during the saturated mutagenesis</li>
-<li><strong>single</strong> (<em>str</em>) – Anything that indiucates that the plurizymes is used</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.simulation.SimulationRunner.side_function">
-<code class="descname">side_function</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.SimulationRunner.side_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Change the working directory to store all the simulations in one place</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>input_</strong> – The new path of the input</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.simulation.SimulationRunner.submit">
-<code class="descname">submit</code><span class="sig-paren">(</span><em>yaml</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.SimulationRunner.submit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tries to parallelize the call to the pele_platform</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>yaml_list</strong> (<em>list</em><em>[</em><em>path</em><em>]</em>) – A list of paths to the yaml files</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.simulation.SimulationRunner.submit_list">
-<code class="descname">submit_list</code><span class="sig-paren">(</span><em>yaml_list</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.SimulationRunner.submit_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tries to parallelize the call to the pele_platform</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>yaml_list</strong> (<em>list</em><em>[</em><em>path</em><em>]</em>) – A list of paths to the yaml files</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="satumut.simulation.plurizyme_simulation">
-<code class="descclassname">satumut.simulation.</code><code class="descname">plurizyme_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>single_mutagenesis</em>, <em>plurizyme_at_and_res</em>, <em>radius=5.0</em>, <em>fixed_resids=()</em>, <em>cpus=30</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=250</em>, <em>factor=None</em>, <em>total_cpus=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.plurizyme_simulation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run the simulations for the plurizyme’s projct which is based on single mutations</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input</strong> (<em>str</em>) – The wild type PDB file path</li>
-<li><strong>ligchain</strong> (<em>str</em>) – the chain ID where the ligand is located</li>
-<li><strong>ligname</strong> (<em>str</em>) – the residue name of the ligand in the PDB</li>
-<li><strong>atoms</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – list of atom of the residue to follow, in this format –&gt; chain ID:position:atom name</li>
-<li><strong>single_mutagenesis</strong> (<em>str</em>) – The new residue to mutate the positions to, in 3 letter or 1 letter code</li>
-<li><strong>plurizyme_at_and_res</strong> (<em>str</em>) – Chain_ID:position:atom_name, which will be the center around the search for neighbours</li>
-<li><strong>radius</strong> (<em>float</em><em>, </em><em>optional</em>) – The radius for the neighbours search</li>
-<li><strong>list</strong><strong>[</strong><strong>position_num</strong><strong>]</strong> (<em>fixed_resids.</em>) – A list of residues positions to avoid mutating</li>
-<li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – how many cpus do you want to use</li>
-<li><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the folder ofr the simulations</li>
-<li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS</li>
-<li><strong>pdb_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the folder where the mutated PDB files will be stored</li>
-<li><strong>consec</strong> (<em>bool</em><em>, </em><em>optional</em>) – Consecutively mutate the PDB file for several rounds</li>
-<li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
-<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are metals in the system</li>
-<li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
-<li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
-<li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
-<li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
-<li><strong>total_cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – Set the total number of cpus, it should be a multiple of the number of cpus</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="satumut.simulation.saturated_simulation">
-<code class="descclassname">satumut.simulation.</code><code class="descname">saturated_simulation</code><span class="sig-paren">(</span><em>input_</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>position=None</em>, <em>cpus=25</em>, <em>dir_=None</em>, <em>hydrogen=True</em>, <em>multiple=False</em>, <em>pdb_dir='pdb_files'</em>, <em>consec=False</em>, <em>test=False</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>thres=-0.1</em>, <em>factor=None</em>, <em>single_mutagenesis=None</em>, <em>plurizyme_at_and_res=None</em>, <em>radius=5.0</em>, <em>fixed_resids=[]</em>, <em>total_cpus=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.simulation.saturated_simulation" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that uses the SimulationRunner class to run saturated mutagenesis simulations</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input</strong> (<em>str</em>) – The wild type PDB file path</li>
-<li><strong>ligchain</strong> (<em>str</em>) – the chain ID where the ligand is located</li>
-<li><strong>ligname</strong> (<em>str</em>) – the residue name of the ligand in the PDB</li>
-<li><strong>atoms</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – list of atom of the residue to follow, in this format –&gt; chain ID:position:atom name</li>
-<li><strong>position</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – [chain ID:position] of the residue, for example [A:139,..]</li>
-<li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – how many cpus do you want to use</li>
-<li><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the folder ofr the simulations</li>
-<li><strong>hydrogens</strong> (<em>bool</em><em>, </em><em>optional</em>) – Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS</li>
-<li><strong>multiple</strong> (<em>bool</em><em>, </em><em>optional</em>) – Specify if to mutate 2 positions at the same pdb</li>
-<li><strong>pdb_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the folder where the mutated PDB files will be stored</li>
-<li><strong>consec</strong> (<em>bool</em><em>, </em><em>optional</em>) – Consecutively mutate the PDB file for several rounds</li>
-<li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
-<li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are coppers in the system</li>
-<li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
-<li><strong>nord</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the system is managed by LSF</li>
-<li><strong>steps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of PELE steps</li>
-<li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The quality of the plots</li>
-<li><strong>box</strong> (<em>int</em><em>, </em><em>optional</em>) – how many points are used for the box plots</li>
-<li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – how many top pdbs are extracted from the trajectories</li>
-<li><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the output file for the pdfs</li>
-<li><strong>plot_dir</strong> (<em>str</em>) – Name for the results folder</li>
-<li><strong>opt</strong> (<em>str</em><em>, </em><em>optional</em>) – choose if to analyse distance, energy or both</li>
-<li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – The threshold for the mutations to be included in the pdf</li>
-<li><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – The number to divide the metal charges</li>
-<li><strong>total_cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – Set the total number of cpus, it should be a multiple of the number of cpus</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<div class="section" id="satumut-simulation-module">
+<h2>satumut.simulation module<a class="headerlink" href="#satumut-simulation-module" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -1089,28 +792,27 @@ in a PDB file.</p>
            
           </div>
           <footer>
+  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="Api_examples.html" class="btn btn-neutral float-left" title="The API guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+      
+      
+        <a href="Api_examples.html" class="btn btn-neutral float-left" title="The API guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
     </div>
+  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2021, Ruite.
+        &copy; Copyright 2021, Ruite
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
+
         </div>
       </div>
 
@@ -1118,6 +820,7 @@ in a PDB file.</p>
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

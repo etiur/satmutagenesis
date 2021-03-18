@@ -79,13 +79,15 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
+    parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
+                        help="The distance considered to be catalytic")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
             args.consec, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.polarization_factor, args.total_cpus, args.restart, args.xtc]
+            args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance]
 
 
 class SimulationRunner:
@@ -201,7 +203,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
                          nord=False, steps=800, dpi=800, box=30, traj=10, output="summary",
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
-                         radius=5.0, fixed_resids=(), total_cpus=None, restart=False, xtc=False):
+                         radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -265,6 +267,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         Set the total number of cpus, it should be a multiple of the number of cpus
     restart: bool, optional
         True if the simulation has already run once
+    cata_dist: float, optional
+        The catalytic distance
     xtc: bool, optional
         Set to True if you want to change the pdb format to xtc
     """
@@ -288,7 +292,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     if not test:
         if dir_ and not plot_dir:
             plot_dir = dir_
-        consecutive_analysis(dirname, original, dpi, box, traj, output, plot_dir, opt, cpus, thres)
+        consecutive_analysis(dirname, original, dpi, box, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc)
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
@@ -358,7 +362,7 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
@@ -369,7 +373,7 @@ def main():
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                              multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
-                             plot_dir, analyze, thres, factor, total_cpus, xtc)
+                             plot_dir, analyze, thres, factor, total_cpus, cata_dist, xtc)
 
 
 if __name__ == "__main__":

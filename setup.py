@@ -16,5 +16,5 @@ setup(name="satumut", author="Ruite Xiang", author_email="ruite.xiang@bsc.es",
                    "Environment :: Console",
                    "Development Status :: 1 - Planning",
                    "Topic :: Scientific/Engineering :: Bio-Informatics"],
-      install_requires=["pmx", "fpdf", "matplotlib", "numpy", "pandas", "seaborn", "biopython==1.75"],
+      install_requires=["pmx", "fpdf", "matplotlib", "numpy", "pandas", "seaborn", "biopython==1.75", "mdtraj"],
       keywords="protein engineering, bioinformatics, mutate proteins, simulations")
