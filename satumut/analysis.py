@@ -363,12 +363,12 @@ def extract_snapshot_xtc(res_dir, simulation_folder, f_id, position_num, mutatio
         os.makedirs("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
 
     trajectories = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
-    topology = glob("{}/*topology*".format(simulation_folder))
-    if len(trajectories) == 0 or len(topology) == 0:
+    topology = "{}/input/{}_processed.pdb".format(dirname(dirname(simulation_folder)), mutation)
+    if len(trajectories) == 0 or not os.path.exists(topology):
         sys.exit("Trajectory_{} or topology file not found".format(f_id))
 
     # load the trajectory and write it to pdb
-    traj = md.load_xtc(trajectories[0], topology[0])
+    traj = md.load_xtc(trajectories[0], topology)
     name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
     path_ = "{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
     traj[int(step)].save_pdb(os.path.join(path_, name))
@@ -472,10 +472,10 @@ def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False):
     args = []
     for pele in folders:
         name = basename(pele)
-        output = name[-1]
+        output = name[:-1]
         args.append((pele, output, name))
 
-    # parallelizing the function
+    # paralelizing the function
     p = mp.Pool(cpus)
     func = partial(extract_10_pdb_single, res_dir=res_dir, data_dict=data_dict, xtc=xtc)
     p.map(func, args, 1)
