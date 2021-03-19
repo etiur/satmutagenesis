@@ -400,7 +400,7 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
     if not os.path.exists("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
         os.makedirs("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
 
-    f_in = "{}/*trajectory*_{}.*".format(simulation_folder, f_id)
+    f_in = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
     if len(f_in) == 0:
         sys.exit("Trajectory_{} not found. Be aware that PELE trajectories must contain the label 'trajectory' in "
                  "their file name to be detected".format(f_id))
