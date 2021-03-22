@@ -284,8 +284,10 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                                total_cpus=total_cpus, xtc=xtc)
     else:
         yaml = "yaml_files/simulation.yaml"
-        with open(yaml, "a") as yml:
-            yml.write("adaptive_restart: true\n")
+        with open(yaml, "r") as yml:
+            if "adaptive_restart: true\n" not in  yml.readlines():
+                with open(yaml, "a") as yam:
+                    yam.write("adaptive_restart: true\n")
 
     simulation.submit(yaml)
     dirname, original = simulation.pele_folders()
