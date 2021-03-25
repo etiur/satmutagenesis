@@ -17,7 +17,8 @@ from Bio import PDB
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate the mutant PDB and the corresponding running files")
     # main required arguments
-    parser.add_argument("-i", "--input", required=True, help="Include PDB file's path")
+    parser.add_argument("-i", "--input", required=True, nargs="+", help="Include one or more PDB path, all the"
+                                                                        "rest remains the same for both PDBs")
     parser.add_argument("-p", "--position", required=False, nargs="+",
                         help="Include one or more chain IDs and positions -> Chain ID:position")
     parser.add_argument("-lc", "--ligchain", required=True, help="Include the chain ID of the ligand")
@@ -368,14 +369,16 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, cpus_per_task, factor, total_cpus, xtc, cata_dist = parse_args()
-
-    run = CreateSlurmFiles(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
-                           multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
-                           out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                           fixed_resids, cpus_per_task, factor, total_cpus, xtc)
-    slurm = run.slurm_creation()
-    if sbatch:
-        os.system("sbatch {}".format(slurm))
+    if dir_ and len(input_) > 1:
+        dir_ = None
+    for inp in input_:
+        run = CreateSlurmFiles(inp, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
+                               multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
+                               out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
+                               fixed_resids, cpus_per_task, factor, total_cpus, xtc)
+        slurm = run.slurm_creation()
+        if sbatch:
+            os.system("sbatch {}".format(slurm))
 
 
 if __name__ == "__main__":
