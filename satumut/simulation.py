@@ -163,25 +163,6 @@ class SimulationRunner:
                         folder.append("{}_mutations/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4]))
             return folder, original
 
-    def submit_list(self, yaml_list):
-        """
-        Tries to parallelize the call to the pele_platform
-
-        Parameters
-        __________
-        yaml_list: list[path]
-            A list of paths to the yaml files
-        """
-        platform = "/gpfs/projects/bsc72/conda_envs/platform/1.5.1/bin/python3.8"
-        commands = [["{}".format(platform), "-m", "pele_platform.main", "{}".format(yaml)] for yaml in yaml_list]
-        self.proc = [Popen(command, close_fds=False) for command in commands]
-        start = time.time()
-        for p in self.proc:
-            p.wait()
-        end = time.time()
-        # creating a log
-        self.log.info("It took {} to run {} simulations".format(end - start, len(yaml_list)))
-
     def submit(self, yaml):
         """
         Tries to parallelize the call to the pele_platform
