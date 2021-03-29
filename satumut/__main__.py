@@ -80,8 +80,6 @@ def parse_args():
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue position"
                              "numbers)")
-    parser.add_argument("-cpt", "--cpus_per_task", required=False, default=1, type=int,
-                        help="Include the number of cpus per task desired")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
@@ -92,7 +90,7 @@ def parse_args():
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
             args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse,
             args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.cpus_per_task, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance]
+            args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance]
 
 
 class CreateSlurmFiles:
@@ -102,8 +100,8 @@ class CreateSlurmFiles:
 
     def __init__(self, input_, ligchain, ligname, atoms, position=(), cpus_mutant=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
-                 steps=800, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
-                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(), cpus_task=1,
+                 steps=1000, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
+                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5):
         """
         Initialize the CreateLaunchFiles object
@@ -212,7 +210,6 @@ class CreateSlurmFiles:
         self.pluri = plurizyme_at_and_res
         self.radius = radius
         self.avoid = fixed_resids
-        self.cpus_task = cpus_task
         self.factor = factor
         self.total_cpus = total_cpus
         self.xtc = xtc
@@ -255,7 +252,6 @@ class CreateSlurmFiles:
                 else:
                     real_cpus = self.cpus * self.len + 2
                 lines.append("#SBATCH --ntasks={}\n".format(real_cpus))
-                lines.append("#SBATCH --cpus-per-task={}\n\n".format(self.cpus_task))
 
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
@@ -293,7 +289,7 @@ class CreateSlurmFiles:
                 argument_list.append("--test ")
             if self.xtc:
                 argument_list.append("-x ")
-            if self.steps != 800:
+            if self.steps != 1000:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))
@@ -329,53 +325,115 @@ class CreateSlurmFiles:
 
         return self.slurm
 
-    def slurm_nord(self, slurm_name):
+    def slurm_nord(self):
         """
         Create slurm files for PELE in LSF managed systems
-
-        Parameters
-        ___________
-        slurm_name: str
-            Name of the file created
         """
-        self.slurm = "{}.sh".format(slurm_name)
+        if not self.dir:
+            name = basename(self.input).replace(".pdb", "")
+        else:
+            name = basename(self.dir)
+        self.slurm = "{}.sh".format(name)
         with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#BSUB -J PELE\n", "#BSUB -oo {}.out\n".format(slurm_name),
-                     "#BSUB -eo {}.err\n".format(slurm_name)]
+            lines = ["#!/bin/bash\n", "#BSUB -J PELE\n", "#BSUB -oo {}.out\n".format(name),
+                     "#BSUB -eo {}.err\n".format(name)]
             if self.test:
                 lines.append("#BSUB -q debug\n")
                 self.cpus = 5
+                real_cpus = self.cpus * self.len
                 lines.append("#BSUB -W 01:00\n")
-                lines.append("#BSUB -n {}\n\n".format(self.cpus))
+                lines.append("#BSUB -n {}\n\n".format(real_cpus))
             else:
+                if self.total_cpus:
+                    real_cpus = self.total_cpus
+                else:
+                    real_cpus = self.cpus * self.len + 2
                 lines.append("#BSUB -W 48:00\n")
-                lines.append("#BSUB -n {}\n\n".format(self.cpus))
+                lines.append("#BSUB -n {}\n\n".format(real_cpus))
 
             lines2 = ['module purge\n',
-                      'module load intel gcc/latest openmpi/1.8.1 boost/1.63.0 PYTHON/3.7.4 MKL/11.3 GTK+3/3.2.4\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/1.5.1/pele_platform:$PYTHONPATH\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/1.5.1/dependencies:$PYTHONPATH\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/adaptiveSampling/bin_nord/v1.6.2/:$PYTHONPATH\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/PELEPlatform/external_deps/:$PYTHONPATH\n',
-                      'export PYTHONPATH=/gpfs/projects/bsc72/lib/site-packages_mn3:$PYTHONPATH\n',
-                      'export MPLBACKEND=Agg\n', 'export OMPI_MCA_coll_hcoll_enable=0\n', 'export OMPI_MCA_mtl=^mxm\n'
+                      'module load intel gcc openmpi/1.8.1 boost/1.63.0 MKL/11.3 GTK+3/3.2.4\n',
+                      'module load ANACONDA/2020.11\n',
+                      'eval "$(conda shell.bash hook)"\n',
+                      'conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.0_nord\n',
                       'python -m pele_platform.main {}\n']
-
+            argument_list = []
+            arguments = "-i {} -lc {} -ln {} -at {} ".format(self.input, self.ligchain, self.ligname, self.atoms)
+            argument_list.append(arguments)
+            if self.position:
+                argument_list.append("-p {} ".format(self.position))
+            if self.seed != 12345:
+                argument_list.append("--seed {} ".format(self.seed))
+            if self.cpus != 25:
+                argument_list.append("-cpm {} ".format(self.cpus))
+            if self.total_cpus:
+                argument_list.append("-tcpus {} ".format(self.total_cpus))
+            if not self.hydrogen:
+                argument_list.append("-hy ")
+            if self.consec:
+                argument_list.append("-co ")
+            if self.multiple:
+                argument_list.append("-m ")
+            if self.cu:
+                argument_list.append("-po ")
+            if self.nord:
+                argument_list.append("--nord ")
+            if self.pdb_dir != "pdb_files":
+                argument_list.append("-pd {} ".format(self.pdb_dir))
+            if self.dir:
+                argument_list.append("--dir {} ".format(self.dir))
+            if self.test:
+                argument_list.append("--test ")
+            if self.xtc:
+                argument_list.append("-x ")
+            if self.steps != 1000:
+                argument_list.append("--steps {} ".format(self.steps))
+            if self.dpi != 800:
+                argument_list.append("--dpi {} ".format(self.dpi))
+            if self.box != 30:
+                argument_list.append("--box {} ".format(self.box))
+            if self.traj != 10:
+                argument_list.append("-tr {} ".format(self.traj))
+            if self.output != "summary":
+                argument_list.append("--out {} ".format(self.output))
+            if self.plot_dir:
+                argument_list.append("--plot {} ".format(self.plot_dir))
+            if self.opt != "distance":
+                argument_list.append("-an {} ".format(self.opt))
+            if self.thres != -0.1:
+                argument_list.append("--thres {} ".format(self.thres))
+            if self.cata_dist != 3.5:
+                argument_list.append("-cd {} ".format(self.cata_dist))
+            if self.single and self.pluri:
+                argument_list.append("-sm {} ".format(self.single))
+                argument_list.append("-PR {} ".format(self.pluri))
+                if self.radius != 5.0:
+                    argument_list.append("-r {} ".format(self.radius))
+                if len(self.avoid) != 0:
+                    argument_list.append("-f {} ".format(self.avoid))
+            if self.cu and self.factor:
+                argument_list.append("-fa {} ".format(self.factor))
+            all_arguments = "".join(argument_list)
+            python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
+                all_arguments)
+            lines2.append(python)
             lines.extend(lines2)
             slurm.writelines(lines)
+
+        return self.slurm
 
 
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, cpus_per_task, factor, total_cpus, xtc, cata_dist = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist = parse_args()
     if dir_ and len(input_) > 1:
         dir_ = None
     for inp in input_:
         run = CreateSlurmFiles(inp, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                               fixed_resids, cpus_per_task, factor, total_cpus, xtc)
+                               fixed_resids, factor, total_cpus, xtc)
         slurm = run.slurm_creation()
         if sbatch:
             os.system("sbatch {}".format(slurm))

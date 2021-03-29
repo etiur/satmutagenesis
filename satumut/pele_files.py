@@ -163,8 +163,11 @@ class CreateYamlFiles:
                 self.cpus = 5
                 self.total_cpu = len(self.input) * self.cpus
             lines2 = ["cpus: {}\n".format(self.total_cpu),"cpus_per_mutation: {}\n".format(self.cpus),
-                      "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n",
-                      "pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n"]
+                      "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n"]
+            if not self.nord:
+                lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n")
+            else:
+                lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/nord/V1.6.1/bin/PELE-1.6.1_mpi'\n")
             if self.cu:
                 lines2.append("polarize_metals: true\n")
             if self.cu and self.factor:
