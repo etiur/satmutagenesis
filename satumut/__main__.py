@@ -344,6 +344,7 @@ class CreateSlurmFiles:
                 lines.append("#BSUB -W 01:00\n")
                 lines.append("#BSUB -n {}\n\n".format(real_cpus))
             else:
+                lines.append('#BSUB -q bsc_ls')
                 if self.total_cpus:
                     real_cpus = self.total_cpus
                 else:
@@ -355,8 +356,8 @@ class CreateSlurmFiles:
                       'module load intel gcc openmpi/1.8.1 boost/1.63.0 MKL/11.3 GTK+3/3.2.4\n',
                       'module load ANACONDA/2020.11\n',
                       'eval "$(conda shell.bash hook)"\n',
-                      'conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.0_nord\n',
-                      'python -m pele_platform.main {}\n']
+                      'conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.0_nord\n']
+
             argument_list = []
             arguments = "-i {} -lc {} -ln {} -at {} ".format(self.input, self.ligchain, self.ligname, self.atoms)
             argument_list.append(arguments)
@@ -434,7 +435,10 @@ def main():
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
                                fixed_resids, factor, total_cpus, xtc)
-        slurm = run.slurm_creation()
+        if not nord:
+            slurm = run.slurm_creation()
+        else:
+            slurm = run.slurm_nord()
         if sbatch:
             os.system("sbatch {}".format(slurm))
 
