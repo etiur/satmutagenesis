@@ -127,7 +127,7 @@ class SimulationRunner:
         if not self.dir:
             base = self.input.replace(".pdb", "")
         else:
-            base = self.dir
+            base = self.dir.replace(".pdb", "")
         if not os.path.exists("{}_mut".format(base)):
             os.makedirs("{}_mut".format(base))
         os.chdir("{}_mut".format(base))
