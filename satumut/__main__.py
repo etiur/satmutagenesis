@@ -244,13 +244,13 @@ class CreateSlurmFiles:
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
                 self.cpus = 5
-                real_cpus = self.cpus * self.len
+                real_cpus = self.cpus * self.len + 1
                 lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
             else:
                 if self.total_cpus:
                     real_cpus = self.total_cpus
                 else:
-                    real_cpus = self.cpus * self.len + 2
+                    real_cpus = self.cpus * self.len + 1
                 lines.append("#SBATCH --ntasks={}\n".format(real_cpus))
 
             lines2 = ['module purge\n',
@@ -348,7 +348,7 @@ class CreateSlurmFiles:
                 if self.total_cpus:
                     real_cpus = self.total_cpus
                 else:
-                    real_cpus = self.cpus * self.len + 2
+                    real_cpus = self.cpus * self.len + 1
                 lines.append("#BSUB -W 48:00\n")
                 lines.append("#BSUB -n {}\n\n".format(real_cpus))
 

@@ -109,7 +109,7 @@ class CreateYamlFiles:
         if total_cpus:
             self.total_cpu = total_cpus
         else:
-            self.total_cpu = len(self.input) * self.cpus
+            self.total_cpu = len(self.input) * self.cpus + 1
 
     def _match_dist(self):
         """
@@ -161,7 +161,7 @@ class CreateYamlFiles:
             if self.test:
                 lines.append("test: true\n")
                 self.cpus = 5
-                self.total_cpu = len(self.input) * self.cpus
+                self.total_cpu = len(self.input) * self.cpus + 1
             lines2 = ["cpus: {}\n".format(self.total_cpu),"cpus_per_mutation: {}\n".format(self.cpus),
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n"]
             if not self.nord:
