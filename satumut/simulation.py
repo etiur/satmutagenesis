@@ -125,13 +125,12 @@ class SimulationRunner:
         """
         self.input = abspath(self.input)
         if not self.dir:
-            base = basename(self.input)
-            base = base.replace(".pdb", "")
+            base = self.input.replace(".pdb", "")
         else:
             base = self.dir
-        if not os.path.exists("{}_mutations".format(base)):
-            os.mkdir("{}_mutations".format(base))
-        os.chdir("{}_mutations".format(base))
+        if not os.path.exists("{}_mut".format(base)):
+            os.makedirs("{}_mut".format(base))
+        os.chdir("{}_mut".format(base))
 
         return self.input
 

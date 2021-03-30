@@ -431,6 +431,7 @@ def main():
     if dir_ and len(input_) > 1:
         dir_ = None
     for inp in input_:
+        dir_ = inp
         run = CreateSlurmFiles(inp, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
