@@ -234,9 +234,9 @@ class CreateSlurmFiles:
         Creates the slurm running files for PELE in sbatch managed systems
         """
         if not self.dir:
-            name = self.input.replace(".pdb", "")
+            name = basename(self.input).replace(".pdb", "")
         else:
-            name = self.dir
+            name = basename(self.dir)
         self.slurm = "{}.sh".format(name)
         with open(self.slurm, "w") as slurm:
             lines = ["#!/bin/bash\n", "#SBATCH -J {}\n".format(name), "#SBATCH --output={}.out\n".format(name),
@@ -330,9 +330,9 @@ class CreateSlurmFiles:
         Create slurm files for PELE in LSF managed systems
         """
         if not self.dir:
-            name = self.input.replace(".pdb", "")
+            name = basename(self.input).replace(".pdb", "")
         else:
-            name = self.dir
+            name = basename(self.dir)
         self.slurm = "{}.sh".format(name)
         with open(self.slurm, "w") as slurm:
             lines = ["#!/bin/bash\n", "#BSUB -J PELE\n", "#BSUB -oo {}.out\n".format(name),
