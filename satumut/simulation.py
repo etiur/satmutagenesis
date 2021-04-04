@@ -258,7 +258,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     if not restart:
         pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
-                                   consec=consec)
+                                       consec=consec)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
                                cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
                                total_cpus=total_cpus, xtc=xtc)
