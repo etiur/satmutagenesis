@@ -28,8 +28,8 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-pd", "--pdb_dir", required=False, default="pdb_files",
                         help="The name for the mutated pdb folder")
-    parser.add_argument("-sm", "--single_mutagenesis",required=False,
-                        help="Specifiy the name of the residue that you want the "
+    parser.add_argument("-sm", "--single_mutagenesis", required=False,
+                        help="Specify the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
                              "code and 1 letter code can be used. You can even specify the protonated states")
 
@@ -132,7 +132,7 @@ class Mutagenesis:
                     self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
                 except KeyError:
                     self.log.error("position {}:{} has no rotamer in the library so it was skipped".format(self.chain_id,
-                                                        self.position+1), exc_info=True)
+                                    self.position+1), exc_info=True)
                 # writing into a pdb
                 if self.consec:
                     name = basename(self.input).replace("pdb", "")
@@ -168,7 +168,7 @@ class Mutagenesis:
             self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
         except KeyError:
             self.log.error("position {}:{} has no rotamer in the library so it was skipped".format(self.chain_id,
-                                                        self.position + 1), exc_info=True)
+                            self.position + 1), exc_info=True)
         # writing into a pdb
         if len(new_aa) == 1:
             new = new_aa

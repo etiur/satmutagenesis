@@ -88,9 +88,9 @@ def parse_args():
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
-            args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse,
-            args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance]
+            args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot,
+            args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
+            args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance]
 
 
 class CreateSlurmFiles:
