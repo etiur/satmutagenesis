@@ -147,19 +147,18 @@ class SimulationRunner:
         """
         os.chdir("../")
         if not self.dir:
-            base = basename(self.input)
-            base = base.replace(".pdb", "")
+            base = self.input.replace(".pdb", "")
         else:
-            base = basename(self.dir)
+            base = self.dir.replace(".pdb", "")
         folder = []
         if not self.single:
-            with open("{}_mutations/simulations/completed_mutations.log".format(base)) as log:
+            with open("{}_mut/simulations/completed_mutations.log".format(base)) as log:
                 for paths in log:
                     dir_ = paths.split()
                     if "original" in dir_[1]:
-                        original = "{}_mutations/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4])
+                        original = "{}_mut/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4])
                     else:
-                        folder.append("{}_mutations/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4]))
+                        folder.append("{}_mut/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4]))
             return folder, original
 
     def submit(self, yaml):
