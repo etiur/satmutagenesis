@@ -336,8 +336,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec,
                                    single=single_mutagenesis)
     yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
-                                 cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
-                                 factor=factor, total_cpus=total_cpus, xtc=xtc)
+                           cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
+                           factor=factor, total_cpus=total_cpus, xtc=xtc)
     simulation.submit(yaml)
 
 

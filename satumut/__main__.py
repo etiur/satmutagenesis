@@ -258,7 +258,7 @@ class CreateSlurmFiles:
                       'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0 ANACONDA/2019.10\n',
                       'eval "$(conda shell.bash hook)"\n',
-                      "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.0b\n\n"]
+                      "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.0\n\n"]
 
             argument_list = []
             arguments = "-i {} -lc {} -ln {} -at {} ".format(self.input, self.ligchain, self.ligname, self.atoms)
