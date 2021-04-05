@@ -32,7 +32,7 @@ def parse_args():
                         help="used if LSF is the utility managing the jobs")
     parser.add_argument("-s", "--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
-    parser.add_argument("-st", "--steps", required=False, type=int, default=800,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=1000,
                         help="The number of PELE steps")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
@@ -48,7 +48,7 @@ class CreateYamlFiles:
     Creates the 2 necessary files for the pele simulations
     """
     def __init__(self, input_path,  ligchain, ligname, atoms, cpus=25,
-                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=800, single=None, factor=None,
+                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=1000, single=None, factor=None,
                  total_cpus=None, xtc=False):
         """
         Initialize the CreateLaunchFiles object

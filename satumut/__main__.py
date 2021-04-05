@@ -50,7 +50,7 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-sb", "--sbatch", required=False, action="store_false",
                         help="True if you want to lanch the simulation right after creating the slurm file")
-    parser.add_argument("-st", "--steps", required=False, type=int, default=800,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=1000,
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
@@ -251,7 +251,7 @@ class CreateSlurmFiles:
                     real_cpus = self.total_cpus
                 else:
                     real_cpus = self.cpus * self.len + 1
-                lines.append("#SBATCH --ntasks={}\n".format(real_cpus))
+                lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
 
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',

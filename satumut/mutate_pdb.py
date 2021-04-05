@@ -229,18 +229,11 @@ class Mutagenesis:
         with open(prep_pdb, "w") as prep:
             prep.writelines(prep_lines)
 
-    def accelerated_insert(self, file_list=None):
+    def accelerated_insert(self):
         """
         Paralelizes the insert atomtype function
-
-        Parameters
-        ___________
-        file_list: list[path]
-            optional if you want to include another list
         """
         pros = []
-        if file_list:
-            self.final_pdbs = file_list
         for prep_pdb in self.final_pdbs:
             if "original" not in prep_pdb:
                 p = Process(target=self.insert_atomtype, args=(prep_pdb,))
