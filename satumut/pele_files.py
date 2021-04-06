@@ -100,7 +100,7 @@ class CreateYamlFiles:
         self.seed = seed
         self.nord = nord
         self.xtc = xtc
-        if single and steps == 800:
+        if single and steps == 1000:
             self.steps = 250
         else:
             self.steps = steps
