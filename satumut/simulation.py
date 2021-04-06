@@ -95,7 +95,7 @@ class SimulationRunner:
     A class that configures and runs simulations
     """
 
-    def __init__(self, input_, dir_=None, single=None, test=False):
+    def __init__(self, input_, dir_=None, test=False):
         """
         Initialize the Simulation Runner class
 
@@ -105,8 +105,6 @@ class SimulationRunner:
             The path to the PDB file
         dir_: str, optional
             The name of the directory for the simulations to run and the outputs to be stored
-        single: str, optional
-            If it is a plurizyme
         test: bool, optional
             True if it is only a test
         """
@@ -114,7 +112,6 @@ class SimulationRunner:
         self.input = input_
         self.proc = None
         self.dir = dir_
-        self.single = single
         self.log = Log("simulation_time")
         self.test = test
 
@@ -155,7 +152,8 @@ class SimulationRunner:
         else:
             base = self.dir.replace(".pdb", "")
         folder = []
-        if not self.single and not self.test:
+        original = ""
+        if not self.test:
             with open("{}_mut/simulations/completed_mutations.log".format(base)) as log:
                 for paths in log:
                     dir_ = paths.split()
@@ -163,7 +161,8 @@ class SimulationRunner:
                         original = "{}_mut/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4])
                     else:
                         folder.append("{}_mut/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4]))
-            return folder, original
+
+        return folder, original
 
     def submit(self, yaml):
         """
@@ -255,7 +254,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     xtc: bool, optional
         Set to True if you want to change the pdb format to xtc
     """
-    simulation = SimulationRunner(input_, dir_, plurizyme_at_and_res, test)
+    simulation = SimulationRunner(input_, dir_, test)
     input_ = simulation.side_function()
     if not position and plurizyme_at_and_res:
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
