@@ -152,8 +152,8 @@ class SimulationRunner:
         else:
             base = self.dir.replace(".pdb", "")
         folder = []
-        original = ""
-        if not self.test:
+        original = None
+        try:
             with open("{}_mut/simulations/completed_mutations.log".format(base)) as log:
                 for paths in log:
                     dir_ = paths.split()
@@ -161,6 +161,8 @@ class SimulationRunner:
                         original = "{}_mut/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4])
                     else:
                         folder.append("{}_mut/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4]))
+        except IOError:
+            pass
 
         return folder, original
 
@@ -273,7 +275,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 
     simulation.submit(yaml)
     dirname, original = simulation.pele_folders()
-    if not test:
+    if not test and original:
         if dir_ and not plot_dir:
             plot_dir = dir_
         consecutive_analysis(dirname, original, dpi, box, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc)
