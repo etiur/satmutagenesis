@@ -177,10 +177,10 @@ class SimulationRunner:
         """
         command = ["python", "-m", "pele_platform.main", "{}".format(yaml)]
         start = time.time()
-        retun_code = call(command, close_fds=False)
+        return_code = call(command, close_fds=False)
         end = time.time()
         # creating a log
-        self.log.info("It took {} to run the simulation with return code {}".format(end - start, retun_code))
+        self.log.info("It took {} to run the simulation with return code {}".format(end - start, return_code))
 
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
