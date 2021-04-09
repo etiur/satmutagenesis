@@ -84,13 +84,18 @@ def parse_args():
                         help="Change the pdb format to xtc")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
+    parser.add_argument("-tem", "--template", required=False, nargs="+",
+                        help="Path to external forcefield templates")
+    parser.add_argument("-sk", "--skip", required=False,
+                        help="skip the processing of ligands by PlopRotTemp")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
             args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot,
             args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
-            args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance]
+            args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
+            args.template, args.skip]
 
 
 class CreateSlurmFiles:
@@ -102,7 +107,7 @@ class CreateSlurmFiles:
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=1000, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
-                 factor=None, total_cpus=None, xtc=False, cata_dist=3.5):
+                 factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -170,6 +175,10 @@ class CreateSlurmFiles:
             Set to True if you want to change the pdb format to xtc
         cata_dist: float, optional
             The catalytic distance
+        template: str, optional
+            Path to the external forcefield templates
+        skip: str, optional
+            Skip the processing of ligands by PlopRotTemp
         """
         assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
         self.input = input_
@@ -214,6 +223,8 @@ class CreateSlurmFiles:
         self.total_cpus = total_cpus
         self.xtc = xtc
         self.cata_dist = cata_dist
+        self.template = "".join(template)
+        self.skip = skip
 
     def _size(self):
         """
@@ -316,6 +327,10 @@ class CreateSlurmFiles:
                     argument_list.append("-f {} ".format(self.avoid))
             if self.cu and self.factor:
                 argument_list.append("-fa {} ".format(self.factor))
+            if self.template:
+                argument_list.append("-tem {} ".format(self.template))
+            if self.skip:
+                argument_list.append("-sk {} ".format(self.skip))
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
@@ -414,6 +429,10 @@ class CreateSlurmFiles:
                     argument_list.append("-f {} ".format(self.avoid))
             if self.cu and self.factor:
                 argument_list.append("-fa {} ".format(self.factor))
+            if self.template:
+                argument_list.append("-tem {} ".format(self.template))
+            if self.skip:
+                argument_list.append("-sk {} ".format(self.skip))
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
@@ -427,14 +446,14 @@ class CreateSlurmFiles:
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist = parse_args()
+    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip = parse_args()
     if dir_ and len(input_) > 1:
         dir_ = None
     for inp in input_:
         run = CreateSlurmFiles(inp, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                               fixed_resids, factor, total_cpus, xtc)
+                               fixed_resids, factor, total_cpus, xtc, template, skip)
         if not nord:
             slurm = run.slurm_creation()
         else:

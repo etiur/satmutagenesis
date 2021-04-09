@@ -36,11 +36,15 @@ def parse_args():
                         help="The number of PELE steps")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
-
+    parser.add_argument("-tem", "--template", required=False, nargs="+",
+                        help="Path to external forcefield templates")
+    parser.add_argument("-sk", "--skip", required=False,
+                        help="skip the processing of ligands by PlopRotTemp")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test, args.polarize_metals,
-            args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc]
+            args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc, args.template,
+            args.skip]
 
 
 class CreateYamlFiles:
@@ -49,7 +53,7 @@ class CreateYamlFiles:
     """
     def __init__(self, input_path,  ligchain, ligname, atoms, cpus=25,
                  test=False, initial=None, cu=False, seed=12345, nord=False, steps=1000, single=None, factor=None,
-                 total_cpus=None, xtc=False):
+                 total_cpus=None, xtc=False, template=None, skip=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -87,6 +91,10 @@ class CreateYamlFiles:
             The total number of cpus, it should be a multiple of the number of cpus
         xtc: bool, optional
             Set to True if you want to change the pdb format to xtc
+        template: str, optional
+            Path to the external forcefield templates
+        skip: str, optional
+            Skip the processing of ligands by PlopRotTemp
         """
         self.input = input_path
         self.ligchain = ligchain
@@ -110,6 +118,8 @@ class CreateYamlFiles:
             self.total_cpu = total_cpus
         else:
             self.total_cpu = len(self.input) * self.cpus + 1
+        self.template = template
+        self.skip = skip
 
     def _match_dist(self):
         """
@@ -172,6 +182,12 @@ class CreateYamlFiles:
                 lines2.append("polarize_metals: true\n")
             if self.cu and self.factor:
                 lines2.append("polarization_factor: {}\n".format(self.factor))
+            if self.template:
+                lines2.append("templates:\n")
+                for templates in self.template:
+                    lines2.append("- {}\n".format(templates))
+            if self.skip:
+                lines2.append("skip_ligand_prep:\n- {}\n".format(self.skip))
             lines.extend(lines2)
             inp.writelines(lines)
 
@@ -180,7 +196,7 @@ class CreateYamlFiles:
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, initial=None,
                     cu=False, seed=12345, nord=False, steps=800, single=None, factor=None,
-                    total_cpus=None, xtc=False):
+                    total_cpus=None, xtc=False, template=None, skip=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -218,6 +234,10 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
         The number of total cpus, it should be a multiple of the number of cpus
     xtc: bool, optional
         Set to True if you want to change the pdb format to xtc
+    template: str, optional
+        Path to the external forcefield templates
+    skip: str, optional
+        Skip the processing of ligands by PlopRotTemp
 
     Returns
     _______
@@ -230,15 +250,17 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
         pdb_list = pdb_files
     run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, test=test,
                           initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single, factor=factor,
-                          total_cpus=total_cpus, xtc=xtc)
+                          total_cpus=total_cpus, xtc=xtc, skip=skip, template=template)
     yaml = run.input_creation()
     return yaml
 
 
 def main():
-    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor, total_cpus, xtc = parse_args()
+    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
+    skip = parse_args()
     yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, test=test, cu=cu,
-                                 seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc)
+                                 seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc,
+                                 skip=skip, template=template)
 
     return yaml_files
 
