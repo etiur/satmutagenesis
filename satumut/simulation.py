@@ -374,7 +374,8 @@ def main():
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                              multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
-                             plot_dir, analyze, thres, factor, total_cpus, cata_dist, xtc, template, skip)
+                             plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
+                             total_cpus, restart, cata_dist, xtc, template, skip)
 
 
 if __name__ == "__main__":
