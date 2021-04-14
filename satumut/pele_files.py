@@ -175,7 +175,7 @@ class CreateYamlFiles:
             lines.append("working_folder: '{}'\n".format(folder))
             if self.test:
                 lines.append("test: true\n")
-                self.cpus = 5
+                self.cpus = 2
                 self.total_cpu = len(self.input) * self.cpus + 1
             lines2 = ["cpus: {}\n".format(self.total_cpu), "cpus_per_mutation: {}\n".format(self.cpus),
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n"]
