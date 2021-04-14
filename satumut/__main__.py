@@ -470,7 +470,7 @@ def main():
         run = CreateSlurmFiles(inp, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                               fixed_resids, factor, total_cpus, xtc, template, skip, rotamers)
+                               fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers)
         if not nord:
             slurm = run.slurm_creation()
         else:
