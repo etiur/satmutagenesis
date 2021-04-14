@@ -113,7 +113,7 @@ class CreateYamlFiles:
         self.nord = nord
         self.xtc = xtc
         if single and steps == 1000:
-            self.steps = 250
+            self.steps = 400
         else:
             self.steps = steps
         self.single = single
