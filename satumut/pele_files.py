@@ -167,7 +167,7 @@ class CreateYamlFiles:
                 lines.append("traj: trajectory.xtc\n")
             if not self.nord:
                 lines.append("usesrun: true\n")
-            lines.append("working_folder: {}\n".format(folder))
+            lines.append("working_folder: '{}'\n".format(folder))
             if self.test:
                 lines.append("test: true\n")
                 self.cpus = 5
@@ -185,9 +185,9 @@ class CreateYamlFiles:
             if self.template:
                 lines2.append("templates:\n")
                 for templates in self.template:
-                    lines2.append("- {}\n".format(templates))
+                    lines2.append("- '{}'\n".format(templates))
             if self.skip:
-                lines2.append("skip_ligand_prep:\n- {}\n".format(self.skip))
+                lines2.append("skip_ligand_prep:\n- '{}'\n".format(self.skip))
             lines.extend(lines2)
             inp.writelines(lines)
 
