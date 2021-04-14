@@ -85,6 +85,8 @@ def parse_args():
                         help="Path to external forcefield templates")
     parser.add_argument("-sk", "--skip", required=False,
                         help="skip the processing of ligands by PlopRotTemp")
+    parser.add_argument("-rot", "--rotamers", required=False, nargs="+",
+                        help="Path to external rotamers templates")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -92,7 +94,7 @@ def parse_args():
             args.consec, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
-            args.skip]
+            args.skip, args.rotamers]
 
 
 class SimulationRunner:
@@ -193,7 +195,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          nord=False, steps=1000, dpi=800, box=30, traj=10, output="summary",
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
-                         template=None, skip=None):
+                         template=None, skip=None, rotamers=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -265,6 +267,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         Path to the external forcefield templates
     skip: str, optional
         Skip the processing of ligands by PlopRotTemp
+    rotamers: str: optional
+        Path to the external rotamers
     """
     simulation = SimulationRunner(input_, dir_, test)
     input_ = simulation.side_function()
@@ -275,7 +279,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                                        consec=consec)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
                                cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
-                               total_cpus=total_cpus, xtc=xtc, template=template, skip=skip)
+                               total_cpus=total_cpus, xtc=xtc, template=template, skip=skip, rotamers=rotamer)
     else:
         yaml = "yaml_files/simulation.yaml"
         with open(yaml, "r") as yml:
@@ -294,7 +298,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                         nord=False, steps=250, factor=None, total_cpus=None, xtc=False, template=None, skip=None):
+                         nord=False, steps=250, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
+                         rotamers=None):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -346,6 +351,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
         Path to the external forcefield templates
     skip: str, optional
         Skip the processing of ligands by PlopRotTemp
+    rotamers: str: optional
+        Path to the external rotamers
     """
     simulation = SimulationRunner(input_, dir_, single_mutagenesis)
     input_ = simulation.side_function()
@@ -355,7 +362,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
                                    single=single_mutagenesis)
     yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
                            cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
-                           factor=factor, total_cpus=total_cpus, xtc=xtc, template=template, skip=skip)
+                           factor=factor, total_cpus=total_cpus, xtc=xtc, template=template, skip=skip,
+                           rotamers=rotamers)
     simulation.submit(yaml)
 
 
@@ -363,19 +371,19 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
-    skip = parse_args()
+    skip, rotamers = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                              radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps,
-                             factor, total_cpus, xtc, template, skip)
+                             factor, total_cpus, xtc, template, skip, rotamers)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                              multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
-                             total_cpus, restart, cata_dist, xtc, template, skip)
+                             total_cpus, restart, cata_dist, xtc, template, skip, rotamers)
 
 
 if __name__ == "__main__":
