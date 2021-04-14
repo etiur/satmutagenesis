@@ -38,13 +38,15 @@ def parse_args():
                         help="Change the pdb format to xtc")
     parser.add_argument("-tem", "--template", required=False, nargs="+",
                         help="Path to external forcefield templates")
+    parser.add_argument("-rot", "--rotamers", required=False, nargs="+",
+                        help="Path to external rotamers templates")
     parser.add_argument("-sk", "--skip", required=False,
                         help="skip the processing of ligands by PlopRotTemp")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test, args.polarize_metals,
             args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc, args.template,
-            args.skip]
+            args.skip, args.rotamers]
 
 
 class CreateYamlFiles:
@@ -53,7 +55,7 @@ class CreateYamlFiles:
     """
     def __init__(self, input_path,  ligchain, ligname, atoms, cpus=25,
                  test=False, initial=None, cu=False, seed=12345, nord=False, steps=1000, single=None, factor=None,
-                 total_cpus=None, xtc=False, template=None, skip=None):
+                 total_cpus=None, xtc=False, template=None, skip=None, rotamers=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -95,6 +97,8 @@ class CreateYamlFiles:
             Path to the external forcefield templates
         skip: str, optional
             Skip the processing of ligands by PlopRotTemp
+        rotamers: str: optional
+            Path to the external rotamers
         """
         self.input = input_path
         self.ligchain = ligchain
@@ -120,6 +124,7 @@ class CreateYamlFiles:
             self.total_cpu = len(self.input) * self.cpus + 1
         self.template = template
         self.skip = skip
+        self.rotamers = rotamers
 
     def _match_dist(self):
         """
@@ -186,6 +191,10 @@ class CreateYamlFiles:
                 lines2.append("templates:\n")
                 for templates in self.template:
                     lines2.append("- '{}'\n".format(templates))
+            if self.rotamers:
+                lines2.append("rotamers:\n")
+                for rotamers in self.rotamers:
+                    lines.append("- '{}'\n".format(rotamers))
             if self.skip:
                 lines2.append("skip_ligand_prep:\n- '{}'\n".format(self.skip))
             lines.extend(lines2)
@@ -196,7 +205,7 @@ class CreateYamlFiles:
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, initial=None,
                     cu=False, seed=12345, nord=False, steps=800, single=None, factor=None,
-                    total_cpus=None, xtc=False, template=None, skip=None):
+                    total_cpus=None, xtc=False, template=None, skip=None, rotamers=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -238,7 +247,8 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
         Path to the external forcefield templates
     skip: str, optional
         Skip the processing of ligands by PlopRotTemp
-
+    rotamers: str: optional
+            Path to the external rotamers
     Returns
     _______
     yaml: str
@@ -250,17 +260,17 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
         pdb_list = pdb_files
     run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, test=test,
                           initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single, factor=factor,
-                          total_cpus=total_cpus, xtc=xtc, skip=skip, template=template)
+                          total_cpus=total_cpus, xtc=xtc, skip=skip, template=template, rotamers=rotamers)
     yaml = run.input_creation()
     return yaml
 
 
 def main():
     folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
-    skip = parse_args()
+    skip, rotamers = parse_args()
     yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, test=test, cu=cu,
                                  seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc,
-                                 skip=skip, template=template)
+                                 skip=skip, template=template,rotamers=rotamers)
 
     return yaml_files
 
