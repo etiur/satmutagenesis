@@ -204,7 +204,7 @@ class CreateYamlFiles:
 
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, initial=None,
-                    cu=False, seed=12345, nord=False, steps=800, single=None, factor=None,
+                    cu=False, seed=12345, nord=False, steps=1000, single=None, factor=None,
                     total_cpus=None, xtc=False, template=None, skip=None, rotamers=None):
     """
     creates for each of the mutants the yaml and slurm files
