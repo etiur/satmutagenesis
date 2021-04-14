@@ -194,7 +194,7 @@ class CreateYamlFiles:
             if self.rotamers:
                 lines2.append("rotamers:\n")
                 for rotamers in self.rotamers:
-                    lines.append("- '{}'\n".format(rotamers))
+                    lines2.append("- '{}'\n".format(rotamers))
             if self.skip:
                 lines2.append("skip_ligand_prep:\n- '{}'\n".format(self.skip))
             lines.extend(lines2)
