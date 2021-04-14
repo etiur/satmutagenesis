@@ -202,7 +202,7 @@ class CreateSlurmFiles:
             self.len = len(_)
         else:
             self.len = len(position) * 19 + 1
-        if len(position) != 0:
+        if position:
             self.position = " ".join(position)
         else:
             self.position = None
