@@ -227,9 +227,15 @@ class CreateSlurmFiles:
         self.total_cpus = total_cpus
         self.xtc = xtc
         self.cata_dist = cata_dist
-        self.template = "".join(template)
+        if template:
+            self.template = "".join(template)
+        else:
+            self.template = None
         self.skip = skip
-        self.rotamer = "".join(rotamers)
+        if rotamers:
+            self.rotamer = "".join(rotamers)
+        else:
+            self.rotamer = None
 
     def _size(self):
         """
