@@ -187,7 +187,7 @@ class SimulationRunner:
         return_code = call(command, close_fds=False)
         end = time.time()
         # creating a log
-        self.log.info("It took {} to run the simulation with return code {}".format(end - start, return_code))
+        self.log.info("It took {} min to run the simulation with return code {}".format((end - start)/60, return_code))
 
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
