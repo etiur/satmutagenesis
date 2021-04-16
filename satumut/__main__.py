@@ -8,7 +8,7 @@ __maintainer__ = "Ruite Xiang"
 __email__ = "ruite.xiang@bsc.es"
 
 import argparse
-import os
+from subprocess import call
 from os.path import basename
 from helper import neighbourresidues
 from Bio import PDB
@@ -476,7 +476,7 @@ def main():
         else:
             slurm = run.slurm_nord()
         if sbatch:
-            os.system("sbatch {}".format(slurm))
+            call(["sbatch", "{}".format(slurm)])
 
 
 if __name__ == "__main__":
