@@ -4,6 +4,7 @@ This script contains helper functions
 import Bio.PDB
 import logging
 from os.path import basename
+import itertools
 
 
 def map_atom_string(atom_string, initial_pdb, prep_pdb):
@@ -108,18 +109,9 @@ def commonlist(folder_list):
     new_list: list[list]
         A list of a list of mutations in the same position
     """
-    holder = []
     new_list = []
-    hold = basename(folder_list[0])[:-1]
-    for paths in folder_list:
-        base = basename(paths)
-        if hold == base[:-1]:
-            holder.append(paths)
-        if hold != base[:-1]:
-            hold = base[:-1]
-            new_list.append(holder)
-            holder = [paths]
-
+    for key, group in itertools.groupby(folder_list, lambda x: basename(x)[:-1]):
+        new_list.append(list(group))
     assert len([item for sublist in new_list for item in sublist]) == len(folder_list)
     return new_list
 
