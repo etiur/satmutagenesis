@@ -131,7 +131,7 @@ class Mutagenesis:
                     self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
                 except KeyError:
                     self.log.error("position {}:{} has no rotamer in the library so it was skipped".format(self.chain_id,
-                                    self.position+1), exc_info=True)
+                                   self.position+1), exc_info=True)
                 # writing into a pdb
                 if self.consec:
                     name = basename(self.input).replace("pdb", "")
@@ -285,11 +285,11 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
             run.accelerated_insert()
             count += 1
         # Mutate in a second position for each of the 20 single mutations
-        if multiple and len(position) == 2 and not single and count == 1:
+        if multiple and not single and count == 1:
             for files in final_pdbs:
                 name = basename(files).replace(".pdb", "")
                 if name != "original":
-                    run_ = Mutagenesis(files, position[1], pdb_dir, consec)
+                    run_ = Mutagenesis(files, position[1], pdb_dir, True)
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
