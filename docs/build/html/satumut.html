@@ -728,11 +728,11 @@ in a PDB file.</p>
 <p>This script is used to generate the yaml files for pele platform</p>
 <dl class="class">
 <dt id="satumut.pele_files.CreateYamlFiles">
-<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em>, <em>template=None</em>, <em>skip=None</em>, <em>rotamers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the 2 necessary files for the pele simulations</p>
 <dl class="method">
 <dt id="satumut.pele_files.CreateYamlFiles.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em>, <em>template=None</em>, <em>skip=None</em>, <em>rotamers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the CreateLaunchFiles object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -755,6 +755,9 @@ in a PDB file.</p>
 <li><strong>analysis</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if you want the analysis by pele</li>
 <li><strong>total_cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – The total number of cpus, it should be a multiple of the number of cpus</li>
 <li><strong>xtc</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set to True if you want to change the pdb format to xtc</li>
+<li><strong>template</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to the external forcefield templates</li>
+<li><strong>skip</strong> (<em>str</em><em>, </em><em>optional</em>) – Skip the processing of ligands by PlopRotTemp</li>
+<li><strong>rotamers</strong> (<em>str: optional</em>) – Path to the external rotamers</li>
 </ul>
 </td>
 </tr>
@@ -772,7 +775,7 @@ in a PDB file.</p>
 
 <dl class="function">
 <dt id="satumut.pele_files.create_20sbatch">
-<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>pdb_files</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=800</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>pdb_files</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em>, <em>template=None</em>, <em>skip=None</em>, <em>rotamers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates for each of the mutants the yaml and slurm files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -795,6 +798,9 @@ in a PDB file.</p>
 <li><strong>analysis</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if you want the analysis by pele</li>
 <li><strong>total_cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of total cpus, it should be a multiple of the number of cpus</li>
 <li><strong>xtc</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set to True if you want to change the pdb format to xtc</li>
+<li><strong>template</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to the external forcefield templates</li>
+<li><strong>skip</strong> (<em>str</em><em>, </em><em>optional</em>) – Skip the processing of ligands by PlopRotTemp</li>
+<li><strong>rotamers</strong> (<em>str: optional</em>) – Path to the external rotamers</li>
 </ul>
 </td>
 </tr>
