@@ -206,9 +206,9 @@ class Mutagenesis:
             if (line.startswith("HETATM") or line.startswith("ATOM")) and (
                     line[21].strip() != self.chain_id.strip() or line[
                                                                  22:26].strip() != str(self.position + 1)):
-                coords = line[30:54].split()
+                coords = [line[30:38].strip(), line[38:46].strip(), line[46:54].strip()]
                 for linex in initial_lines:
-                    if linex[30:54].split() == coords:
+                    if [linex[30:38].strip(), linex[38:46].strip(), linex[46:54].strip()] == coords:
                         prep_lines[ind] = line.strip("\n") + linex[66:81]
                         break
 
