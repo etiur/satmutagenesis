@@ -106,7 +106,7 @@ class SimulationData:
         trajectory.reset_index(drop=True, inplace=True)
         trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
-        self.frequency = trajectory[trajectory["distance0.5"] < self.catalytic]
+        self.frequency = trajectory[trajectory["distance0.5"] <= self.catalytic]
         self.len = len(self.frequency)
 
         # For the box plots
@@ -155,8 +155,10 @@ class SimulationData:
         length: int
             The frequency of catalytic poses
         """
-        self.len_diff = round(self.len / float(length), 2)
-
+        if length > 0:
+            self.len_diff = round(self.len / float(length), 2)
+        else:
+            self.len_diff = self.len
 
 def analyse_all(folders, wild, box=30, traj=10, cata_dist=3.5):
     """

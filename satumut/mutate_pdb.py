@@ -208,9 +208,10 @@ class Mutagenesis:
                                                                  22:26].strip() != str(self.position + 1)):
                 coords = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
                 for linex in initial_lines:
-                    if [float(linex[30:38]), float(linex[38:47]), float(linex[47:54])] == coords:
-                        prep_lines[ind] = line.strip("\n") + linex[66:81]
-                        break
+                    if linex.startswith("HETATM") or linex.startswith("ATOM"):
+                        if [float(linex[30:38]), float(linex[38:46]), float(linex[46:54])] == coords:
+                            prep_lines[ind] = line.strip("\n") + linex[66:81]
+                            break
 
             elif (line.startswith("HETATM") or line.startswith("ATOM")) and line[
                 21].strip() == self.chain_id.strip() and line[
