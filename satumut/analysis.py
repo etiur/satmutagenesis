@@ -160,6 +160,7 @@ class SimulationData:
         else:
             self.len_diff = self.len
 
+
 def analyse_all(folders, wild, box=30, traj=10, cata_dist=3.5):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
