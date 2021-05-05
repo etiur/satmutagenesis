@@ -34,7 +34,7 @@ def parse_args():
                         help="The number of PELE steps")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
-    parser.add_argument("-e", "--equilibration", required=False, action="store_true",
+    parser.add_argument("-e", "--equilibration", required=False, action="store_false",
                         help="Set equilibration")
     parser.add_argument("-tem", "--template", required=False, nargs="+",
                         help="Path to external forcefield templates")
@@ -42,11 +42,13 @@ def parse_args():
                         help="Path to external rotamers templates")
     parser.add_argument("-sk", "--skip", required=False,
                         help="skip the processing of ligands by PlopRotTemp")
+    parser.add_argument("-l", "--log", required=False, action="store_true",
+                        help="write logs")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.polarize_metals,
             args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc, args.template,
-            args.skip, args.rotamers, args.equilibration]
+            args.skip, args.rotamers, args.equilibration, args.log]
 
 
 class CreateYamlFiles:
@@ -55,7 +57,7 @@ class CreateYamlFiles:
     """
     def __init__(self, input_path,  ligchain, ligname, atoms, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                  steps=1000, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                 rotamers=None, equilibration=False):
+                 rotamers=None, equilibration=True, log=False):
         """
         Initialize the CreateLaunchFiles object
 
@@ -99,6 +101,8 @@ class CreateYamlFiles:
             Path to the external rotamers
         equilibration: bool, optional
             True to include equilibration step before PELE
+        log: bool, optional
+            True to write log files about pele
         """
         self.input = input_path
         self.ligchain = ligchain
@@ -125,6 +129,7 @@ class CreateYamlFiles:
         self.skip = skip
         self.rotamers = rotamers
         self.equilibration = equilibration
+        self.log = log
 
     def _match_dist(self):
         """
@@ -181,6 +186,8 @@ class CreateYamlFiles:
                 lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/nord/V1.6.1/bin/PELE-1.6.1_mpi'\n")
             if self.equilibration:
                 lines2.append("equilibration: true\n")
+            if self.log:
+                lines2.append("log: true\n")
             if self.cu:
                 lines2.append("polarize_metals: true\n")
             if self.cu and self.factor:
@@ -203,7 +210,7 @@ class CreateYamlFiles:
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None,
                     cu=False, seed=12345, nord=False, steps=1000, single=None, factor=None,
-                    total_cpus=None, xtc=False, template=None, skip=None, rotamers=None, equilibration=False):
+                    total_cpus=None, xtc=False, template=None, skip=None, rotamers=None, equilibration=True, log=False):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -247,6 +254,8 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None,
             Path to the external rotamers
     equilibration: bool, default=False
         True to include equilibration steps before the simulations
+    log: bool, optional
+        True to write logs abour PELE steps
 
     Returns
     _______
@@ -259,17 +268,17 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None,
         pdb_list = pdb_files
     run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, initial=initial, cu=cu, seed=seed, nord=nord,
                           steps=steps, single=single, factor=factor, total_cpus=total_cpus, xtc=xtc, skip=skip,
-                          template=template, rotamers=rotamers, equilibration=equilibration)
+                          template=template, rotamers=rotamers, equilibration=equilibration, log=log)
     yaml = run.input_creation()
     return yaml
 
 
 def main():
     folder, ligchain, ligname, atoms, cpus, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
-    skip, rotamers, equilibration = parse_args()
+    skip, rotamers, equilibration, log = parse_args()
     yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, cu=cu,
                                  seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc,
-                                 skip=skip, template=template, rotamers=rotamers, equilibration=equilibration)
+                                 skip=skip, template=template, rotamers=rotamers, equilibration=equilibration, log=log)
 
     return yaml_files
 
