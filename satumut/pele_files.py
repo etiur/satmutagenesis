@@ -26,8 +26,6 @@ def parse_args():
                         help="used if there are metals in the system")
     parser.add_argument("-fa", "--polarization_factor", required=False, type=int,
                         help="The number to divide the charges")
-    parser.add_argument("-t", "--test", required=False, action="store_true",
-                        help="Used if you want to run a test before")
     parser.add_argument("-n", "--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
     parser.add_argument("-s", "--seed", required=False, default=12345, type=int,
@@ -36,6 +34,8 @@ def parse_args():
                         help="The number of PELE steps")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
+    parser.add_argument("-e", "--equilibration", required=False, action="store_true",
+                        help="Set equilibration")
     parser.add_argument("-tem", "--template", required=False, nargs="+",
                         help="Path to external forcefield templates")
     parser.add_argument("-rot", "--rotamers", required=False, nargs="+",
@@ -44,18 +44,18 @@ def parse_args():
                         help="skip the processing of ligands by PlopRotTemp")
     args = parser.parse_args()
 
-    return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test, args.polarize_metals,
+    return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.polarize_metals,
             args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc, args.template,
-            args.skip, args.rotamers]
+            args.skip, args.rotamers, args.equilibration]
 
 
 class CreateYamlFiles:
     """
     Creates the 2 necessary files for the pele simulations
     """
-    def __init__(self, input_path,  ligchain, ligname, atoms, cpus=25,
-                 test=False, initial=None, cu=False, seed=12345, nord=False, steps=1000, single=None, factor=None,
-                 total_cpus=None, xtc=False, template=None, skip=None, rotamers=None):
+    def __init__(self, input_path,  ligchain, ligname, atoms, cpus=25, initial=None, cu=False, seed=12345, nord=False,
+                 steps=1000, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
+                 rotamers=None, equilibration=False):
         """
         Initialize the CreateLaunchFiles object
 
@@ -71,8 +71,6 @@ class CreateYamlFiles:
             list of atom of the residue to follow, in this format --> chain ID:position:atom name
         cpus: int, optional
             How many cpus do you want to use
-        test: bool, optional
-            Setting the simulation to test mode
         initial: file, optional
             The initial PDB file before the modification by pmx
         cu: bool, optional
@@ -99,13 +97,14 @@ class CreateYamlFiles:
             Skip the processing of ligands by PlopRotTemp
         rotamers: str: optional
             Path to the external rotamers
+        equilibration: bool, optional
+            True to include equilibration step before PELE
         """
         self.input = input_path
         self.ligchain = ligchain
         self.ligname = ligname
         self.atoms = atoms[:]
         self.cpus = cpus
-        self.test = test
         self.yaml = None
         self.initial = initial
         self.cu = cu
@@ -125,6 +124,7 @@ class CreateYamlFiles:
         self.template = template
         self.skip = skip
         self.rotamers = rotamers
+        self.equilibration = equilibration
 
     def _match_dist(self):
         """
@@ -173,16 +173,14 @@ class CreateYamlFiles:
             if not self.nord:
                 lines.append("usesrun: true\n")
             lines.append("working_folder: '{}'\n".format(folder))
-            if self.test:
-                lines.append("test: true\n")
-                self.cpus = 2
-                self.total_cpu = len(self.input) * self.cpus + 1
             lines2 = ["cpus: {}\n".format(self.total_cpu), "cpus_per_mutation: {}\n".format(self.cpus),
                       "pele_license: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/license'\n"]
             if not self.nord:
                 lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.6.1/bin/PELE-1.6.1_mpi'\n")
             else:
                 lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/nord/V1.6.1/bin/PELE-1.6.1_mpi'\n")
+            if self.equilibration:
+                lines2.append("equilibration: true\n")
             if self.cu:
                 lines2.append("polarize_metals: true\n")
             if self.cu and self.factor:
@@ -203,9 +201,9 @@ class CreateYamlFiles:
         return self.yaml
 
 
-def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, initial=None,
+def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None,
                     cu=False, seed=12345, nord=False, steps=1000, single=None, factor=None,
-                    total_cpus=None, xtc=False, template=None, skip=None, rotamers=None):
+                    total_cpus=None, xtc=False, template=None, skip=None, rotamers=None, equilibration=False):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -221,8 +219,6 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
         list of atom of the residue to follow, in this format --> chain ID:position:atom name
     cpus: int, optional
         how many cpus do you want to use
-    test: bool, optional
-        Setting the simulation to test mode
     initial: file, optional
         The initial PDB file before the modification by pmx if the residue number are changed
     cu: bool, optional
@@ -249,6 +245,9 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
         Skip the processing of ligands by PlopRotTemp
     rotamers: str: optional
             Path to the external rotamers
+    equilibration: bool, default=False
+        True to include equilibration steps before the simulations
+
     Returns
     _______
     yaml: str
@@ -258,19 +257,19 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, test=False, in
         pdb_list = glob.glob("{}/*.pdb".format(pdb_files))
     else:
         pdb_list = pdb_files
-    run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, test=test,
-                          initial=initial, cu=cu, seed=seed, nord=nord, steps=steps, single=single, factor=factor,
-                          total_cpus=total_cpus, xtc=xtc, skip=skip, template=template, rotamers=rotamers)
+    run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, initial=initial, cu=cu, seed=seed, nord=nord,
+                          steps=steps, single=single, factor=factor, total_cpus=total_cpus, xtc=xtc, skip=skip,
+                          template=template, rotamers=rotamers, equilibration=equilibration)
     yaml = run.input_creation()
     return yaml
 
 
 def main():
-    folder, ligchain, ligname, atoms, cpus, test, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
-    skip, rotamers = parse_args()
-    yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, test=test, cu=cu,
+    folder, ligchain, ligname, atoms, cpus, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
+    skip, rotamers, equilibration = parse_args()
+    yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, cu=cu,
                                  seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc,
-                                 skip=skip, template=template,rotamers=rotamers)
+                                 skip=skip, template=template, rotamers=rotamers, equilibration=equilibration)
 
     return yaml_files
 

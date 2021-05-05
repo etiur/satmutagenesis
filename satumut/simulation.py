@@ -87,6 +87,8 @@ def parse_args():
                         help="skip the processing of ligands by PlopRotTemp")
     parser.add_argument("-rot", "--rotamers", required=False, nargs="+",
                         help="Path to external rotamers templates")
+    parser.add_argument("-e", "--equilibration", required=False, action="store_true",
+                        help="Set equilibration")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -94,7 +96,7 @@ def parse_args():
             args.consec, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
-            args.skip, args.rotamers]
+            args.skip, args.rotamers, args.equilibration]
 
 
 class SimulationRunner:
@@ -102,7 +104,7 @@ class SimulationRunner:
     A class that configures and runs simulations
     """
 
-    def __init__(self, input_, dir_=None, test=False):
+    def __init__(self, input_, dir_=None):
         """
         Initialize the Simulation Runner class
 
@@ -112,15 +114,12 @@ class SimulationRunner:
             The path to the PDB file
         dir_: str, optional
             The name of the directory for the simulations to run and the outputs to be stored
-        test: bool, optional
-            True if it is only a test
         """
 
         self.input = input_
         self.proc = None
         self.dir = dir_
         self.log = Log("simulation_time")
-        self.test = test
 
     def side_function(self):
         """
@@ -195,7 +194,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          nord=False, steps=1000, dpi=800, box=30, traj=10, output="summary",
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
-                         template=None, skip=None, rotamers=None):
+                         template=None, skip=None, rotamers=None, equilibration=False):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -269,17 +268,19 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         Skip the processing of ligands by PlopRotTemp
     rotamers: str: optional
         Path to the external rotamers
+    equilibration: bool, optional
+        True to set equilibration before PELE
     """
-    simulation = SimulationRunner(input_, dir_, test)
+    simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
     if not position and plurizyme_at_and_res:
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     if not restart:
         pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
                                        consec=consec)
-        yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
-                               cu=cu, seed=seed, nord=nord, steps=steps, factor=factor,
-                               total_cpus=total_cpus, xtc=xtc, template=template, skip=skip, rotamers=rotamers)
+        yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
+                               nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
+                               skip=skip, rotamers=rotamers, equilibration=equilibration)
     else:
         yaml = "yaml_files/simulation.yaml"
         with open(yaml, "r") as yml:
@@ -297,9 +298,9 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
-                         pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
+                         pdb_dir="pdb_files", consec=False, cu=False, seed=12345,
                          nord=False, steps=400, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                         rotamers=None):
+                         rotamers=None, equilibration=False):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -331,8 +332,6 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
         The name of the folder where the mutated PDB files will be stored
     consec: bool, optional
         Consecutively mutate the PDB file for several rounds
-    test: bool, optional
-        Setting the simulation to test mode
     cu: bool, optional
         Set it to true if there are metals in the system
     seed: int, optional
@@ -353,17 +352,19 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
         Skip the processing of ligands by PlopRotTemp
     rotamers: str: optional
         Path to the external rotamers
+    equilibration: bool, optional
+        True to set equilibration before PELE
     """
-    simulation = SimulationRunner(input_, dir_, single_mutagenesis)
+    simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
     # Using the neighbours search to obtain a list of positions to mutate
     position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec,
                                    single=single_mutagenesis)
-    yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, test=test, initial=input_,
+    yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_,
                            cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
                            factor=factor, total_cpus=total_cpus, xtc=xtc, template=template, skip=skip,
-                           rotamers=rotamers)
+                           rotamers=rotamers, equilibration=equilibration)
     simulation.submit(yaml)
 
 
@@ -371,19 +372,19 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
-    skip, rotamers = parse_args()
+    skip, rotamers, equilibration = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
-                             radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, test, cu, seed, nord, steps,
-                             factor, total_cpus, xtc, template, skip, rotamers)
+                             radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, cu, seed, nord, steps,
+                             factor, total_cpus, xtc, template, skip, rotamers, equilibration)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                              multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
-                             total_cpus, restart, cata_dist, xtc, template, skip, rotamers)
+                             total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration)
 
 
 if __name__ == "__main__":

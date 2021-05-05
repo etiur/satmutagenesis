@@ -90,6 +90,8 @@ def parse_args():
                         help="skip the processing of ligands by PlopRotTemp")
     parser.add_argument("-rot", "--rotamers", required=False, nargs="+",
                         help="Path to external rotamers templates")
+    parser.add_argument("-e", "--equilibration", required=False, action="store_true",
+                        help="Set equilibration")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -97,7 +99,7 @@ def parse_args():
             args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot,
             args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
             args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
-            args.template, args.skip, args.rotamers]
+            args.template, args.skip, args.rotamers, args.equilibration]
 
 
 class CreateSlurmFiles:
@@ -109,7 +111,8 @@ class CreateSlurmFiles:
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
                  steps=1000, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
-                 factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None):
+                 factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
+                 equilibration=False):
         """
         Initialize the CreateLaunchFiles object
 
@@ -183,6 +186,8 @@ class CreateSlurmFiles:
             Skip the processing of ligands by PlopRotTemp
         rotamers: str: optional
             Path to the external rotamers
+        equilibration: bool, optional
+            True to include equilibration steps
         """
         assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
         self.input = input_
@@ -236,6 +241,7 @@ class CreateSlurmFiles:
             self.rotamer = "".join(rotamers)
         else:
             self.rotamer = None
+        self.equilibration = equilibration
 
     def _size(self):
         """
@@ -265,16 +271,12 @@ class CreateSlurmFiles:
                      "#SBATCH --error={}.err\n".format(name)]
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
-                self.cpus = 5
-                real_cpus = self.cpus * self.len + 1
-                lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
+            if self.total_cpus:
+                real_cpus = self.total_cpus
             else:
-                if self.total_cpus:
-                    real_cpus = self.total_cpus
-                else:
-                    real_cpus = self.cpus * self.len + 1
-                lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
+                real_cpus = self.cpus * self.len + 1
 
+            lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
                       'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
@@ -309,6 +311,8 @@ class CreateSlurmFiles:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.test:
                 argument_list.append("--test ")
+            if self.equilibration:
+                argument_list.append("-e ")
             if self.xtc:
                 argument_list.append("-x ")
             if self.steps != 1000:
@@ -367,18 +371,16 @@ class CreateSlurmFiles:
                      "#BSUB -eo {}.err\n".format(name)]
             if self.test:
                 lines.append("#BSUB -q debug\n")
-                self.cpus = 5
-                real_cpus = self.cpus * self.len
                 lines.append("#BSUB -W 01:00\n")
-                lines.append("#BSUB -n {}\n\n".format(real_cpus))
             else:
                 lines.append('#BSUB -q bsc_ls')
-                if self.total_cpus:
-                    real_cpus = self.total_cpus
-                else:
-                    real_cpus = self.cpus * self.len + 1
                 lines.append("#BSUB -W 48:00\n")
-                lines.append("#BSUB -n {}\n\n".format(real_cpus))
+
+            if self.total_cpus:
+                real_cpus = self.total_cpus
+            else:
+                real_cpus = self.cpus * self.len + 1
+            lines.append("#BSUB -n {}\n\n".format(real_cpus))
 
             lines2 = ['module purge\n',
                       'module load intel gcc openmpi/1.8.1 boost/1.63.0 MKL/11.3 GTK+3/3.2.4\n',
@@ -407,6 +409,8 @@ class CreateSlurmFiles:
                 argument_list.append("-po ")
             if self.nord:
                 argument_list.append("--nord ")
+            if self.equilibration:
+                argument_list.append("-e ")
             if self.pdb_dir != "pdb_files":
                 argument_list.append("-pd {} ".format(self.pdb_dir))
             if self.dir:
@@ -462,7 +466,7 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
-    rotamers = parse_args()
+    rotamers, equilibration = parse_args()
 
     if dir_ and len(input_) > 1:
         dir_ = None
@@ -470,7 +474,8 @@ def main():
         run = CreateSlurmFiles(inp, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                               fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers)
+                               fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
+                               equilibration)
         if not nord:
             slurm = run.slurm_creation()
         else:
