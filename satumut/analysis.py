@@ -38,7 +38,7 @@ def parse_args():
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--thres", required=False, default=-0.1, type=float,
+    parser.add_argument("--thres", required=False, default=-0.05, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
@@ -589,7 +589,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     return name
 
 
-def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=-0.1,
+def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=-0.05,
                        cata_dist=3.5):
     """
     Finds those mutations that decreases the binding distance and binding energy and creates a report
@@ -637,7 +637,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
 
 def consecutive_analysis(file_name, wild, dpi=800, box=30, traj=10, output="summary",
-                         plot_dir=None, opt="distance", cpus=10, thres=-0.1, cata_dist=3.5, xtc=False):
+                         plot_dir=None, opt="distance", cpus=10, thres=-0.05, cata_dist=3.5, xtc=False):
     """
     Creates all the plots for the different mutated positions
 
