@@ -110,18 +110,21 @@ class SimulationData:
         self.len = len(self.frequency)
 
         # For the box plots
-        data_20 = self.dataframe.iloc[:len(self.dataframe) * 20 / 100]
+        data_20 = self.dataframe.iloc[:len(self.dataframe)*50/100]
         data_20.sort_values(by="distance0.5", inplace=True)
         data_20.reset_index(drop=True, inplace=True)
-        data_20 = data_20.iloc[:min(self.points, len(data_20))]
+        # data_20 = data_20.iloc[:min(self.points, len(data_20))]
         self.distance = data_20["distance0.5"].copy()
         self.binding = data_20["Binding Energy"].copy()
         self.binding.sort_values(inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
 
         if "original" in self.folder:
-            self.distance = self.distance.iloc[0]
-            self.binding = self.binding.iloc[0]
+            self.dist_ori = self.distance.iloc[:min(len(self.distance), 100)].mean()
+            self.bind_ori = self.binding.iloc[:min(len(self.distance), 100)].mean()
+            self.dist_diff = self.distance - self.dist_ori
+            self.bind_diff = self.binding - self.bind_ori
+            self.len_diff = 1
 
     def set_distance(self, original_distance):
         """
@@ -191,15 +194,15 @@ def analyse_all(folders, wild, box=30, traj=10, cata_dist=3.5):
         name = basename(folder)
         data = SimulationData(folder, points=box, pdb=traj)
         data.filtering()
-        data.set_distance(original.distance)
-        data.set_binding(original.binding)
+        data.set_distance(original.dist_ori)
+        data.set_binding(original.bind_ori)
         data.set_len(original.len)
         data_dict[name] = data
 
     return data_dict
 
 
-def box_plot(res_dir, data_dict, position_num, dpi=800):
+def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     """
     Creates a box plot of the 19 mutations from the same position
 
@@ -219,35 +222,81 @@ def box_plot(res_dir, data_dict, position_num, dpi=800):
     # create a dataframe with only the distance differences for each simulation
     plot_dict_dist = {}
     plot_dict_bind = {}
-    for key, value in data_dict.items():
-        if "original" not in key:
-            plot_dict_dist[key] = value.dist_diff
-            plot_dict_bind[key] = value.bind_diff
+    plot_dict_freq = {}
+    plot_dif_dist = {}
+    plot_dif_bind = {}
 
+    for key, value in data_dict.items():
+        # if "original" not in key:
+        plot_dict_dist[key] = value.distance
+        plot_dict_bind[key] = value.binding
+        plot_dict_freq[key] = value.frequency
+        plot_dif_bind[key] = value.bind_diff
+        plot_dif_dist[key] = value.dist_diff
+
+    dif_dist = pd.DataFrame(plot_dif_dist)
+    dif_bind = pd.DataFrame(plot_dif_bind)
     data_dist = pd.DataFrame(plot_dict_dist)
     data_bind = pd.DataFrame(plot_dict_bind)
+    data_freq = pd.DataFrame(plot_dict_freq)
 
-    # Distance boxplot
+    # Distance difference boxplot
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(data=data_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
+    ax = sns.catplot(data=dif_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
     ax.set(title="{} distance variation with respect to wild type".format(position_num))
     ax.set_ylabels("Distance variation", fontsize=8)
     ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
-    ax.savefig("{}_results/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
+    ax.savefig("{}_results/Plots/box/{}_distance_dif.png".format(res_dir, position_num), dpi=dpi)
 
-    # Binding energy Box plot
-    ex = sns.catplot(data=data_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
-    ex.set(title="{} Binding energy variation with respect to wild type".format(position_num))
+    # Binding energy difference Box plot
+    ex = sns.catplot(data=dif_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
+    ex.set(title="{} binding energy variation with respect to wild type".format(position_num))
     ex.set_ylabels("Binding energy variation", fontsize=8)
     ex.set_xlabels("Mutations {}".format(position_num), fontsize=6)
     ex.set_xticklabels(fontsize=6)
     ex.set_yticklabels(fontsize=6)
-    ex.savefig("{}_results/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
+    ex.savefig("{}_results/Plots/box/{}_binding_dif.png".format(res_dir, position_num), dpi=dpi)
     plt.close("all")
+
+    # frequency boxplot
+    sns.set(font_scale=1.8)
+    sns.set_style("ticks")
+    sns.set_context("paper")
+    ax = sns.catplot(data=data_freq, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
+    ax.set(title="{} frequency of distances less than {}".format(position_num, cata_dist))
+    ax.set_ylabels("Distances", fontsize=8)
+    ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
+    ax.set_xticklabels(fontsize=6)
+    ax.set_yticklabels(fontsize=6)
+    ax.savefig("{}_results/Plots/box/{}_frequency.png".format(res_dir, position_num), dpi=dpi)
+
+    # Binding energy boxplot
+    sns.set(font_scale=1.8)
+    sns.set_style("ticks")
+    sns.set_context("paper")
+    ax = sns.catplot(data=data_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
+    ax.set(title="{} binding energy ".format(position_num))
+    ax.set_ylabels("Binding energy", fontsize=8)
+    ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
+    ax.set_xticklabels(fontsize=6)
+    ax.set_yticklabels(fontsize=6)
+    ax.savefig("{}_results/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
+
+    # Distance boxplot
+    sns.set(font_scale=1.8)
+    sns.set_style("ticks")
+    sns.set_context("paper")
+    ax = sns.catplot(data=data_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
+    ax.set(title="{} distance energy ".format(position_num))
+    ax.set_ylabels("Distance", fontsize=8)
+    ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
+    ax.set_xticklabels(fontsize=6)
+    ax.set_yticklabels(fontsize=6)
+    ax.savefig("{}_results/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
 
 
 def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=800):
@@ -537,20 +586,38 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.cell(0, 10, "Box plot of {}".format(analysis), align='C', ln=1)
     pdf.ln(8)
     if analysis == "distance":
-        box1 = "{}_results/Plots/box/{}_distance.png".format(res_dir, position_num)
-        pdf.image(box1, w=180)
-        pdf.ln(1000000)
-    elif analysis == "energy":
-        box1 = "{}_results/Plots/box/{}_binding.png".format(res_dir, position_num)
-        pdf.image(box1, w=180)
-        pdf.ln(1000000)
-    elif analysis == "both":
-        box1 = "{}_results/Plots/box/{}_distance.png".format(res_dir, position_num)
-        box2 = "{}_results/Plots/box/{}_binding.png".format(res_dir, position_num)
+        box1 = "{}_results/Plots/box/{}_distance_dif.png".format(res_dir, position_num)
+        box2 = "{}_results/Plots/box/{}_distance.png".format(res_dir, position_num)
+        box3 = "{}_results/Plots/box/{}_frequency.png".format(res_dir, position_num)
         pdf.image(box1, w=180)
         pdf.ln(5)
         pdf.image(box2, w=180)
         pdf.ln(1000000)
+        pdf.image(box3, w=180)
+    elif analysis == "energy":
+        box1 = "{}_results/Plots/box/{}_binding_dif.png".format(res_dir, position_num)
+        box2 = "{}_results/Plots/box/{}_binding.png".format(res_dir, position_num)
+        box3 = "{}_results/Plots/box/{}_frequency.png".format(res_dir, position_num)
+        pdf.image(box1, w=180)
+        pdf.ln(5)
+        pdf.image(box2, w=180)
+        pdf.ln(1000000)
+        pdf.image(box3, w=180)
+    elif analysis == "both":
+        box1 = "{}_results/Plots/box/{}_distance_dif.png".format(res_dir, position_num)
+        box5 = "{}_results/Plots/box/{}_distance.png".format(res_dir, position_num)
+        box2 = "{}_results/Plots/box/{}_binding_dif.png".format(res_dir, position_num)
+        box4 = "{}_results/Plots/box/{}_binding.png".format(res_dir, position_num)
+        box3 = "{}_results/Plots/box/{}_frequency.png".format(res_dir, position_num)
+        pdf.image(box1, w=180)
+        pdf.ln(5)
+        pdf.image(box2, w=180)
+        pdf.ln(1000000)
+        pdf.image(box3, w=180)
+        pdf.ln(5)
+        pdf.image(box4, w=180)
+        pdf.ln(1000000)
+        pdf.image(box5, w=180)
 
     # Plots
     pdf.set_font('Arial', 'B', size=12)
@@ -679,7 +746,7 @@ def consecutive_analysis(file_name, wild, dpi=800, box=30, traj=10, output="summ
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
         data_dict = analyse_all(folders, wild, box=box, traj=traj, cata_dist=cata_dist)
-        box_plot(plot_dir, data_dict, base, dpi)
+        box_plot(plot_dir, data_dict, base, dpi, cata_dist)
         all_profiles(plot_dir, data_dict, base, dpi)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
         find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist)
