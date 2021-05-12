@@ -14,7 +14,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from helper import isiterable, Log, commonlist, find_file
+from helper import isiterable, Log, commonlist, find_log
 import mdtraj as md
 plt.switch_backend('agg')
 
@@ -731,7 +731,7 @@ def consecutive_analysis(file_name, wild=None, dpi=800, box=30, traj=10, output=
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
     elif os.path.exists("{}_mut".format(file_name)):
-        wild, folder = find_file(file_name)
+        wild, folder = find_log(file_name)
         pele_folders = commonlist(file_name)
     else:
         raise Exception("Pass a list of the path to the different folders")
