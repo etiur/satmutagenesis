@@ -84,8 +84,7 @@ class SimulationData:
 
     def filtering(self):
         """
-        Constructs a dataframe from all the reports in a PELE simulation folder with the best 20% binding energies
-        and a Series with the 100 best ligand distances
+        Constructs a dataframe from all the reports in a PELE simulation folder
         """
         pd.options.mode.chained_assignment = None
         reports = []
@@ -120,11 +119,8 @@ class SimulationData:
         self.binding.reset_index(drop=True, inplace=True)
 
         if "original" in self.folder:
-            self.dist_ori = self.distance.iloc[:min(len(self.distance), 100)].mean()
-            self.bind_ori = self.binding.iloc[:min(len(self.distance), 100)].mean()
-            self.dist_diff = self.distance - self.dist_ori
-            self.bind_diff = self.binding - self.bind_ori
-            self.len_diff = 1
+            self.dist_ori = self.distance.mean()
+            self.bind_ori = self.binding.mean()
 
     def set_distance(self, original_distance):
         """
@@ -227,12 +223,12 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     plot_dif_bind = {}
 
     for key, value in data_dict.items():
-        # if "original" not in key:
         plot_dict_dist[key] = value.distance
         plot_dict_bind[key] = value.binding
         plot_dict_freq[key] = value.frequency
-        plot_dif_bind[key] = value.bind_diff
-        plot_dif_dist[key] = value.dist_diff
+        if "original" not in key:
+            plot_dif_bind[key] = value.bind_diff
+            plot_dif_dist[key] = value.dist_diff
 
     dif_dist = pd.DataFrame(plot_dif_dist)
     dif_bind = pd.DataFrame(plot_dif_bind)
@@ -290,7 +286,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(data=data_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
+    ax = sns.catplot(data=data_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
     ax.set(title="{} distance energy ".format(position_num))
     ax.set_ylabels("Distance", fontsize=8)
     ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
@@ -325,12 +321,8 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     sns.set_style("ticks")
     sns.set_context("paper")
     original = wild.profile
-    original.index = ["Wild type"] * len(original)
     distance = mutation.profile
-    distance.index = [key] * len(distance)
     cat = pd.concat([original, distance], axis=0)
-    cat.index.name = "Type"
-    cat.reset_index(inplace=True)
     # Creating the scatter plots
     if not os.path.exists("{}_results/Plots/scatter_{}_{}".format(res_dir, position_num, type_)):
         os.makedirs("{}_results/Plots/scatter_{}_{}".format(res_dir, position_num, type_))
