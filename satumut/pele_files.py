@@ -34,7 +34,7 @@ def parse_args():
                         help="The number of PELE steps")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
-    parser.add_argument("-e", "--equilibration", required=False, action="store_false",
+    parser.add_argument("-e", "--equilibration", required=False, action="store_true",
                         help="Set equilibration")
     parser.add_argument("-tem", "--template", required=False, nargs="+",
                         help="Path to external forcefield templates")

@@ -87,7 +87,7 @@ def parse_args():
                         help="skip the processing of ligands by PlopRotTemp")
     parser.add_argument("-rot", "--rotamers", required=False, nargs="+",
                         help="Path to external rotamers templates")
-    parser.add_argument("-e", "--equilibration", required=False, action="store_false",
+    parser.add_argument("-e", "--equilibration", required=False, action="store_true",
                         help="Set equilibration")
     parser.add_argument("-l", "--log", required=False, action="store_true",
                         help="write logs")
