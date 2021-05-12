@@ -562,11 +562,11 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.cell(0, 10, "Best mutations in terms of distance and/or binding energy", align='C', ln=1)
     pdf.set_font('Arial', '', size=10)
     for key, val in mutation.items():
-        dis = val.dist_diff.median()
-        bind = val.bind_diff.median()
+        dis = val.dist_diff.mean()
+        bind = val.bind_diff.mean()
         freq = val.len
         freq_diff = val.len_diff
-        message = 'Mutation {}: median distance increment {}, median binding energy increment {}, {} accepted ' \
+        message = 'Mutation {}: mean distance increment {}, mean binding energy increment {}, {} accepted ' \
                   'steps with a distance less than {} angstroms, {} times more frequent than ' \
                   'wild type'.format(key, dis, bind, freq, cata_dist, freq_diff)
         pdf.ln(3)  # linebreaks
@@ -676,13 +676,13 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     mutation_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
-            if analysis == "distance" and value.dist_diff.median() < thres:
+            if analysis == "distance" and value.dist_diff.mean() < thres:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "energy" and value.bind_diff.median() < thres:
+            elif analysis == "energy" and value.bind_diff.mean() < thres:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "both" and value.dist_diff.median() < thres and value.bind_diff.median() < thres:
+            elif analysis == "both" and value.dist_diff.mean() < thres and value.bind_diff.mean() < thres:
                 mutation_dict[key] = value
                 count += 1
 
