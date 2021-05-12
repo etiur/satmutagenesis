@@ -9,7 +9,7 @@ from os.path import abspath
 import os
 import time
 from analysis import consecutive_analysis
-from helper import neighbourresidues, Log
+from helper import neighbourresidues, Log, find_log
 
 
 def parse_args():
@@ -146,32 +146,14 @@ class SimulationRunner:
     def pele_folders(self):
         """
         Creates a file with the names of the different folders where the pele simulations are contained
-
-        Parameters
-        ___________
-        pdb_list: list[path]
-            list of pdb files path created during the saturated mutagenesis
-        single: str
-            Anything that indiucates that the plurizymes is used
         """
         os.chdir("../")
         if not self.dir:
             base = self.input.replace(".pdb", "")
         else:
             base = self.dir.replace(".pdb", "")
-        folder = []
-        original = None
-        try:
-            with open("{}_mut/simulations/completed_mutations.log".format(base)) as log:
-                for paths in log:
-                    dir_ = paths.split()
-                    if "original" in dir_[1]:
-                        original = "{}_mut/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4])
-                    else:
-                        folder.append("{}_mut/simulations/{}/output/{}".format(base, dir_[5], dir_[1][:-4]))
-        except IOError:
-            pass
 
+        folder, original = find_log("{}_mut".format(base))
         return folder, original
 
     def submit(self, yaml):

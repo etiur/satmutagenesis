@@ -3,7 +3,7 @@ This script contains helper functions
 """
 import Bio.PDB
 import logging
-from os.path import basename
+from os.path import basename, dirname
 import itertools
 
 
@@ -253,3 +253,31 @@ class Log:
             Set to true to include the exception error message
         """
         self._logger.critical(messages, exc_info=exc_info)
+
+
+def find_log(folder_name):
+    """
+    Find the completed log file and gets the path of the different mutations
+    Parameters
+    ----------
+    folder_name: str
+        The name of the folder where the simulations are
+
+    Returns
+    -------
+    original: str
+        Path to the wild type
+    folder: list[str]
+        A list of the path to the different mutants
+    """
+    original = None
+    folder = []
+    with open("{}/simulations/completed_mutations.log".format(folder_name)) as log:
+        for paths in log:
+            dir_ = paths.split()
+            if "original" in dir_[1]:
+                original = "{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4])
+            else:
+                folder.append("{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4]))
+
+    return original, folder

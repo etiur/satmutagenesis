@@ -14,7 +14,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from helper import isiterable, Log, commonlist
+from helper import isiterable, Log, commonlist, find_file
 import mdtraj as md
 plt.switch_backend('agg')
 
@@ -695,16 +695,17 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
         log.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
 
 
-def consecutive_analysis(file_name, wild, dpi=800, box=30, traj=10, output="summary",
+def consecutive_analysis(file_name, wild=None, dpi=800, box=30, traj=10, output="summary",
                          plot_dir=None, opt="distance", cpus=10, thres=-0.05, cata_dist=3.5, xtc=False):
     """
     Creates all the plots for the different mutated positions
 
     Parameters
     ___________
-    file_name : list[str]
-        An iterable that contains the path to the reports of the different simulations
-    wild: str
+    file_name : list[str], str
+        An iterable that contains the path to the reports of the different simulations or the path to the directory
+        where the simulations are
+    wild: str, optional
         The path to the wild type simulation
     dpi : int, optional
        The quality of the plots
@@ -729,12 +730,15 @@ def consecutive_analysis(file_name, wild, dpi=800, box=30, traj=10, output="summ
     """
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
+    elif os.path.exists("{}_mut".format(file_name)):
+        wild, folder = find_file(file_name)
+        pele_folders = commonlist(file_name)
     else:
         raise Exception("Pass a list of the path to the different folders")
 
     if not plot_dir:
         plot_dir = commonprefix(pele_folders[0])
-        plot_dir = basename(dirname(dirname(plot_dir))).replace("_mutations", "")
+        plot_dir = basename(dirname(dirname(plot_dir))).replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
         data_dict = analyse_all(folders, wild, box=box, traj=traj, cata_dist=cata_dist)
