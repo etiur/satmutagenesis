@@ -112,7 +112,7 @@ class SimulationData:
         data_20 = self.dataframe.iloc[:len(self.dataframe)*50/100]
         data_20.sort_values(by="distance0.5", inplace=True)
         data_20.reset_index(drop=True, inplace=True)
-        # data_20 = data_20.iloc[:min(self.points, len(data_20))]
+        data_20 = data_20.iloc[:len(data_20)*50/100]
         self.distance = data_20["distance0.5"].copy()
         self.binding = data_20["Binding Energy"].copy()
         self.binding.sort_values(inplace=True)
