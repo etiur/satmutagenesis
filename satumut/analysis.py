@@ -69,7 +69,7 @@ class SimulationData:
         """
         self.folder = folder
         self.dataframe = None
-        self.distance = None
+        # self.distance = None
         self.dist_diff = None
         self.profile = None
         self.trajectory = None
@@ -105,36 +105,35 @@ class SimulationData:
         trajectory.reset_index(drop=True, inplace=True)
         trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
-        self.frequency = trajectory[trajectory["distance0.5"] <= self.catalytic]
+        frequency = trajectory[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
+        self.frequency = frequency["distance0.5"].copy()
         self.len = len(self.frequency)
-
-        # For the box plots
-        data_20 = self.dataframe.iloc[:len(self.dataframe)*50/100]
-        data_20.sort_values(by="distance0.5", inplace=True)
-        data_20.reset_index(drop=True, inplace=True)
-        data_20 = data_20.iloc[:len(data_20)*50/100]
-        self.distance = data_20["distance0.5"].copy()
-        self.binding = data_20["Binding Energy"].copy()
+        self.binding = frequency["Binding Energy"].copy()
         self.binding.sort_values(inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
-
+        # For the box plots
+        # data_20 = self.dataframe.iloc[:len(self.dataframe)*50/100]
+        # data_20.sort_values(by="distance0.5", inplace=True)
+        # data_20.reset_index(drop=True, inplace=True)
+        # data_20 = data_20.iloc[:len(data_20)*50/100]
+        # self.distance = data_20["distance0.5"].copy()
         if "original" in self.folder:
-            self.dist_ori = self.distance.mean()
+            self.dist_ori = self.frequency.mean()
             self.bind_ori = self.binding.mean()
 
-    def set_distance(self, original_distance):
+    def set_distance(self, ori_distance):
         """
-        Set the distance difference
+        Set the distance difference with the mean
 
         Parameters
         __________
         original_distance: int
-            The distrance for the wild type
+            The distance for the wild type
 
         """
-        self.dist_diff = self.distance - original_distance
+        self.dist_diff = self.frequency - ori_distance  # it is a general improvement only, not catalytic improvement
 
-    def set_binding(self, original_binding):
+    def set_binding(self, ori_binding):
         """
         Set the binding energy difference
 
@@ -143,7 +142,7 @@ class SimulationData:
         original_binding: int
             The binding energy for the wild type
         """
-        self.bind_diff = self.binding - original_binding
+        self.bind_diff = self.binding - ori_binding
 
     def set_len(self, length):
         """
@@ -216,14 +215,14 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     if not os.path.exists("{}_results/Plots/box".format(res_dir)):
         os.makedirs("{}_results/Plots/box".format(res_dir))
     # create a dataframe with only the distance differences for each simulation
-    plot_dict_dist = {}
+    # plot_dict_dist = {}
     plot_dict_bind = {}
     plot_dict_freq = {}
     plot_dif_dist = {}
     plot_dif_bind = {}
 
     for key, value in data_dict.items():
-        plot_dict_dist[key] = value.distance
+        # plot_dict_dist[key] = value.distance
         plot_dict_bind[key] = value.binding
         plot_dict_freq[key] = value.frequency
         if "original" not in key:
@@ -232,7 +231,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
 
     dif_dist = pd.DataFrame(plot_dif_dist)
     dif_bind = pd.DataFrame(plot_dif_bind)
-    data_dist = pd.DataFrame(plot_dict_dist)
+    # data_dist = pd.DataFrame(plot_dict_dist)
     data_bind = pd.DataFrame(plot_dict_bind)
     data_freq = pd.DataFrame(plot_dict_freq)
 
@@ -283,16 +282,16 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.savefig("{}_results/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
 
     # Distance boxplot
-    sns.set(font_scale=1.8)
-    sns.set_style("ticks")
-    sns.set_context("paper")
-    ax = sns.catplot(data=data_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
-    ax.set(title="{} distance energy ".format(position_num))
-    ax.set_ylabels("Distance", fontsize=8)
-    ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
-    ax.set_xticklabels(fontsize=6)
-    ax.set_yticklabels(fontsize=6)
-    ax.savefig("{}_results/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
+    # sns.set(font_scale=1.8)
+    # sns.set_style("ticks")
+    # sns.set_context("paper")
+    # ax = sns.catplot(data=data_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
+    # ax.set(title="{} distance energy ".format(position_num))
+    # ax.set_ylabels("Distance", fontsize=8)
+    # ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
+    # ax.set_xticklabels(fontsize=6)
+    # ax.set_yticklabels(fontsize=6)
+    # ax.savefig("{}_results/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
 
 
 def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=800):
