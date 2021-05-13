@@ -322,8 +322,6 @@ class CreateSlurmFiles:
                 argument_list.append("-pd {} ".format(self.pdb_dir))
             if self.dir:
                 argument_list.append("--dir {} ".format(self.dir))
-            if self.test:
-                argument_list.append("--test ")
             if self.equilibration:
                 argument_list.append("-e ")
             if self.log:
@@ -437,8 +435,6 @@ class CreateSlurmFiles:
                 argument_list.append("-pd {} ".format(self.pdb_dir))
             if self.dir:
                 argument_list.append("--dir {} ".format(self.dir))
-            if self.test:
-                argument_list.append("--test ")
             if self.xtc:
                 argument_list.append("-x ")
             if self.steps != 1000:

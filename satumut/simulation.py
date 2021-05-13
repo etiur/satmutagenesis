@@ -31,8 +31,6 @@ def parse_args():
                         help="used if there are metals in the system")
     parser.add_argument("-fa", "--polarization_factor", required=False, type=int,
                         help="The number to divide the charges")
-    parser.add_argument("-t", "--test", required=False, action="store_true",
-                        help="Used if you want to run a test before")
     parser.add_argument("-n", "--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
     parser.add_argument("-m", "--multiple", required=False, action="store_true",
@@ -96,7 +94,7 @@ def parse_args():
     parser.add_argument("--s2", required=False, type=float, help="Distance for the S2")
     args = parser.parse_args()
 
-    return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
+    return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
             args.consec, args.steps, args.dpi, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
@@ -177,7 +175,7 @@ class SimulationRunner:
 
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
-                         multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
+                         multiple=False, pdb_dir="pdb_files", consec=False, cu=False, seed=12345,
                          nord=False, steps=1000, dpi=800, traj=10, output="summary",
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
@@ -210,8 +208,6 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         The name of the folder where the mutated PDB files will be stored
     consec: bool, optional
         Consecutively mutate the PDB file for several rounds
-    test: bool, optional
-        Setting the simulation to test mode
     cu: bool, optional
         Set it to true if there are coppers in the system
     seed: int, optional
@@ -278,10 +274,10 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 
     simulation.submit(yaml)
     dirname, original = simulation.pele_folders()
-    if not test and original:
-        if dir_ and not plot_dir:
-            plot_dir = dir_
-        consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc)
+
+    if dir_ and not plot_dir:
+        plot_dir = dir_
+    consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc)
     if r1 and r2 and s1 and s2:
         consecutive_analysis_rs(dirname, r1, r2, s1, s2, original, dpi, traj, output, plot_dir, opt, cpus,
                                 thres, cata_dist, xtc)
@@ -362,7 +358,7 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
 
 
 def main():
-    input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
+    input_, position, ligchain, ligname, atoms, cpus, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
     skip, rotamers, equilibration, log, r1, r2, s1, s2 = parse_args()
@@ -375,7 +371,7 @@ def main():
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
-                             multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, traj, out,
+                             multiple, pdb_dir, consec, cu, seed, nord, steps, dpi, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
                              total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
                              r1, r2, s1, s2)
