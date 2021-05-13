@@ -1,7 +1,6 @@
 """
-This script is used to analyse the results of the simulations
+This script is used to analyse the results of the simulations for substrate with chiral centers
 """
-
 from glob import glob
 import pandas as pd
 import seaborn as sns
