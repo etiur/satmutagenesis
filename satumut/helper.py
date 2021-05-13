@@ -3,7 +3,7 @@ This script contains helper functions
 """
 import Bio.PDB
 import logging
-from os.path import basename, dirname
+from os.path import basename
 import itertools
 
 

@@ -54,6 +54,26 @@ class SimulationRS:
     A class to analyse the simulation data from the enantiomer analysis
     """
     def __init__(self, folder, dist1r, dist2r, dist1s, dist2s, pdb=10, catalytic_dist=3.5):
+        """
+        Initialize the SimulationRS class
+
+        Parameters
+        ----------
+        folder: str
+            The path to the simulation folder
+        dist1r: float
+            The first distance of R
+        dist2r: float
+            The second distance for R
+        dist1s: float
+            The first distance for S
+        dist2s: float
+            The second distance for S
+        pdb: int, optional
+            The number of pdbs to extract
+        catalytic_dist: float
+            The catalytic distance
+        """
         self.folder = folder
         self.dataframe = None
         self.profile = None
@@ -77,7 +97,9 @@ class SimulationRS:
         self.name = basename(self.folder)
 
     def filtering(self):
-
+        """
+        Get all the info from the reports
+        """
         pd.options.mode.chained_assignment = None
         reports = []
         for files in glob("{}/report_*".format(self.folder)):
@@ -145,8 +167,10 @@ class SimulationRS:
 
         Parameters
         __________
-        original_distance: int
-            The distance for the wild type
+        ori_dist1: float
+            The mean distance of R of the wild type
+        ori_dist2: float
+            The mean distance of S of the wild type
         """
         dist_r = self.freq_r["distance0.5"] - ori_dist1
         dist_r = pd.concat([dist_r, self.freq_r["Type"]], axis=1)
@@ -161,8 +185,10 @@ class SimulationRS:
 
         Parameters
         __________
-        original_binding: int
-            The binding energy for the wild type
+        ori_bind1: float
+            The mean binding energy of R of the wild type
+        ori_bind2: float
+            The mean binding energy of S of the wild type
         """
         bind_r = self.binding_r["Binding Energy"] - ori_bind1
         bind_r = pd.concat([bind_r, self.binding_r["Type"]], axis=1)
