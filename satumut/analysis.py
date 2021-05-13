@@ -105,18 +105,12 @@ class SimulationData:
         trajectory.reset_index(drop=True, inplace=True)
         trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
-        frequency = trajectory[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
+        frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         self.frequency = frequency["distance0.5"].copy()
         self.len = len(self.frequency)
         self.binding = frequency["Binding Energy"].copy()
         self.binding.sort_values(inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
-        # For the box plots
-        # data_20 = self.dataframe.iloc[:len(self.dataframe)*50/100]
-        # data_20.sort_values(by="distance0.5", inplace=True)
-        # data_20.reset_index(drop=True, inplace=True)
-        # data_20 = data_20.iloc[:len(data_20)*50/100]
-        # self.distance = data_20["distance0.5"].copy()
         if "original" in self.folder:
             self.dist_ori = self.frequency.mean()
             self.bind_ori = self.binding.mean()
@@ -129,9 +123,8 @@ class SimulationData:
         __________
         original_distance: int
             The distance for the wild type
-
         """
-        self.dist_diff = self.frequency - ori_distance  # it is a general improvement only, not catalytic improvement
+        self.dist_diff = self.frequency - ori_distance  # improvement over the wild type catalytic distance
 
     def set_binding(self, ori_binding):
         """
@@ -144,22 +137,8 @@ class SimulationData:
         """
         self.bind_diff = self.binding - ori_binding
 
-    def set_len(self, length):
-        """
-        sets the difference in frequency
 
-        Parameters
-        ____________
-        length: int
-            The frequency of catalytic poses
-        """
-        if length > 0:
-            self.len_diff = round(self.len / float(length), 2)
-        else:
-            self.len_diff = self.len
-
-
-def analyse_all(folders, wild, box=30, traj=10, cata_dist=3.5):
+def analyse_all(folders, wild, res_dir, box=30, traj=10, cata_dist=3.5):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -169,6 +148,8 @@ def analyse_all(folders, wild, box=30, traj=10, cata_dist=3.5):
         List of paths to the different reports to be analyzed
     wild: str
         Path to the simulations of the wild type
+    res_dir: str, optional
+        The directory where the results will be kept
     box: int, optional
         How many points to use for the box plots
     traj: int, optional
@@ -182,18 +163,27 @@ def analyse_all(folders, wild, box=30, traj=10, cata_dist=3.5):
         Dictionary of SimulationData objects
     """
     data_dict = {}
+    len_dict = {}
     original = SimulationData("{}".format(wild), points=box, pdb=traj, catalytic_dist=cata_dist)
     original.filtering()
     data_dict["original"] = original
+    len_dict["original"] = original.len
     for folder in folders:
         name = basename(folder)
-        data = SimulationData(folder, points=box, pdb=traj)
+        data = SimulationData(folder, points=box, pdb=traj, catalytic_dist=cata_dist)
         data.filtering()
         data.set_distance(original.dist_ori)
         data.set_binding(original.bind_ori)
-        data.set_len(original.len)
         data_dict[name] = data
-
+        len_dict[name] = data.len
+    frame = pd.DataFrame(pd.Series(len_dict), columns="frequency")
+    try:
+        frame["times"] = frame["frequency"] / frame["frequency"].loc["original"]
+    except ZeroDivisionError:
+        pass
+    if not os.path.exists("{}_result".format(res_dir)):
+        os.makedirs("{}_result".format(res_dir))
+    frame.to_csv("{}_result/frequency.csv".format(res_dir))
     return data_dict
 
 
@@ -215,14 +205,12 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     if not os.path.exists("{}_results/Plots/box".format(res_dir)):
         os.makedirs("{}_results/Plots/box".format(res_dir))
     # create a dataframe with only the distance differences for each simulation
-    # plot_dict_dist = {}
     plot_dict_bind = {}
     plot_dict_freq = {}
     plot_dif_dist = {}
     plot_dif_bind = {}
 
     for key, value in data_dict.items():
-        # plot_dict_dist[key] = value.distance
         plot_dict_bind[key] = value.binding
         plot_dict_freq[key] = value.frequency
         if "original" not in key:
@@ -231,7 +219,6 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
 
     dif_dist = pd.DataFrame(plot_dif_dist)
     dif_bind = pd.DataFrame(plot_dif_bind)
-    # data_dist = pd.DataFrame(plot_dict_dist)
     data_bind = pd.DataFrame(plot_dict_bind)
     data_freq = pd.DataFrame(plot_dict_freq)
 
@@ -280,18 +267,6 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
     ax.savefig("{}_results/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
-
-    # Distance boxplot
-    # sns.set(font_scale=1.8)
-    # sns.set_style("ticks")
-    # sns.set_context("paper")
-    # ax = sns.catplot(data=data_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
-    # ax.set(title="{} distance energy ".format(position_num))
-    # ax.set_ylabels("Distance", fontsize=8)
-    # ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
-    # ax.set_xticklabels(fontsize=6)
-    # ax.set_yticklabels(fontsize=6)
-    # ax.savefig("{}_results/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
 
 
 def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=800):
@@ -740,7 +715,7 @@ def consecutive_analysis(file_name, wild=None, dpi=800, box=30, traj=10, output=
         plot_dir = basename(dirname(dirname(plot_dir))).replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_all(folders, wild, box=box, traj=traj, cata_dist=cata_dist)
+        data_dict = analyse_all(folders, wild, plot_dir, box=box, traj=traj, cata_dist=cata_dist)
         box_plot(plot_dir, data_dict, base, dpi, cata_dist)
         all_profiles(plot_dir, data_dict, base, dpi)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
