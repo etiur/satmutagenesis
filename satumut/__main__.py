@@ -94,6 +94,10 @@ def parse_args():
                         help="Set equilibration")
     parser.add_argument("-l", "--log", required=False, action="store_true",
                         help="write logs")
+    parser.add_argument("--r1", required=False, type=float, help="Distance for the R1")
+    parser.add_argument("--r2", required=False, type=float, help="Distance for the R2")
+    parser.add_argument("--s1", required=False, type=float, help="Distance for the S1")
+    parser.add_argument("--s2", required=False, type=float, help="Distance for the S2")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -101,7 +105,7 @@ def parse_args():
             args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot,
             args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
             args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
-            args.template, args.skip, args.rotamers, args.equilibration, args.log]
+            args.template, args.skip, args.rotamers, args.equilibration, args.log, args.r1, args.r2, args.s1, args.s2]
 
 
 class CreateSlurmFiles:
@@ -114,7 +118,7 @@ class CreateSlurmFiles:
                  steps=1000, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
-                 equilibration=True, log=False):
+                 equilibration=True, log=False, dist1r=None, dist2r=None, dist1s=None, dist2s=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -191,7 +195,7 @@ class CreateSlurmFiles:
         equilibration: bool, optional
             True to include equilibration steps
         log: bool, optional
-            True to wirte the log files of simulations
+            True to write the log files of simulations
         """
         assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
         self.input = input_
@@ -247,6 +251,10 @@ class CreateSlurmFiles:
             self.rotamer = None
         self.equilibration = equilibration
         self.log = log
+        self.r_dist1 = dist1r
+        self.r_dist2 = dist2r
+        self.s_dist1 = dist1s
+        self.s_dist2 = dist2s
 
     def _size(self):
         """
@@ -355,6 +363,11 @@ class CreateSlurmFiles:
                 argument_list.append("-rot {} ".format(self.rotamer))
             if self.skip:
                 argument_list.append("-sk {} ".format(self.skip))
+            if self.r_dist1 and self.r_dist2 and self.s_dist1 and self.s_dist2:
+                argument_list.append("--r1 {} ".format(self.r_dist1))
+                argument_list.append("--r2 {} ".format(self.r_dist2))
+                argument_list.append("--s1 {} ".format(self.s_dist1))
+                argument_list.append("--s2 {} ".format(self.s_dist2))
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
@@ -461,6 +474,11 @@ class CreateSlurmFiles:
                 argument_list.append("-rot {} ".format(self.rotamer))
             if self.skip:
                 argument_list.append("-sk {} ".format(self.skip))
+            if self.r_dist1 and self.r_dist2 and self.s_dist1 and self.s_dist2:
+                argument_list.append("--r1 {} ".format(self.r_dist1))
+                argument_list.append("--r2 {} ".format(self.r_dist2))
+                argument_list.append("--s1 {} ".format(self.s_dist1))
+                argument_list.append("--s2 {} ".format(self.s_dist2))
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
@@ -475,7 +493,7 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
-    rotamers, equilibration, log = parse_args()
+    rotamers, equilibration, log, r1, r2, s1, s2 = parse_args()
 
     if dir_ and len(input_) > 1:
         dir_ = None
@@ -484,7 +502,7 @@ def main():
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
                                fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
-                               equilibration, log)
+                               equilibration, log, r1, r2, s1, s2)
         if not nord:
             slurm = run.slurm_creation()
         else:

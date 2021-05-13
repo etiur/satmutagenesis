@@ -10,6 +10,7 @@ import os
 import time
 from analysis import consecutive_analysis
 from helper import neighbourresidues, Log, find_log
+from rs_analysis import consecutive_analysis_rs
 
 
 def parse_args():
@@ -49,8 +50,6 @@ def parse_args():
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--box", required=False, default=30, type=int,
-                        help="Set how many data points are used for the boxplot")
     parser.add_argument("-tr", "--trajectory", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
@@ -91,14 +90,18 @@ def parse_args():
                         help="Set equilibration")
     parser.add_argument("-l", "--log", required=False, action="store_true",
                         help="write logs")
+    parser.add_argument("--r1", required=False, type=float, help="Distance for the R1")
+    parser.add_argument("--r2", required=False, type=float, help="Distance for the R2")
+    parser.add_argument("--s1", required=False, type=float, help="Distance for the S1")
+    parser.add_argument("--s2", required=False, type=float, help="Distance for the S2")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
-            args.consec, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot, args.analyse, args.thres,
+            args.consec, args.steps, args.dpi, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
-            args.skip, args.rotamers, args.equilibration, args.log]
+            args.skip, args.rotamers, args.equilibration, args.log, args.r1, args.r2, args.s1, args.s2]
 
 
 class SimulationRunner:
@@ -175,10 +178,11 @@ class SimulationRunner:
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345,
-                         nord=False, steps=1000, dpi=800, box=30, traj=10, output="summary",
+                         nord=False, steps=1000, dpi=800, traj=10, output="summary",
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
-                         template=None, skip=None, rotamers=None, equilibration=True, log=False):
+                         template=None, skip=None, rotamers=None, equilibration=True, log=False, r1=None, r2=None,
+                         s1=None, s2=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -218,8 +222,6 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         The number of PELE steps
     dpi : int, optional
        The quality of the plots
-    box : int, optional
-       how many points are used for the box plots
     traj : int, optional
        how many top pdbs are extracted from the trajectories
     output : str, optional
@@ -279,7 +281,10 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     if not test and original:
         if dir_ and not plot_dir:
             plot_dir = dir_
-        consecutive_analysis(dirname, original, dpi, box, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc)
+        consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc)
+    if r1 and r2 and s1 and s2:
+        consecutive_analysis_rs(dirname, r1, r2, s1, s2, original, dpi, traj, output, plot_dir, opt, cpus,
+                                thres, cata_dist, xtc)
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
@@ -358,9 +363,9 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
 
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, steps, dpi, box, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
+    hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
-    skip, rotamers, equilibration, log = parse_args()
+    skip, rotamers, equilibration, log, r1, r2, s1, s2 = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
@@ -370,9 +375,10 @@ def main():
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
-                             multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj, out,
+                             multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
-                             total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log)
+                             total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
+                             r1, r2, s1, s2)
 
 
 if __name__ == "__main__":
