@@ -173,7 +173,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5):
         data.set_binding(original.bind_ori)
         data_dict[name] = data
         len_dict[name] = data.len
-    frame = pd.DataFrame(pd.Series(len_dict), columns="frequency")
+    frame = pd.DataFrame(pd.Series(len_dict), columns=["frequency"])
     try:
         frame["ratio"] = frame["frequency"] / frame["frequency"].loc["original"]
     except ZeroDivisionError:
