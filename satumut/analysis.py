@@ -178,9 +178,9 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5):
         frame["ratio"] = frame["frequency"] / frame["frequency"].loc["original"]
     except ZeroDivisionError:
         pass
-    if not os.path.exists("{}_result".format(res_dir)):
-        os.makedirs("{}_result".format(res_dir))
-    frame.to_csv("{}_result/freq_{}.csv".format(res_dir, position_num))
+    if not os.path.exists("{}_results".format(res_dir)):
+        os.makedirs("{}_results".format(res_dir))
+    frame.to_csv("{}_results/freq_{}.csv".format(res_dir, position_num))
     return data_dict
 
 
