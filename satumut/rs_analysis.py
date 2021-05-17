@@ -509,8 +509,8 @@ def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
     elif os.path.exists("{}".format(file_name)):
-        wild, folder = find_log(file_name)
-        pele_folders = commonlist(file_name)
+        folder, wild = find_log(file_name)
+        pele_folders = commonlist(folder)
     else:
         raise Exception("Pass a list of the path to the different folders")
 
