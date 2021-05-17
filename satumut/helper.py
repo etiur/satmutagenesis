@@ -280,4 +280,4 @@ def find_log(folder_name):
             else:
                 folder.append("{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4]))
 
-    return original, folder
+    return folder, original

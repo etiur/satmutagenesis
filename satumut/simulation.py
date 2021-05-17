@@ -274,7 +274,6 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 
     simulation.submit(yaml)
     dirname, original = simulation.pele_folders()
-
     if dir_ and not plot_dir:
         plot_dir = dir_
     consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc)
