@@ -11,7 +11,7 @@ import sys
 import re
 import matplotlib.pyplot as plt
 from helper import isiterable, commonlist, find_log
-from analysis import find_top_mutations, extract_all, all_profiles
+from analysis import find_top_mutations, extract_all, all_profiles, create_report
 import mdtraj as md
 plt.switch_backend('agg')
 
