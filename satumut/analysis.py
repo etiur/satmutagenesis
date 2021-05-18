@@ -539,15 +539,17 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.cell(0, 10, "Best mutations in terms of distance and/or binding energy", align='C', ln=1)
     pdf.set_font('Arial', '', size=10)
     for key, val in mutation.items():
-        dis = val.dist_diff.mean()
-        bind = val.bind_diff.mean()
+        dis = round(val.dist_diff.mean(), 4)
+        bind = round(val.bind_diff.mean(), 4)
         freq = val.len
         freq_diff = val.len_diff
-        message = 'Mutation {}: mean distance increment {}, mean binding energy increment {}, {} accepted ' \
-                  'steps with a distance less than {} angstroms, {} times more frequent than ' \
-                  'wild type'.format(key, dis, bind, freq, cata_dist, freq_diff)
+        message = 'Mutation {}: mean distance increment {}, mean binding energy increment {}'.format(key, dis, bind)
+        message2 = "{} accepted steps with a distance less than {} angstroms, {} times more frequent " \
+                   "than wild type" .format(freq, cata_dist, freq_diff)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
+        pdf.ln(3)
+        pdf.cell(0, 5, message2, ln=1)
     pdf.ln(8)  # linebreaks
 
     # box plots
