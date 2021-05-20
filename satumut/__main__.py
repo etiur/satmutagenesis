@@ -29,6 +29,8 @@ def parse_args():
                         help="Include the number of cpus desired")
     parser.add_argument("-tcpus", "--total_cpus", required=False, type=int,
                         help="Include the number of cpus desired")
+    parser.add_argument("-cpt", "--cpus_per_task", required=False, type=int,
+                        help="Include the number of cpus desired")
     parser.add_argument("-po", "--polarize_metals", required=False, action="store_true",
                         help="used if there are metals in the system")
     parser.add_argument("-fa", "--polarization_factor", required=False, type=int,
@@ -105,7 +107,8 @@ def parse_args():
             args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot,
             args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
             args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
-            args.template, args.skip, args.rotamers, args.equilibration, args.log, args.r1, args.r2, args.s1, args.s2]
+            args.template, args.skip, args.rotamers, args.equilibration, args.log, args.r1, args.r2, args.s1, args.s2,
+            args.cpus_per_task]
 
 
 class CreateSlurmFiles:
@@ -118,7 +121,7 @@ class CreateSlurmFiles:
                  steps=1000, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
-                 equilibration=True, log=False, dist1r=None, dist2r=None, dist1s=None, dist2s=None):
+                 equilibration=True, log=False, dist1r=None, dist2r=None, dist1s=None, dist2s=None, cpt=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -258,6 +261,7 @@ class CreateSlurmFiles:
         self.r_dist2 = dist2r
         self.s_dist1 = dist1s
         self.s_dist2 = dist2s
+        self.cpt = cpt
 
     def _size(self):
         """
@@ -287,12 +291,14 @@ class CreateSlurmFiles:
                      "#SBATCH --error={}.err\n".format(name)]
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
+            if self.cpt:
+                lines.append("#SBATCH --cpus_per_task={}\n".format(self.cpt))
             if self.total_cpus:
                 real_cpus = self.total_cpus
             else:
                 real_cpus = self.cpus * self.len + 1
-
             lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
+
             lines2 = ['module purge\n',
                       'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
                       'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
@@ -492,7 +498,7 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
-    rotamers, equilibration, log, r1, r2, s1, s2 = parse_args()
+    rotamers, equilibration, log, r1, r2, s1, s2, cpt = parse_args()
 
     if dir_ and len(input_) > 1:
         dir_ = None
@@ -501,7 +507,7 @@ def main():
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
                                fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
-                               equilibration, log, r1, r2, s1, s2)
+                               equilibration, log, r1, r2, s1, s2, cpt)
         if not nord:
             slurm = run.slurm_creation()
         else:
