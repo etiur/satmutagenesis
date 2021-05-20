@@ -40,7 +40,7 @@ def parse_args():
                         help="Path to external forcefield templates")
     parser.add_argument("-rot", "--rotamers", required=False, nargs="+",
                         help="Path to external rotamers templates")
-    parser.add_argument("-sk", "--skip", required=False,
+    parser.add_argument("-sk", "--skip", required=False, nargs="+",
                         help="skip the processing of ligands by PlopRotTemp")
     parser.add_argument("-l", "--log", required=False, action="store_true",
                         help="write logs")
@@ -201,7 +201,9 @@ class CreateYamlFiles:
                 for rotamers in self.rotamers:
                     lines2.append(" - '{}'\n".format(rotamers))
             if self.skip:
-                lines2.append("skip_ligand_prep:\n - '{}'\n".format(self.skip))
+                lines2.append("skip_ligand_prep:\n")
+                for skip in self.skip:
+                    lines2.append(" - '{}'\n".format(skip))
             lines.extend(lines2)
             inp.writelines(lines)
 

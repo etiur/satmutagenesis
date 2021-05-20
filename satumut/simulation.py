@@ -80,7 +80,7 @@ def parse_args():
                         help="The distance considered to be catalytic")
     parser.add_argument("-tem", "--template", required=False, nargs="+",
                         help="Path to external forcefield templates")
-    parser.add_argument("-sk", "--skip", required=False,
+    parser.add_argument("-sk", "--skip", required=False, nargs="+",
                         help="skip the processing of ligands by PlopRotTemp")
     parser.add_argument("-rot", "--rotamers", required=False, nargs="+",
                         help="Path to external rotamers templates")

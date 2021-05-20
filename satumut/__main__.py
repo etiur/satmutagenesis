@@ -86,7 +86,7 @@ def parse_args():
                         help="The distance considered to be catalytic")
     parser.add_argument("-tem", "--template", required=False, nargs="+",
                         help="Path to external forcefield templates")
-    parser.add_argument("-sk", "--skip", required=False,
+    parser.add_argument("-sk", "--skip", required=False, nargs="+",
                         help="skip the processing of ligands by PlopRotTemp")
     parser.add_argument("-rot", "--rotamers", required=False, nargs="+",
                         help="Path to external rotamers templates")
@@ -241,12 +241,15 @@ class CreateSlurmFiles:
         self.xtc = xtc
         self.cata_dist = cata_dist
         if template:
-            self.template = "".join(template)
+            self.template = " ".join(template)
         else:
             self.template = None
-        self.skip = skip
+        if skip:
+            self.skip = " ".join(skip)
+        else:
+            self.skip = None
         if rotamers:
-            self.rotamer = "".join(rotamers)
+            self.rotamer = " ".join(rotamers)
         else:
             self.rotamer = None
         self.equilibration = equilibration

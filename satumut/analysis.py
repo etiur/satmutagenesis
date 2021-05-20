@@ -104,13 +104,13 @@ class SimulationData:
         self.trajectory = trajectory.iloc[:self.pdb]
         frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         self.frequency = frequency["distance0.5"].copy()
-        self.len = len(self.frequency)
+        self.len = len(frequency)
         self.binding = frequency["Binding Energy"].copy()
         self.binding.sort_values(inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
         if "original" in self.folder:
-            self.dist_ori = self.frequency.mean()
-            self.bind_ori = self.binding.mean()
+            self.dist_ori = self.frequency.median()
+            self.bind_ori = self.binding.median()
 
     def set_distance(self, ori_distance):
         """
@@ -543,7 +543,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         bind = round(val.bind_diff.mean(), 4)
         freq = val.len
         freq_diff = val.len_diff
-        message = 'Mutation {}: mean distance increment {}, mean binding energy increment {}'.format(key, dis, bind)
+        message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
         message2 = "{} accepted steps with a distance less than {} angstroms, {} times more frequent " \
                    "than wild type" .format(freq, cata_dist, freq_diff)
         pdf.ln(3)  # linebreaks
@@ -649,13 +649,13 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     mutation_dict = {}
     for key, value in data_dict.items():
         if "original" not in key:
-            if analysis == "distance" and value.dist_diff.mean() < thres:
+            if analysis == "distance" and value.dist_diff.median() <= thres:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "energy" and value.bind_diff.mean() < thres:
+            elif analysis == "energy" and value.bind_diff.median() <= thres:
                 mutation_dict[key] = value
                 count += 1
-            elif analysis == "both" and value.dist_diff.mean() < thres and value.bind_diff.mean() < thres:
+            elif analysis == "both" and value.dist_diff.median() <= thres and value.bind_diff.median() <= thres:
                 mutation_dict[key] = value
                 count += 1
 
