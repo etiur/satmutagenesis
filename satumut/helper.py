@@ -143,8 +143,12 @@ def neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
 
     # Open the PDB file with the Bio module and get the topology of the desired atom to get the coordinates
     structure = parser.get_structure(input_[:-4], input_)
-    target_residue = structure[0][specific_at_res_chainid[0]][int(specific_at_res_chainid[1])]
-    target_atom = target_residue[specific_at_res_chainid[2]]
+    try:
+        target_residue = structure[0][specific_at_res_chainid[0]][int(specific_at_res_chainid[1])]
+        target_atom = target_residue[specific_at_res_chainid[2]]
+    except KeyError:
+        target_residue = structure[0][specific_at_res_chainid[0]][("H_{}".format(specific_at_res_chainid[1]), 1, " ")]
+        target_atom = target_residue[specific_at_res_chainid[2]]
 
     # Get all atoms of the structure and create an instance for a neighbour search around the desired atom
     atoms = Bio.PDB.Selection.unfold_entities(structure[0], 'A')
