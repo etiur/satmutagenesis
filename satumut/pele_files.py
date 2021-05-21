@@ -16,7 +16,7 @@ def parse_args():
                         help="An iterable of the path to different pdb files, a name of the folder with the pdbs")
     parser.add_argument("-lc", "--ligchain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
-    parser.add_argument("-at", "--atoms", required=True, nargs="+",
+    parser.add_argument("-at", "--atoms", required=False, nargs="+",
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
     parser.add_argument("-cpm", "--cpus_per_mutant", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
@@ -55,7 +55,7 @@ class CreateYamlFiles:
     """
     Creates the 2 necessary files for the pele simulations
     """
-    def __init__(self, input_path,  ligchain, ligname, atoms, cpus=25, initial=None, cu=False, seed=12345, nord=False,
+    def __init__(self, input_path,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                  steps=1000, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
                  rotamers=None, equilibration=True, log=False):
         """
@@ -107,7 +107,10 @@ class CreateYamlFiles:
         self.input = input_path
         self.ligchain = ligchain
         self.ligname = ligname
-        self.atoms = atoms[:]
+        if atoms:
+            self.atoms = atoms[:]
+        else:
+            self.atoms = None
         self.cpus = cpus
         self.yaml = None
         self.initial = initial
@@ -169,10 +172,11 @@ class CreateYamlFiles:
         with open(self.yaml, "w") as inp:
             lines = ["system: '{}/*.pdb'\n".format(dirname(self.input[0])), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "saturated_mutagenesis: true\n",
-                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps),
-                     "atom_dist:\n"]
-            lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
-            lines.extend(lines_atoms)
+                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps)]
+            if self.atoms:
+                lines.append("atom_dist:\n")
+                lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
+                lines.extend(lines_atoms)
             if self.xtc:
                 lines.append("traj: trajectory.xtc\n")
             if not self.nord:
