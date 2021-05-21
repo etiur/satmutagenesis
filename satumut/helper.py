@@ -146,7 +146,7 @@ def neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
     try:
         target_residue = structure[0][specific_at_res_chainid[0]][int(specific_at_res_chainid[1])]
         target_atom = target_residue[specific_at_res_chainid[2]]
-    except KeyError:
+    except ValueError:
         target_residue = structure[0][specific_at_res_chainid[0]][("H_{}".format(specific_at_res_chainid[1]), 1, " ")]
         target_atom = target_residue[specific_at_res_chainid[2]]
 
