@@ -138,7 +138,7 @@ class CreateYamlFiles:
         """
         match the user coordinates to pmx PDB coordinates
         """
-        if self.initial:
+        if self.initial and self.atoms is not None:
             for i in range(len(self.atoms)):
                 self.atoms[i] = map_atom_string(self.atoms[i], self.initial, self.input[0])
         else:
