@@ -5,14 +5,15 @@ from glob import glob
 import pandas as pd
 import seaborn as sns
 import argparse
-from os.path import basename, dirname, commonprefix
+from os.path import basename, dirname, commonprefix, abspath
 import os
 import sys
 import re
 import matplotlib.pyplot as plt
-from helper import isiterable, commonlist, find_log
-from analysis import find_top_mutations, extract_all, all_profiles, create_report
+from helper import isiterable, commonlist, find_log, Log
+from analysis import extract_all, all_profiles
 import mdtraj as md
+from fpdf import FPDF
 plt.switch_backend('agg')
 
 
@@ -156,10 +157,10 @@ class SimulationRS:
         self.binding["mut"] = ["{}".format(self.name) for _ in range(len(self.distance))]
 
         if "original" in self.folder:
-            self.dist_r = self.freq_r["distance0.5"].mean()
-            self.dist_s = self.freq_s["distance0.5"].mean()
-            self.bind_r = self.binding_r["Binding Energy"].mean()
-            self.bind_s = self.binding_s["Binding Energy"].mean()
+            self.dist_r = self.freq_r["distance0.5"].median()
+            self.dist_s = self.freq_s["distance0.5"].median()
+            self.bind_r = self.binding_r["Binding Energy"].median()
+            self.bind_s = self.binding_s["Binding Energy"].median()
 
     def set_distance(self, ori_dist1, ori_dist2):
         """
@@ -464,6 +465,169 @@ def extract_10_pdb_single_rs(info, res_dir, data_dict, xtc=False):
         else:
             extract_snapshot_xtc_rs(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind,
                                     orientation)
+
+
+def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5, mode="results"):
+    """
+    Create pdf files with the plots of chosen mutations and the path to the
+
+    Parameters
+    ___________
+    res_dir: str
+       Name of the results folder
+    mutation: dict
+       A dictionary of SimulationData objects {key: SimulationData}
+    position_num: str
+       part of the path to the plots, the position that was mutated
+    output: str, optional
+       The pdf filename without the extension
+    analysis: str, optional
+       Type of the analysis (distance, binding or all)
+    cata_dist: float, optional
+        The catalytic distance
+
+    Returns
+    _______
+    name: str
+       The path of the pdf file
+    """
+    pdf = FPDF()
+    pdf.set_top_margin(17.0)
+    pdf.set_left_margin(15.0)
+    pdf.set_right_margin(15.0)
+    pdf.add_page()
+
+    # Title
+    pdf.set_font('Arial', 'B', 14)
+    pdf.cell(0, 10, "Best mutations in terms of distance and/or binding energy", align='C', ln=1)
+    pdf.set_font('Arial', '', size=10)
+    for key, val in mutation.items():
+        dis = round(val.dist_diff["distance0.5"].median(), 4)
+        bind = round(val.bind_diff["Binding Energy"].median(), 4)
+        freq_r = val.len["R"].value
+        freq_s = val.len["S"].value
+        message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
+        message2 = "{} that are R and {} that are S with a distance less than {} angstroms" .format(freq_r, freq_s, cata_dist)
+        pdf.ln(3)  # linebreaks
+        pdf.cell(0, 5, message, ln=1)
+        pdf.ln(3)
+        pdf.cell(0, 5, message2, ln=1)
+    pdf.ln(8)  # linebreaks
+
+    # box plots
+    pdf.set_font('Arial', 'B', size=12)
+    pdf.cell(0, 10, "Box plot of {}".format(analysis), align='C', ln=1)
+    pdf.ln(8)
+    if analysis == "distance":
+        box1 = "{}_{}/Plots/box/{}_distance_dif.png".format(res_dir, mode, position_num)
+        box2 = "{}_{}/Plots/box/{}_distance.png".format(res_dir, mode, position_num)
+        pdf.image(box1, w=180)
+        pdf.ln(5)
+        pdf.image(box2, w=180)
+        pdf.ln(1000000)
+    elif analysis == "energy":
+        box1 = "{}_{}/Plots/box/{}_binding_dif.png".format(res_dir, mode, position_num)
+        box2 = "{}_{}/Plots/box/{}_binding.png".format(res_dir, mode, position_num)
+        pdf.image(box1, w=180)
+        pdf.ln(5)
+        pdf.image(box2, w=180)
+        pdf.ln(1000000)
+    elif analysis == "both":
+        box1 = "{}_{}/Plots/box/{}_distance_dif.png".format(res_dir, mode, position_num)
+        box5 = "{}_{}/Plots/box/{}_distance.png".format(res_dir, mode, position_num)
+        box2 = "{}_{}/Plots/box/{}_binding_dif.png".format(res_dir, mode, position_num)
+        box4 = "{}_{}/Plots/box/{}_binding.png".format(res_dir, mode, position_num)
+        pdf.image(box1, w=180)
+        pdf.ln(5)
+        pdf.image(box2, w=180)
+        pdf.ln(1000000)
+        pdf.image(box4, w=180)
+        pdf.ln(5)
+        pdf.image(box5, w=180)
+        pdf.ln(1000000)
+
+    # Plots
+    pdf.set_font('Arial', 'B', size=12)
+    pdf.cell(0, 10, "Scatter plots", align='C', ln=1)
+    pdf.set_font('Arial', '', size=10)
+    for mut, key in mutation.items():
+        pdf.ln(3)
+        pdf.cell(0, 10, "Plots {}".format(mut), ln=1)
+        pdf.ln(3)
+        plot1 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "distance0.5", mut,
+                                                             "distance0.5")
+        plot2 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "sasaLig", mut, "sasaLig")
+        plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "currentEnergy", mut,
+                                                             "currentEnergy")
+        pdf.image(plot1, w=180)
+        pdf.ln(3)
+        pdf.image(plot2, w=180)
+        pdf.ln(1000000)  # page break
+        pdf.ln(3)
+        pdf.image(plot3, w=180)
+        pdf.ln(1000000)  # page break
+
+    # Top poses
+    pdf.set_font('Arial', 'B', size=12)
+    pdf.cell(0, 10, "Path to the top poses", align='C', ln=1)
+    pdf.set_font('Arial', size=10)
+    pdf.ln(5)
+    for mut, key in mutation.items():
+        path = "{}_{}/distances_{}/{}_pdbs".format(res_dir, mode, position_num, mut)
+        pdf.cell(0, 10, "{}: {} ".format(mut, abspath(path)), ln=1)
+        pdf.ln(5)
+
+    # Output report
+    name = "{}_{}/{}_{}.pdf".format(res_dir, mode, output, position_num)
+    pdf.output(name, 'F')
+    return name
+
+
+def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=0.0,
+                       cata_dist=3.5, mode="results"):
+    """
+    Finds those mutations that decreases the binding distance and binding energy and creates a report
+
+    Parameters
+    ___________
+    res_dir: str
+       Name of the results folder
+    data_dict: dict
+       A dictionary of SimulationData objects that holds information for all mutations
+    position_num: str
+       The position that was mutated
+    output: str, optional
+       Name of the reports created
+    analysis: str, optional
+       Choose between ("distance", "binding" or "all") to specify how to filter the mutations to keep
+    thres: float, optional
+       Set the threshold for those mutations to be included in the pdf
+    cata_dist: float, optional
+        The catalytic distance
+    """
+    # Find top mutations
+    log = Log("{}_{}/analysis".format(res_dir, mode))
+    count = 0
+    mutation_dict = {}
+    for key, value in data_dict.items():
+        if "original" not in key:
+            if analysis == "distance" and value.dist_diff["distance0.5"].median() <= thres:
+                mutation_dict[key] = value
+                count += 1
+            elif analysis == "energy" and value.bind_diff["Binding Energy"].median() <= thres:
+                mutation_dict[key] = value
+                count += 1
+            elif analysis == "both" and value.dist_diff["distance0.5"].median() <= thres and value.bind_diff["Binding Energy"].median() <= thres:
+                mutation_dict[key] = value
+                count += 1
+
+    # Create a summary report with the top mutations
+    if len(mutation_dict) != 0:
+        log.info(
+            "{} mutations at position {} decrease {} by {} or less".format(count, position_num, analysis, thres))
+        create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, mode=mode)
+    else:
+        log.warning("No mutations at position {} decrease {} by {} or less".format(position_num, analysis, thres))
 
 
 def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None, dpi=800, traj=10, output="summary",

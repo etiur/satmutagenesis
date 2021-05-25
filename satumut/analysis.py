@@ -297,8 +297,8 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     # Creating the scatter plots
     if not os.path.exists("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_)):
         os.makedirs("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_))
-    ax = sns.relplot(x=type_, y='Binding Energy', hue="Type", style="Type", palette="Set1", data=cat,
-                     height=3.5, aspect=1.5, s=80, linewidth=0)
+    ax = sns.relplot(x=type_, y='Binding Energy', hue="Type", style="Type", palette="muted", data=cat,
+                     height=3.5, aspect=1.5, s=50, linewidth=0, alpha=0.5)
 
     ax.set(title="{} scatter plot of binding energy vs {} ".format(key, type_))
     ax.savefig("{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, type_,
@@ -539,8 +539,8 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.cell(0, 10, "Best mutations in terms of distance and/or binding energy", align='C', ln=1)
     pdf.set_font('Arial', '', size=10)
     for key, val in mutation.items():
-        dis = round(val.dist_diff.mean(), 4)
-        bind = round(val.bind_diff.mean(), 4)
+        dis = round(val.dist_diff.median(), 4)
+        bind = round(val.bind_diff.median(), 4)
         freq = val.len
         freq_diff = val.len_diff
         message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
