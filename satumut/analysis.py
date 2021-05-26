@@ -542,10 +542,8 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         dis = round(val.dist_diff.median(), 4)
         bind = round(val.bind_diff.median(), 4)
         freq = val.len
-        freq_diff = val.len_diff
         message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
-        message2 = "{} accepted steps with a distance less than {} angstroms, {} times more frequent " \
-                   "than wild type" .format(freq, cata_dist, freq_diff)
+        message2 = "{} accepted steps with a distance less than {} angstroms" .format(freq, cata_dist)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
         pdf.ln(3)
