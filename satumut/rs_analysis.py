@@ -371,7 +371,6 @@ def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, muta
         The binding energy between ligand and protein (used as name for the result file - not essential)
 
     """
-
     if not os.path.exists("{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
         os.makedirs("{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
 
@@ -504,8 +503,8 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     for key, val in mutation.items():
         dis = round(val.dist_diff["distance0.5"].median(), 4)
         bind = round(val.bind_diff["Binding Energy"].median(), 4)
-        freq_r = val.len["R"].value
-        freq_s = val.len["S"].value
+        freq_r = val.len["R"][0]
+        freq_s = val.len["S"][0]
         message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
         message2 = "{} that are R and {} that are S with a distance less than {} angstroms" .format(freq_r, freq_s, cata_dist)
         pdf.ln(3)  # linebreaks

@@ -41,7 +41,7 @@ class Mutagenesis:
     """
     To perform mutations on PDB files
     """
-    def __init__(self, model, position, folder="pdb_files", consec=False):
+    def __init__(self, model, position, folder="pdb_files", consec=False, single=None):
         """
         Initialize the Mutagenesis object
 
@@ -70,6 +70,7 @@ class Mutagenesis:
         self.folder = folder
         self.consec = consec
         self.log = Log("mutate_errors")
+        self.single = single
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
@@ -98,12 +99,24 @@ class Mutagenesis:
         """
         map the user coordinates with pmx coordinates
         """
+        if self.consec and self.single:
+            count = 1
+            while os.path.exists("round_{}".format(count)):
+                count += 1
+                self.folder = "{}_{}".format(self.folder, count)
+        if self.consec and not self.single:
+            count = 1
+            folder = "simulation"
+            while os.path.exists("{}".format(folder)):
+                count += 1
+                folder = "{}_{}".format(folder, count)
+                self.folder = "{}_{}".format(self.folder, count)
+
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
         if not os.path.exists("{}/original.pdb".format(self.folder)):
             self.model.write("{}/original.pdb".format(self.folder))
             self.final_pdbs.append("{}/original.pdb".format(self.folder))
-
         after = map_atom_string(self.coords, self.input, "{}/original.pdb".format(self.folder))
         self.chain_id = after.split(":")[0]
         self.position = int(after.split(":")[1]) - 1
@@ -273,7 +286,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     # Perform single saturated mutations
     count = 0
     for mutation in position:
-        run = Mutagenesis(input_, mutation, pdb_dir, consec)
+        run = Mutagenesis(input_, mutation, pdb_dir, consec, single)
         if single:
             # If the single_mutagenesis flag is used, execute this
             single = single.upper()
@@ -299,6 +312,10 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         ori = "{}/original.pdb".format(pdb_dir)
         run.insert_atomtype(ori)
         pdbs.append("{}/original.pdb".format(pdb_dir))
+    if consec:
+        ori = "{}/original.pdb".format(run.folder)
+        if os.path.exists(ori):
+            os.remove(ori)
 
     return pdbs
 

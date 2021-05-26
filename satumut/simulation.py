@@ -264,7 +264,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                                        consec=consec)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
-                               skip=skip, rotamers=rotamers, equilibration=equilibration, log=log)
+                               skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec)
     else:
         yaml = "yaml_files/simulation.yaml"
         with open(yaml, "r") as yml:
@@ -352,7 +352,7 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_,
                            cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
                            factor=factor, total_cpus=total_cpus, xtc=xtc, template=template, skip=skip,
-                           rotamers=rotamers, equilibration=equilibration, log=log)
+                           rotamers=rotamers, equilibration=equilibration, log=log, consec=consec)
     simulation.submit(yaml)
 
 

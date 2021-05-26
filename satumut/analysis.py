@@ -298,7 +298,7 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     if not os.path.exists("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_)):
         os.makedirs("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_))
     ax = sns.relplot(x=type_, y='Binding Energy', hue="Type", style="Type", palette="muted", data=cat,
-                     height=3.5, aspect=1.5, s=50, linewidth=0, alpha=0.5)
+                     height=3.5, aspect=1.5, s=20, linewidth=0, alpha=0.2)
 
     ax.set(title="{} scatter plot of binding energy vs {} ".format(key, type_))
     ax.savefig("{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, type_,
