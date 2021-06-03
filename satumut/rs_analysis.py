@@ -14,7 +14,7 @@ from helper import isiterable, commonlist, find_log, Log
 from analysis import extract_all, all_profiles
 import mdtraj as md
 from fpdf import FPDF
-plt.switch_backend('SVG')
+plt.switch_backend('agg')
 
 
 def parse_args():

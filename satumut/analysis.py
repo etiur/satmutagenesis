@@ -16,7 +16,7 @@ import multiprocessing as mp
 from functools import partial
 from helper import isiterable, Log, commonlist, find_log
 import mdtraj as md
-plt.switch_backend('SVG')
+plt.switch_backend('agg')
 
 
 def parse_args():
