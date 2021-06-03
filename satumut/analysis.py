@@ -189,7 +189,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5):
     frame.to_csv("{}_results/freq_{}.csv".format(res_dir, position_num))
 
     # median distance of catalytic poses
-    median = pd.DataFrame(pd.Series(len_dict), columns=["distance"])
+    median = pd.DataFrame(pd.Series(median_dict), columns=["distance"])
     median["distance_diff"] = median["distance"] - median["distance"].loc["original"]
     median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
     return data_dict
