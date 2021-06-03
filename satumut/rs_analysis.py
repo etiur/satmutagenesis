@@ -14,7 +14,7 @@ from helper import isiterable, commonlist, find_log, Log
 from analysis import extract_all, all_profiles
 import mdtraj as md
 from fpdf import FPDF
-plt.switch_backend('agg')
+plt.switch_backend('SVG')
 
 
 def parse_args():
@@ -161,6 +161,13 @@ class SimulationRS:
             self.dist_s = self.freq_s["distance0.5"].median()
             self.bind_r = self.binding_r["Binding Energy"].median()
             self.bind_s = self.binding_s["Binding Energy"].median()
+            self.median = pd.DataFrame(pd.Series({"R": self.dist_r, "S": self.dist_s})).transpose()
+            self.median.index = [self.name]
+        else:
+            median_r = self.freq_r["distance0.5"].median()
+            median_s = self.freq_s["distance0.5"].median()
+            self.median = pd.DataFrame(pd.Series({"R": median_r, "S": median_s})).transpose()
+            self.median.index = [self.name]
 
     def set_distance(self, ori_dist1, ori_dist2):
         """
@@ -233,10 +240,12 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
     """
     data_dict = {}
     len_list = []
+    median_list = []
     original = SimulationRS(wild, dist1r, dist2r, dist1s, dist2s, pdb=traj, catalytic_dist=cata_dist)
     original.filtering()
     data_dict["original"] = original
     len_list.append(original.len)
+    median_list.append(original.median)
     for folder in folders:
         name = basename(folder)
         data = SimulationRS(folder, dist1r, dist2r, dist1s, dist2s, pdb=traj, catalytic_dist=cata_dist)
@@ -245,6 +254,8 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
         data.set_binding(original.bind_r, original.bind_s)
         data_dict[name] = data
         len_list.append(data.len)
+        median_list.append(data.median)
+    # frequency of catalytic distances
     len_list = pd.concat(len_list)
     try:
         len_list["ratio_r"] = len_list["R"] / len_list["R"].loc["original"]
@@ -258,6 +269,13 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
     if not os.path.exists("{}_RS".format(res_dir)):
         os.makedirs("{}_RS".format(res_dir))
     len_list.to_csv("{}_RS/freq_{}.csv".format(res_dir, position_num))
+
+    # median catalytic distances
+    median_list = pd.concat(median_list)
+    median_list["diff_R"] = median_list["R"] - median_list["R"].loc["original"]
+    median_list["diff_S"] = median_list["S"] - median_list["S"].loc["original"]
+    median_list.to_csv("{}_RS/dist_{}.csv".format(res_dir, position_num))
+
     return data_dict
 
 

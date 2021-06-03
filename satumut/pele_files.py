@@ -30,7 +30,7 @@ def parse_args():
                         help="used if LSF is the utility managing the jobs")
     parser.add_argument("-s", "--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
-    parser.add_argument("-st", "--steps", required=False, type=int, default=1000,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=500,
                         help="The number of PELE steps")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
@@ -58,7 +58,7 @@ class CreateYamlFiles:
     Creates the 2 necessary files for the pele simulations
     """
     def __init__(self, input_path,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345, nord=False,
-                 steps=1000, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
+                 steps=500, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
                  rotamers=None, equilibration=True, log=False, consec=False):
         """
         Initialize the CreateLaunchFiles object
@@ -234,7 +234,7 @@ class CreateYamlFiles:
 
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, cu=False, seed=12345, nord=False,
-                    steps=1000, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
+                    steps=500, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
                     rotamers=None, equilibration=True, log=False, consec=False):
     """
     creates for each of the mutants the yaml and slurm files

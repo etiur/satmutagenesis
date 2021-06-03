@@ -44,7 +44,7 @@ def parse_args():
     parser.add_argument("-hy", "--hydrogen", required=False, action="store_false", help="leave it to default")
     parser.add_argument("-co", "--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
-    parser.add_argument("-st", "--steps", required=False, type=int, default=1000,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=500,
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
@@ -176,7 +176,7 @@ class SimulationRunner:
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, cu=False, seed=12345,
-                         nord=False, steps=1000, dpi=800, traj=10, output="summary",
+                         nord=False, steps=500, dpi=800, traj=10, output="summary",
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, r1=None, r2=None,
@@ -285,7 +285,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", consec=False, cu=False, seed=12345,
-                         nord=False, steps=400, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
+                         nord=False, steps=300, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
                          rotamers=None, equilibration=True, log=False):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations

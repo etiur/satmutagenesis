@@ -16,7 +16,7 @@ import multiprocessing as mp
 from functools import partial
 from helper import isiterable, Log, commonlist, find_log
 import mdtraj as md
-plt.ioff()
+plt.switch_backend('SVG')
 
 
 def parse_args():
@@ -111,6 +111,8 @@ class SimulationData:
         if "original" in self.folder:
             self.dist_ori = self.frequency.median()
             self.bind_ori = self.binding.median()
+        else:
+            self.median_feq = self.frequency.median()
 
     def set_distance(self, ori_distance):
         """
@@ -161,10 +163,12 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5):
     """
     data_dict = {}
     len_dict = {}
+    median_dict = {}
     original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist)
     original.filtering()
     data_dict["original"] = original
     len_dict["original"] = original.len
+    median_dict["original"] = original.dist_ori
     for folder in folders:
         name = basename(folder)
         data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist)
@@ -173,6 +177,8 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5):
         data.set_binding(original.bind_ori)
         data_dict[name] = data
         len_dict[name] = data.len
+        median_dict[name] = data.median_feq
+    # frequency of catalytic poses
     frame = pd.DataFrame(pd.Series(len_dict), columns=["frequency"])
     try:
         frame["ratio"] = frame["frequency"] / frame["frequency"].loc["original"]
@@ -181,6 +187,11 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5):
     if not os.path.exists("{}_results".format(res_dir)):
         os.makedirs("{}_results".format(res_dir))
     frame.to_csv("{}_results/freq_{}.csv".format(res_dir, position_num))
+
+    # median distance of catalytic poses
+    median = pd.DataFrame(pd.Series(len_dict), columns=["distance"])
+    median["distance_diff"] = median["distance"] - median["distance"].loc["original"]
+    median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
     return data_dict
 
 

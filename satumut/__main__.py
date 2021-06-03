@@ -52,7 +52,7 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-sb", "--sbatch", required=False, action="store_false",
                         help="True if you want to lanch the simulation right after creating the slurm file")
-    parser.add_argument("-st", "--steps", required=False, type=int, default=1000,
+    parser.add_argument("-st", "--steps", required=False, type=int, default=500,
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
@@ -118,7 +118,7 @@ class CreateSlurmFiles:
 
     def __init__(self, input_, ligchain, ligname, atoms, position=(), cpus_mutant=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
-                 steps=1000, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
+                 steps=500, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
                  equilibration=True, log=False, dist1r=None, dist2r=None, dist1s=None, dist2s=None, cpt=None):
@@ -337,7 +337,7 @@ class CreateSlurmFiles:
                 argument_list.append("-l ")
             if self.xtc:
                 argument_list.append("-x ")
-            if self.steps != 1000:
+            if self.steps != 500:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))
@@ -446,7 +446,7 @@ class CreateSlurmFiles:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.xtc:
                 argument_list.append("-x ")
-            if self.steps != 1000:
+            if self.steps != 500:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))
