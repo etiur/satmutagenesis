@@ -486,7 +486,7 @@ def extract_10_pdb_single_rs(info, res_dir, data_dict, xtc=False):
                                     orientation)
 
 
-def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5):
+def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5, improve="R"):
     """
     Create pdf files with the plots of chosen mutations and the path to the
 
@@ -521,11 +521,11 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.cell(0, 10, "Best mutations in terms of distance and/or binding energy", align='C', ln=1)
     pdf.set_font('Arial', '', size=10)
     for key, val in mutation.items():
-        dis = round(val.dist_diff["distance0.5"].median(), 4)
-        bind = round(val.bind_diff["Binding Energy"].median(), 4)
+        dis = round(val.dist_diff["distance0.5"][val.dist_diff["Type"] == improve].median(), 4)
+        bind = round(val.bind_diff["Binding Energy"][val.dist_diff["Type"] == improve].median(), 4)
         freq_r = val.len["R"][0]
         freq_s = val.len["S"][0]
-        message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
+        message = 'Mutation {}: median distance increment of {} {}, median binding energy increment of {} {}'.format(key, improve, dis, improve, bind)
         message2 = "{} that are R and {} that are S with a distance less than {} angstroms" .format(freq_r, freq_s, cata_dist)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
@@ -644,7 +644,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     if len(mutation_dict) != 0:
         log.info(
             "{} mutations at position {} decrease {} {} by {} or less".format(count, position_num, improve, analysis, thres))
-        create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist)
+        create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, improve)
     else:
         log.warning("No mutations at position {} decrease {} {} by {} or less".format(position_num, improve, analysis, thres))
 
