@@ -701,7 +701,7 @@ def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None
 
     if not plot_dir:
         plot_dir = commonprefix(pele_folders[0])
-        plot_dir = basename(dirname(dirname(plot_dir))).replace("_mutations", "")
+        plot_dir = basename(dirname(dirname(plot_dir))).replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
         data_dict = analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, plot_dir, base, traj=traj,
