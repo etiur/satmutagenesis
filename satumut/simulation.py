@@ -92,6 +92,8 @@ def parse_args():
     parser.add_argument("--r2", required=False, type=float, help="Distance for the R2")
     parser.add_argument("--s1", required=False, type=float, help="Distance for the S1")
     parser.add_argument("--s2", required=False, type=float, help="Distance for the S2")
+    parser.add_argument("-im", "--improve", required=False, choices=("R", "S"), default="R",
+                        help="The enantiomer that should improve")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
@@ -99,7 +101,7 @@ def parse_args():
             args.consec, args.steps, args.dpi, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
-            args.skip, args.rotamers, args.equilibration, args.log, args.r1, args.r2, args.s1, args.s2]
+            args.skip, args.rotamers, args.equilibration, args.log, args.r1, args.r2, args.s1, args.s2, args.improve]
 
 
 class SimulationRunner:
@@ -180,7 +182,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, r1=None, r2=None,
-                         s1=None, s2=None):
+                         s1=None, s2=None, improve="R"):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -254,6 +256,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         True to set equilibration before PELE
     log: bool, optional
         True to recover pele running logs
+    imrpove: str
+        The enantiomer to improve
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -279,7 +283,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc)
     if r1 and r2 and s1 and s2:
         consecutive_analysis_rs(dirname, r1, r2, s1, s2, original, dpi, traj, output, plot_dir, opt, cpus,
-                                thres, cata_dist, xtc)
+                                thres, cata_dist, xtc, improve)
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
@@ -360,7 +364,7 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
-    skip, rotamers, equilibration, log, r1, r2, s1, s2 = parse_args()
+    skip, rotamers, equilibration, log, r1, r2, s1, s2, improve = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
@@ -373,7 +377,7 @@ def main():
                              multiple, pdb_dir, consec, cu, seed, nord, steps, dpi, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
                              total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
-                             r1, r2, s1, s2)
+                             r1, r2, s1, s2, improve)
 
 
 if __name__ == "__main__":
