@@ -256,7 +256,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         True to set equilibration before PELE
     log: bool, optional
         True to recover pele running logs
-    imrpove: str
+    improve: str
         The enantiomer to improve
     """
     simulation = SimulationRunner(input_, dir_)

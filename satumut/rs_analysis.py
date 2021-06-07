@@ -49,7 +49,7 @@ def parse_args():
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse, args.cpus, args.thres,
-            args.catalytic_distance, args.xtc, args.r1, args.r2, args.s1, args.s2, args.imporve]
+            args.catalytic_distance, args.xtc, args.r1, args.r2, args.s1, args.s2, args.improve]
 
 
 class SimulationRS:
