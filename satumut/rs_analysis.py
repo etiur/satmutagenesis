@@ -208,7 +208,8 @@ class SimulationRS:
         self.bind_diff["mut"] = ["{}".format(self.name) for _ in range(len(self.bind_diff))]
 
 
-def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_num, traj=10, cata_dist=3.5):
+def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_num, traj=10, cata_dist=3.5,
+               improve="R"):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -234,6 +235,8 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
         How many snapshots to extract from the trajectories
     cata_dist: float, optional
         The catalytic distance
+    improve: str, optional
+        The enantiomer that improves
 
     Returns
     --------
@@ -267,7 +270,7 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
         len_list["ratio_s"] = len_list["S"] / len_list["S"].loc["original"]
     except ZeroDivisionError:
         pass
-
+    len_list["enantio excess"] = len_list[improve] / (len_list["S"] + len_list["R"]) * 100
     if not os.path.exists("{}_RS".format(res_dir)):
         os.makedirs("{}_RS".format(res_dir))
     len_list.to_csv("{}_RS/freq_{}.csv".format(res_dir, position_num))
@@ -705,7 +708,7 @@ def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
         data_dict = analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, plot_dir, base, traj=traj,
-                               cata_dist=cata_dist)
+                               cata_dist=cata_dist, improve=improve)
         box_plot_rs(plot_dir, data_dict, base, dpi, cata_dist)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS")
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, function=extract_10_pdb_single_rs)
