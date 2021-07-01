@@ -28,8 +28,7 @@ def parse_args():
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
-    parser.add_argument("--plot", required=False,
-                        help="Path of the plots folder")
+    parser.add_argument("--plot", required=False, help="Path of the plots folder")
     parser.add_argument("--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=25, type=int,
