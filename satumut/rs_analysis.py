@@ -45,17 +45,18 @@ def parse_args():
                         help="Change the pdb format to xtc")
     parser.add_argument("-im", "--improve", required=False, choices=("R", "S"), default="R",
                         help="The enantiomer that should improve")
+    parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse, args.cpus, args.thres,
-            args.catalytic_distance, args.xtc, args.r1, args.r2, args.s1, args.s2, args.improve]
+            args.catalytic_distance, args.xtc, args.r1, args.r2, args.s1, args.s2, args.improve, args.extract]
 
 
 class SimulationRS:
     """
     A class to analyse the simulation data from the enantiomer analysis
     """
-    def __init__(self, folder, dist1r, dist2r, dist1s, dist2s, pdb=10, catalytic_dist=3.5):
+    def __init__(self, folder, dist1r, dist2r, dist1s, dist2s, pdb=10, catalytic_dist=3.5, extract=None):
         """
         Initialize the SimulationRS class
 
@@ -75,6 +76,8 @@ class SimulationRS:
             The number of pdbs to extract
         catalytic_dist: float
             The catalytic distance
+        extract: int, optional
+            The number of steps to extract
         """
         self.folder = folder
         self.dataframe = None
@@ -97,6 +100,7 @@ class SimulationRS:
         self.dist_diff = None
         self.binding = None
         self.name = basename(self.folder)
+        self.extract = extract
 
     def filtering(self):
         """
@@ -111,6 +115,8 @@ class SimulationRS:
             data.rename(columns={'#Task': "ID"}, inplace=True)
             reports.append(data)
         self.dataframe = pd.concat(reports)
+        if self.extract:
+            self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
         self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 99]
@@ -208,7 +214,7 @@ class SimulationRS:
 
 
 def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_num, traj=10, cata_dist=3.5,
-               improve="R"):
+               improve="R", extract=None):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -236,6 +242,8 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
         The catalytic distance
     improve: str, optional
         The enantiomer that improves
+    extract: int, optional
+        The number of steps to analyse
 
     Returns
     --------
@@ -245,14 +253,14 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
     data_dict = {}
     len_list = []
     median_list = []
-    original = SimulationRS(wild, dist1r, dist2r, dist1s, dist2s, pdb=traj, catalytic_dist=cata_dist)
+    original = SimulationRS(wild, dist1r, dist2r, dist1s, dist2s, pdb=traj, catalytic_dist=cata_dist, extract=extract)
     original.filtering()
     data_dict["original"] = original
     len_list.append(original.len)
     median_list.append(original.median)
     for folder in folders:
         name = basename(folder)
-        data = SimulationRS(folder, dist1r, dist2r, dist1s, dist2s, pdb=traj, catalytic_dist=cata_dist)
+        data = SimulationRS(folder, dist1r, dist2r, dist1s, dist2s, pdb=traj, catalytic_dist=cata_dist, extract=extract)
         data.filtering()
         data.set_distance(original.dist_r, original.dist_s)
         data.set_binding(original.bind_r, original.bind_s)
@@ -652,7 +660,8 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
 
 def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None, dpi=800, traj=10, output="summary",
-                            plot_dir=None, opt="distance", cpus=10, thres=0.0, cata_dist=3.5, xtc=False, improve="R"):
+                            plot_dir=None, opt="distance", cpus=10, thres=0.0, cata_dist=3.5, xtc=False, improve="R",
+                            extract=None):
     """
     Creates all the plots for the different mutated positions
 
@@ -692,6 +701,8 @@ def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None
         Set to true if the pdb is in xtc format
     imporve: str
         The enantiomer that should improve
+    extract: int, optional
+        The number of steps to analyse
     """
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
@@ -707,7 +718,7 @@ def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
         data_dict = analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, plot_dir, base, traj=traj,
-                               cata_dist=cata_dist, improve=improve)
+                               cata_dist=cata_dist, improve=improve, extract=extract)
         box_plot_rs(plot_dir, data_dict, base, dpi, cata_dist)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS")
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, function=extract_10_pdb_single_rs)
@@ -716,9 +727,9 @@ def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None
 
 
 def main():
-    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, r1, r2, s1, s2, improve = parse_args()
+    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, r1, r2, s1, s2, improve, extract = parse_args()
     consecutive_analysis_rs(inp, r1, r2, s1, s2, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis,
-                            cpus=cpus, thres=thres, cata_dist=cata_dist, xtc=xtc, improve=improve)
+                            cpus=cpus, thres=thres, cata_dist=cata_dist, xtc=xtc, improve=improve, extract=extract)
 
 
 if __name__ == "__main__":

@@ -40,18 +40,19 @@ def parse_args():
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
     parser.add_argument("-x", "--xtc", required=False, action="store_true", help="Change the pdb format to xtc")
+    parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
 
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse,  args.cpus, args.thres,
-            args.catalytic_distance, args.xtc]
+            args.catalytic_distance, args.xtc, args.extract]
 
 
 class SimulationData:
     """
     A class to store data from the simulations
     """
-    def __init__(self, folder, pdb=10, catalytic_dist=3.5):
+    def __init__(self, folder, pdb=10, catalytic_dist=3.5, extract=None):
         """
         Initialize the SimulationData Object
 
@@ -63,6 +64,8 @@ class SimulationData:
             Number of points to consider for the boxplots
         pdb: int, optional
             how many pdbs to extract from the trajectories
+        extract: int, optional
+            The number of steps to analyse
         """
         self.folder = folder
         self.dataframe = None
@@ -77,6 +80,7 @@ class SimulationData:
         self.len_diff = None
         self.len = None
         self.name = basename(self.folder)
+        self.extract = extract
 
     def filtering(self):
         """
@@ -91,6 +95,8 @@ class SimulationData:
             data.rename(columns={'#Task': "ID"}, inplace=True)
             reports.append(data)
         self.dataframe = pd.concat(reports)
+        if self.extract:
+            self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
         self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 99]
@@ -137,7 +143,7 @@ class SimulationData:
         self.bind_diff = self.binding - ori_binding
 
 
-def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5):
+def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -155,6 +161,8 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5):
         How many snapshots to extract from the trajectories
     cata_dist: float, optional
         The catalytic distance
+    extract: int, optional
+        The number of steps to analyse
 
     Returns
     ----------
@@ -164,14 +172,14 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5):
     data_dict = {}
     len_dict = {}
     median_dict = {}
-    original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist)
+    original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, extract=extract)
     original.filtering()
     data_dict["original"] = original
     len_dict["original"] = original.len
     median_dict["original"] = original.dist_ori
     for folder in folders:
         name = basename(folder)
-        data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist)
+        data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist, extract=extract)
         data.filtering()
         data.set_distance(original.dist_ori)
         data.set_binding(original.bind_ori)
@@ -678,7 +686,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
 
 def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
-                         cpus=10, thres=0.0, cata_dist=3.5, xtc=False):
+                         cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None):
     """
     Creates all the plots for the different mutated positions
 
@@ -709,6 +717,8 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         The catalytic distance
     xtc: bool, optional
         Set to true if the pdb is in xtc format
+    extract: int, optional
+        The number of steps to analyse
     """
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
@@ -723,7 +733,7 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         plot_dir = basename(dirname(dirname(plot_dir))).replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_all(folders, wild, plot_dir, base, traj=traj, cata_dist=cata_dist)
+        data_dict = analyse_all(folders, wild, plot_dir, base, traj=traj, cata_dist=cata_dist, extract=extract)
         box_plot(plot_dir, data_dict, base, dpi, cata_dist)
         all_profiles(plot_dir, data_dict, base, dpi)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
@@ -731,9 +741,9 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
 
 
 def main():
-    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc = parse_args()
+    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, extract = parse_args()
     consecutive_analysis(inp, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis, cpus=cpus, thres=thres,
-                         cata_dist=cata_dist, xtc=xtc)
+                         cata_dist=cata_dist, xtc=xtc, extract=extract)
 
 
 if __name__ == "__main__":
