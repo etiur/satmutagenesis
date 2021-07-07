@@ -187,9 +187,9 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
         len_dict[name] = data.len
         median_dict[name] = data.median_feq
     # frequency of catalytic poses
-    frame = pd.DataFrame(pd.Series(len_dict), columns=["frequency"])
+    frame = pd.DataFrame(pd.Series(len_dict), columns=["freq catalytic poses"])
     try:
-        frame["ratio"] = frame["frequency"] / frame["frequency"].loc["original"]
+        frame["freq mut/wt"] = frame["freq catalytic poses"] / frame["freq catalytic poses"].loc["original"]
     except ZeroDivisionError:
         pass
     if not os.path.exists("{}_results".format(res_dir)):
@@ -197,8 +197,8 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     frame.to_csv("{}_results/freq_{}.csv".format(res_dir, position_num))
 
     # median distance of catalytic poses
-    median = pd.DataFrame(pd.Series(median_dict), columns=["distance"])
-    median["distance_diff"] = median["distance"] - median["distance"].loc["original"]
+    median = pd.DataFrame(pd.Series(median_dict), columns=["median distance"])
+    median["dist mut-wt"] = median["median distance"] - median["median distance"].loc["original"]
     median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
     return data_dict
 
