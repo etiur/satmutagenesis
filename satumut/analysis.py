@@ -97,6 +97,9 @@ class SimulationData:
         self.dataframe = pd.concat(reports)
         if self.extract:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
+        self.dataframe.sort_values(by="currentEnergy", inplace=True)
+        self.dataframe.reset_index(drop=True, inplace=True)
+        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 20]
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
         self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 99]
