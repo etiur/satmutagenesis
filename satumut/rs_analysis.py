@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument("--r2", required=False, type=float, help="Distance for the R2")
     parser.add_argument("--s1", required=False, type=float, help="Distance for the S1")
     parser.add_argument("--s2", required=False, type=float, help="Distance for the S2")
-    parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
+    parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.8, type=float,
                         help="The distance considered to be catalytic")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
@@ -283,12 +283,14 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
     len_list["enantio excess"] = len_list[improve] / (len_list["S"] + len_list["R"]) * 100
     if not os.path.exists("{}_RS".format(res_dir)):
         os.makedirs("{}_RS".format(res_dir))
+    len_list.sort_values("enantio excess", ascending=False, inplace=True)
     len_list.to_csv("{}_RS/freq_{}.csv".format(res_dir, position_num))
 
     # median catalytic distances
     median_list = pd.concat(median_list)
     median_list["diff_R"] = median_list["R"] - median_list["R"].loc["original"]
     median_list["diff_S"] = median_list["S"] - median_list["S"].loc["original"]
+    median_list.sort_values(improve, inplace=True)
     median_list.to_csv("{}_RS/dist_{}.csv".format(res_dir, position_num))
 
     return data_dict
