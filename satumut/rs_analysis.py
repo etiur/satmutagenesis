@@ -253,6 +253,8 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
     data_dict: dict
         Dictionary of SimulationData objects
     """
+    choice = ["R", "S"]
+    choice.remove(improve)
     data_dict = {}
     len_list = []
     median_list = []
@@ -280,7 +282,7 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
         len_list["ratio_s"] = len_list["S"] / len_list["S"].loc["original"]
     except ZeroDivisionError:
         pass
-    len_list["enantio excess"] = len_list[improve] / (len_list["S"] + len_list["R"]) * 100
+    len_list["enantio excess"] = (len_list[improve] - len_list[choice[0]])/ (len_list["S"] + len_list["R"]) * 100
     if not os.path.exists("{}_RS".format(res_dir)):
         os.makedirs("{}_RS".format(res_dir))
     len_list.sort_values("enantio excess", ascending=False, inplace=True)
