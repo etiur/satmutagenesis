@@ -32,16 +32,19 @@ def parse_args():
                         help="Specify the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
                              "code and 1 letter code can be used. You can even specify the protonated states")
+    parser.add_argument("-tu", "--turn", required=False, type=int,
+                        help="the round of plurizyme generation, not needed for the 1st round")
 
     args = parser.parse_args()
-    return args.input, args.position, args.hydrogen, args.multiple, args.pdb_dir, args.consec, args.single_mutagenesis
+    return [args.input, args.position, args.hydrogen, args.multiple, args.pdb_dir, args.consec, args.single_mutagenesis,
+            args.turn]
 
 
 class Mutagenesis:
     """
     To perform mutations on PDB files
     """
-    def __init__(self, model, position, folder="pdb_files", consec=False, single=None):
+    def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None):
         """
         Initialize the Mutagenesis object
 
@@ -55,6 +58,8 @@ class Mutagenesis:
            The folder where the pdbs are written
         consec: bool, optional
            If this is the second round of mutation
+        turn: int, optional
+            The round of plurizyme generation
         """
         self.model = Model(model)
         self.input = model
@@ -71,6 +76,7 @@ class Mutagenesis:
         self.consec = consec
         self.log = Log("mutate_errors")
         self.single = single
+        self.turn = turn
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
@@ -101,9 +107,14 @@ class Mutagenesis:
         """
         if self.consec and self.single:
             count = 1
-            while os.path.exists("round_{}".format(count)):
-                count += 1
-                self.folder = "{}_{}".format(self.folder, count)
+            if not os.path.exists("{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))):
+                self.folder = "{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))
+            else:
+                count = 1
+                while os.path.exists("{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))):
+                    count += 1
+                    self.folder = "{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))
+
         if self.consec and not self.single:
             count = 1
             folder = "simulation"
@@ -256,7 +267,7 @@ class Mutagenesis:
 
 
 def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False,
-                       single=None):
+                       single=None, turn=False):
     """
     To generate up to 2 mutations per pdb
 
@@ -276,6 +287,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         Consecutively mutate the PDB file for several rounds
     single: str
         The new residue to mutate the positions to, in 3 letter or 1 letter code
+    turn: int, optional
+        The round of plurizymer generation
 
     Returns
     ________
@@ -286,7 +299,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     # Perform single saturated mutations
     count = 0
     for mutation in position:
-        run = Mutagenesis(input_, mutation, pdb_dir, consec, single)
+        run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn)
         if single:
             # If the single_mutagenesis flag is used, execute this
             single = single.upper()
@@ -321,8 +334,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
 
 
 def main():
-    input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis = parse_args()
-    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis)
+    input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn = parse_args()
+    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn)
 
     return output
 

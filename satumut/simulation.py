@@ -94,6 +94,8 @@ def parse_args():
     parser.add_argument("--s2", required=False, type=float, help="Distance for the S2")
     parser.add_argument("-im", "--improve", required=False, choices=("R", "S"), default="R",
                         help="The enantiomer that should improve")
+    parser.add_argument("-tu", "--turn", required=False, type=int,
+                        help="the round of plurizyme generation, not needed for the 1st round")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
@@ -101,7 +103,8 @@ def parse_args():
             args.consec, args.steps, args.dpi, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
-            args.skip, args.rotamers, args.equilibration, args.log, args.r1, args.r2, args.s1, args.s2, args.improve]
+            args.skip, args.rotamers, args.equilibration, args.log, args.r1, args.r2, args.s1, args.s2, args.improve,
+            args.turn]
 
 
 class SimulationRunner:
@@ -290,7 +293,7 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", consec=False, cu=False, seed=12345,
                          nord=False, steps=300, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                         rotamers=None, equilibration=True, log=False):
+                         rotamers=None, equilibration=True, log=False, turn=None):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -346,17 +349,19 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
         True to set equilibration before PELE
     log: bool, optional
         True to write log files about the simulations
+    turn: int, optional
+        The round of plurizymer generation
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
     # Using the neighbours search to obtain a list of positions to mutate
     position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec,
-                                   single=single_mutagenesis)
+                                   single=single_mutagenesis, turn=turn)
     yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_,
                            cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
                            factor=factor, total_cpus=total_cpus, xtc=xtc, template=template, skip=skip,
-                           rotamers=rotamers, equilibration=equilibration, log=log, consec=consec)
+                           rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, input_pdb=input_)
     simulation.submit(yaml)
 
 
@@ -364,13 +369,13 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
-    skip, rotamers, equilibration, log, r1, r2, s1, s2, improve = parse_args()
+    skip, rotamers, equilibration, log, r1, r2, s1, s2, improve, turn = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                              radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, cu, seed, nord, steps,
-                             factor, total_cpus, xtc, template, skip, rotamers, equilibration, log)
+                             factor, total_cpus, xtc, template, skip, rotamers, equilibration, log, turn)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,

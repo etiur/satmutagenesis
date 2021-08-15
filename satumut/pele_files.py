@@ -6,7 +6,7 @@ import argparse
 import os
 from helper import map_atom_string
 import glob
-from os.path import dirname
+from os.path import dirname, basename
 
 
 def parse_args():
@@ -46,26 +46,28 @@ def parse_args():
                         help="write logs")
     parser.add_argument("-co", "--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
+    parser.add_argument("-tu", "--turn", required=False, type=int,
+                        help="the round of plurizyme generation, not needed for the 1st round")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.polarize_metals,
             args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc, args.template,
-            args.skip, args.rotamers, args.equilibration, args.log, args.consec]
+            args.skip, args.rotamers, args.equilibration, args.log, args.consec, args.turn]
 
 
 class CreateYamlFiles:
     """
     Creates the 2 necessary files for the pele simulations
     """
-    def __init__(self, input_path,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345, nord=False,
+    def __init__(self, mutant_list,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                  steps=500, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                 rotamers=None, equilibration=True, log=False, consec=False):
+                 rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None):
         """
         Initialize the CreateLaunchFiles object
 
         Parameters
         ___________
-        input_path: list[str]
+        mutant_list: list[str]
             A list of the path to the mutant pdbs
         ligchain: str
             the chain ID where the ligand is located
@@ -105,8 +107,12 @@ class CreateYamlFiles:
             True to include equilibration step before PELE
         log: bool, optional
             True to write log files about pele
+        round: int, optional
+            The round of plurizymer generation
+        input_pdb: str, optional
+            The pdb file used as input
         """
-        self.input = input_path
+        self.mutant_list = mutant_list
         self.ligchain = ligchain
         self.ligname = ligname
         if atoms:
@@ -129,13 +135,15 @@ class CreateYamlFiles:
         if total_cpus:
             self.total_cpu = total_cpus
         else:
-            self.total_cpu = len(self.input) * self.cpus + 1
+            self.total_cpu = len(self.mutant_list) * self.cpus + 1
         self.template = template
         self.skip = skip
         self.rotamers = rotamers
         self.equilibration = equilibration
         self.log = log
         self.consec = consec
+        self.turn = turn
+        self.input_pdb = input_pdb
 
     def _match_dist(self):
         """
@@ -143,7 +151,7 @@ class CreateYamlFiles:
         """
         if self.initial and self.atoms is not None:
             for i in range(len(self.atoms)):
-                self.atoms[i] = map_atom_string(self.atoms[i], self.initial, self.input[0])
+                self.atoms[i] = map_atom_string(self.atoms[i], self.initial, self.mutant_list[0])
         else:
             pass
 
@@ -151,13 +159,12 @@ class CreateYamlFiles:
         """
         Looks at which round of the mutation it is
         """
-        count = 1
-        if self.single:
+        if self.single and not self.turn:
             folder = "round_1"
-            while os.path.exists(folder):
-                count += 1
-                folder = "round_{}".format(count)
+        elif self.single and self.turn:
+            folder = "round_{}".format(self.turn)
         else:
+            count = 1
             folder = "simulations"
             if self.consec:
                 while os.path.exists(folder):
@@ -180,16 +187,16 @@ class CreateYamlFiles:
                 count += 1
         return yaml
 
-    def input_creation(self):
+    def yaml_creation(self):
         """
-        create the .yaml input files for PELE
+        create the .yaml files for PELE
         """
         self._match_dist()
         folder = self._search_round()
         self.yaml = self.yaml_file()
 
         with open(self.yaml, "w") as inp:
-            lines = ["system: '{}/*.pdb'\n".format(dirname(self.input[0])), "chain: '{}'\n".format(self.ligchain),
+            lines = ["system: '{}/*.pdb'\n".format(dirname(self.mutant_list[0])), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "saturated_mutagenesis: true\n",
                      "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps)]
             if self.atoms:
@@ -200,7 +207,10 @@ class CreateYamlFiles:
                 lines.append("traj: trajectory.xtc\n")
             if not self.nord:
                 lines.append("usesrun: true\n")
-            lines.append("working_folder: '{}'\n".format(folder))
+            if self.turn:
+                lines.append("working_folder: '{}/{}'\n".format(folder, basename(self.input_pdb.strip(".pdb"))))
+            else:
+                lines.append("working_folder: '{}'\n".format(folder))
             lines2 = ["cpus: {}\n".format(self.total_cpu), "cpus_per_mutation: {}\n".format(self.cpus),
                       "pele_license: '/gpfs/projects/bsc72/PELE++/license'\n"]
             if not self.nord:
@@ -235,7 +245,7 @@ class CreateYamlFiles:
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                     steps=500, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                    rotamers=None, equilibration=True, log=False, consec=False):
+                    rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -283,6 +293,10 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
         True to write logs abour PELE steps
     consec: bool, optional
         True if it is the second round of mutation
+    turn: int, optional
+        The round of the plurizymer generation
+    input_pdb: str, optionla
+        The input pdb file
 
     Returns
     _______
@@ -295,18 +309,19 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
         pdb_list = pdb_files
     run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, initial=initial, cu=cu, seed=seed, nord=nord,
                           steps=steps, single=single, factor=factor, total_cpus=total_cpus, xtc=xtc, skip=skip,
-                          template=template, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec)
-    yaml = run.input_creation()
+                          template=template, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec,
+                          turn=turn, input_pdb=input_pdb)
+    yaml = run.yaml_creation()
     return yaml
 
 
 def main():
     folder, ligchain, ligname, atoms, cpus, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
-    skip, rotamers, equilibration, log, consec = parse_args()
+    skip, rotamers, equilibration, log, consec, turn = parse_args()
     yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, cu=cu,
                                  seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc,
                                  skip=skip, template=template, rotamers=rotamers, equilibration=equilibration, log=log,
-                                 consec=consec)
+                                 consec=consec, turn=turn)
 
     return yaml_files
 
