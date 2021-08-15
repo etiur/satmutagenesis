@@ -180,7 +180,7 @@ class CreateYamlFiles:
         if not os.path.exists("yaml_files"):
             os.mkdir("yaml_files")
         yaml = "yaml_files/simulation.yaml"
-        if self.consec:
+        if self.consec or self.turn:
             count = 1
             while os.path.exists(yaml):
                 yaml = "yaml_files/simulation_{}.yaml".format(count)
@@ -295,7 +295,7 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
         True if it is the second round of mutation
     turn: int, optional
         The round of the plurizymer generation
-    input_pdb: str, optionla
+    input_pdb: str, optional
         The input pdb file
 
     Returns

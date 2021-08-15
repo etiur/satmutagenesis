@@ -105,7 +105,7 @@ class Mutagenesis:
         """
         map the user coordinates with pmx coordinates
         """
-        if self.consec and self.single:
+        if self.turn and self.single:
             count = 1
             if not os.path.exists("{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))):
                 self.folder = "{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))
@@ -115,7 +115,7 @@ class Mutagenesis:
                     count += 1
                     self.folder = "{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))
 
-        if self.consec and not self.single:
+        if self.consec:
             count = 1
             folder = "simulation"
             while os.path.exists("{}".format(folder)):
@@ -197,7 +197,7 @@ class Mutagenesis:
             new = new_aa
         else:
             new = self._invert_aa[new_aa]
-        if self.consec:
+        if self.turn:
             name = basename(self.input).replace("pdb", "")
             output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, new)
         else:
@@ -267,7 +267,7 @@ class Mutagenesis:
 
 
 def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False,
-                       single=None, turn=False):
+                       single=None, turn=None):
     """
     To generate up to 2 mutations per pdb
 
@@ -321,7 +321,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
 
-    if single and not consec:
+    if single and not turn:
         ori = "{}/original.pdb".format(pdb_dir)
         run.insert_atomtype(ori)
         pdbs.append("{}/original.pdb".format(pdb_dir))
