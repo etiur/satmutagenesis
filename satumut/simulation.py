@@ -2,10 +2,12 @@
 This script is used to create and control the simulations
 """
 import argparse
+import shutil
+
 from mutate_pdb import generate_mutations
 from pele_files import create_20sbatch
 from subprocess import call
-from os.path import abspath
+from os.path import abspath, basename
 import os
 import time
 from analysis import consecutive_analysis
@@ -112,7 +114,7 @@ class SimulationRunner:
     A class that configures and runs simulations
     """
 
-    def __init__(self, input_, dir_=None):
+    def __init__(self, input_, dir_=None, turn=None):
         """
         Initialize the Simulation Runner class
 
@@ -122,12 +124,15 @@ class SimulationRunner:
             The path to the PDB file
         dir_: str, optional
             The name of the directory for the simulations to run and the outputs to be stored
+        turn: int, optional
+            The round of the plurizyme generation
         """
 
         self.input = input_
         self.proc = None
         self.dir = dir_
         self.log = Log("simulation_time")
+        self.turn = turn
 
     def side_function(self):
         """
@@ -142,9 +147,11 @@ class SimulationRunner:
         if not self.dir:
             base = self.input.replace(".pdb", "")
         else:
-            base = self.dir.replace(".pdb", "")
+            base = self.dir.replace(".pdb", "").replace("_mut", "")
         if not os.path.exists("{}_mut".format(base)):
             os.makedirs("{}_mut".format(base))
+        if self.turn:
+            shutil.copy(self.input, "{}_mut/{}".format(base, basename(self.input)))
         os.chdir("{}_mut".format(base))
 
         return self.input
@@ -157,7 +164,7 @@ class SimulationRunner:
         if not self.dir:
             base = self.input.replace(".pdb", "")
         else:
-            base = self.dir.replace(".pdb", "")
+            base = self.dir.replace(".pdb", "").replace("_mut", "")
 
         folder, original = find_log("{}_mut".format(base))
         return folder, original
@@ -291,9 +298,9 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
-                         pdb_dir="pdb_files", consec=False, cu=False, seed=12345,
-                         nord=False, steps=300, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                         rotamers=None, equilibration=True, log=False, turn=None):
+                         pdb_dir="pdb_files", cu=False, seed=12345, nord=False, steps=300, factor=None,
+                         total_cpus=None, xtc=False, template=None, skip=None, rotamers=None, equilibration=True,
+                         log=False, turn=None):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -323,8 +330,6 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
         Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
     pdb_dir: str, optional
         The name of the folder where the mutated PDB files will be stored
-    consec: bool, optional
-        Consecutively mutate the PDB file for several rounds
     cu: bool, optional
         Set it to true if there are metals in the system
     seed: int, optional
@@ -356,12 +361,12 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     input_ = simulation.side_function()
     # Using the neighbours search to obtain a list of positions to mutate
     position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
-    pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir, consec=consec,
+    pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir,
                                    single=single_mutagenesis, turn=turn)
     yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_,
                            cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
                            factor=factor, total_cpus=total_cpus, xtc=xtc, template=template, skip=skip,
-                           rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, input_pdb=input_)
+                           rotamers=rotamers, equilibration=equilibration, log=log, input_pdb=input_)
     simulation.submit(yaml)
 
 
