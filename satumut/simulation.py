@@ -7,7 +7,7 @@ import shutil
 from mutate_pdb import generate_mutations
 from pele_files import create_20sbatch
 from subprocess import call
-from os.path import abspath, basename
+from os.path import abspath
 import os
 import time
 from analysis import consecutive_analysis
