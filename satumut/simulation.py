@@ -151,7 +151,7 @@ class SimulationRunner:
         if not os.path.exists("{}_mut".format(base)):
             os.makedirs("{}_mut".format(base))
         if self.turn:
-            shutil.copy(self.input, "{}_mut")
+            shutil.copy(self.input, "{}_mut".format(base))
         os.chdir("{}_mut".format(base))
 
         return self.input
