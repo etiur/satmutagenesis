@@ -379,7 +379,7 @@ def main():
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
-                             radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, consec, cu, seed, nord, steps,
+                             radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, cu, seed, nord, steps,
                              factor, total_cpus, xtc, template, skip, rotamers, equilibration, log, turn)
     else:
         # Else, perform saturated mutagenesis
