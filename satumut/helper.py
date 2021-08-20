@@ -285,3 +285,27 @@ def find_log(folder_name):
                 folder.append("{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4]))
 
     return folder, original
+
+
+def weighted_median(df, val, weight):
+    """
+    Calculates the weighted median of a pandas dataframe
+
+    Parameters
+    ----------
+    df: Dataframe object
+        Pandas dataframe
+    val: str
+        The column name for the values
+    weight: str
+        The column name of the weights
+
+    Returns
+    -------
+    df: Dataframe object
+
+    """
+    df_sorted = df.sort_values(val)
+    cumsum = df_sorted[weight].cumsum()
+    cutoff = df_sorted[weight].sum() / 2.
+    return df_sorted[cumsum >= cutoff][val].iloc[0]
