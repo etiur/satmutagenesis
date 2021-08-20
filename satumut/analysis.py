@@ -14,7 +14,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from helper import isiterable, Log, commonlist, find_log, weighted_median
+from helper import isiterable, Log, commonlist, find_log
 import mdtraj as md
 plt.switch_backend('agg')
 import numpy as np
@@ -69,6 +69,9 @@ class SimulationData:
             how many pdbs to extract from the trajectories
         extract: int, optional
             The number of steps to analyse
+        energy_thres: int, optional
+            The binding energy to consider for catalytic poses
+
         """
         self.folder = folder
         self.dataframe = None
