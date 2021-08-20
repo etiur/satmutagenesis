@@ -168,7 +168,7 @@ class SimulationData:
         self.bind_diff = self.binding["Binding Energy"] - ori_binding
 
 
-def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None):
+def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None, energy_thres=None):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -188,6 +188,8 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
         The catalytic distance
     extract: int, optional
         The number of steps to analyse
+    energy_thres: int, optional
+        The binding energy to consider for catalytic poses
 
     Returns
     ----------
@@ -200,7 +202,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     weight_median = {}
     residence = {}
     len_ratio = {}
-    original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, extract=extract)
+    original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, extract=extract, energy_thres=energy_thres)
     original.filtering()
     data_dict["original"] = original
     len_dict["original"] = original.len
@@ -210,7 +212,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     len_ratio["original"] = original.len_ratio
     for folder in folders:
         name = basename(folder)
-        data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist, extract=extract)
+        data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist, extract=extract, energy_thres=energy_thres)
         data.filtering()
         data.set_distance(original.weight_dist)
         data.set_binding(original.weight_bind)
@@ -589,9 +591,9 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     for key, val in mutation.items():
         dis = round(val.dist_diff.median(), 4)
         bind = round(val.bind_diff.median(), 4)
-        freq = val.len
+        freq = val.residence
         message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
-        message2 = "{} accepted steps with a distance less than {} angstroms" .format(freq, cata_dist)
+        message2 = "{} steps with a distance less than {} angstroms" .format(freq, cata_dist)
         pdf.ln(3)  # linebreaks
         pdf.cell(0, 5, message, ln=1)
         pdf.ln(3)
@@ -668,7 +670,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
 
 
 def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=0.0,
-                       cata_dist=3.5, mode="results"):
+                       cata_dist=3.5, mode="results", energy_thres=None):
     """
     Finds those mutations that decreases the binding distance and binding energy and creates a report
 
@@ -688,6 +690,8 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
        Set the threshold for those mutations to be included in the pdf
     cata_dist: float, optional
         The catalytic distance
+    energy_thres: int, optional
+        The binding energy to consider for catalytic poses
     """
     # Find top mutations
     log = Log("{}_{}/analysis".format(res_dir, mode))
@@ -708,18 +712,18 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
         log.info(
-            "{} mutations at position {} decrease {} by {} or less when catalytic distance {}".format(count,
-                                                                                                      position_num,
-                                                                                                      analysis, thres,
-                                                                                                      cata_dist))
+            "{} mutations at position {} decrease {} by {} or less "
+            "when catalytic distance {} and binding energy {}".format(count, position_num,analysis, thres, cata_dist,
+                                                                   energy_thres))
         create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, mode=mode)
     else:
-        log.warning("No mutations at position {} decrease {} by {} or less when catalytic distance {}".format(
-            position_num, analysis, thres, cata_dist))
+        log.warning("No mutations at position {} decrease {} by {} or less "
+                    "when catalytic distance {} and binding energy {}".format(position_num, analysis, thres, cata_dist,
+                                                                              energy_thres))
 
 
 def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
-                         cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None):
+                         cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None):
     """
     Creates all the plots for the different mutated positions
 
@@ -752,6 +756,8 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         Set to true if the pdb is in xtc format
     extract: int, optional
         The number of steps to analyse
+    energy_thres: int, optional
+        The binding energy to consider for catalytic poses
     """
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
@@ -766,17 +772,19 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         plot_dir = basename(dirname(dirname(plot_dir))).replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_all(folders, wild, plot_dir, base, traj=traj, cata_dist=cata_dist, extract=extract)
+        data_dict = analyse_all(folders, wild, plot_dir, base, traj=traj, cata_dist=cata_dist, extract=extract,
+                                energy_thres=energy_thres)
         box_plot(plot_dir, data_dict, base, dpi, cata_dist)
         all_profiles(plot_dir, data_dict, base, dpi)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
-        find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist)
+        find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
+                           energy_thres=energy_thres)
 
 
 def main():
-    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, extract = parse_args()
+    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, extract, energy_thres = parse_args()
     consecutive_analysis(inp, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis, cpus=cpus, thres=thres,
-                         cata_dist=cata_dist, xtc=xtc, extract=extract)
+                         cata_dist=cata_dist, xtc=xtc, extract=extract, energy_thres=energy_thres)
 
 
 if __name__ == "__main__":
