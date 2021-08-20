@@ -14,7 +14,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from helper import isiterable, Log, commonlist, find_log
+from helper import isiterable, Log, commonlist, find_log, weighted_median
 import mdtraj as md
 plt.switch_backend('agg')
 
@@ -41,18 +41,20 @@ def parse_args():
                         help="The distance considered to be catalytic")
     parser.add_argument("-x", "--xtc", required=False, action="store_true", help="Change the pdb format to xtc")
     parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
+    parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
+    parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
 
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse,  args.cpus, args.thres,
-            args.catalytic_distance, args.xtc, args.extract]
+            args.catalytic_distance, args.xtc, args.extract, args.energy_threshold]
 
 
 class SimulationData:
     """
     A class to store data from the simulations
     """
-    def __init__(self, folder, pdb=10, catalytic_dist=3.5, extract=None):
+    def __init__(self, folder, pdb=10, catalytic_dist=3.5, extract=None, energy_thres=None):
         """
         Initialize the SimulationData Object
 
@@ -77,10 +79,14 @@ class SimulationData:
         self.bind_diff = None
         self.catalytic = catalytic_dist
         self.frequency = None
-        self.len_diff = None
+        self.len_ratio = None
         self.len = None
         self.name = basename(self.folder)
         self.extract = extract
+        self.energy = energy_thres
+        self.residence = None
+        self.weight_dist = None
+        self.weight_bind = None
 
     def filtering(self):
         """
@@ -89,20 +95,26 @@ class SimulationData:
         pd.options.mode.chained_assignment = None
         reports = []
         for files in glob("{}/report_*".format(self.folder)):
+            residence_time = []
             rep = basename(files).split("_")[1]
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
             data.rename(columns={'#Task': "ID"}, inplace=True)
+            residence_time[0] = 0
+            for x in range(1, len(data)):
+                residence_time.append(data["Step"][x] - data["Step"][x-1])
+            data["residence time"] = residence_time
             reports.append(data)
+
         self.dataframe = pd.concat(reports)
         if self.extract:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
         self.dataframe.sort_values(by="currentEnergy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 20]
+        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 25]
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 99]
+        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - int(len(self.dataframe)*0.2)] # eliminating the 20% with the highest biding energies
 
         # for the PELE profiles
         self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
@@ -111,19 +123,24 @@ class SimulationData:
         trajectory.reset_index(drop=True, inplace=True)
         trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
-        frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
-        self.frequency = frequency["distance0.5"].copy()
+        if not self.energy:
+            frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
+        else:
+            frequency = trajectory.loc[(trajectory["distance0.5"] <= self.catalytic) & (trajectory["Binding Energy"] <= self.energy)]
+
+        self.frequency = frequency[["distance0.5", "residence time"]].copy()
         self.len = len(frequency)
-        self.binding = frequency["Binding Energy"].copy()
+        self.len_ratio = float(len(frequency)) / len(trajectory)
+        self.binding = frequency[["Binding Energy", "residence time"]].copy()
         self.binding.sort_values(inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
-        if "original" in self.folder:
-            self.dist_ori = self.frequency.median()
-            self.bind_ori = self.binding.median()
-        else:
-            self.median_feq = self.frequency.median()
+        self.residence = self.frequency["residence time"].sum()
+        # self.dist_ori = self.frequency.median()
+        # self.bind_ori = self.binding.median()
+        self.weight_dist = weighted_median(self.frequency, "distance0.5", "residence time")
+        self.weight_bind = weighted_median(self.binding, "Binding Energy", "residence time")
 
-    def set_distance(self, ori_distance):
+    def set_distance(self, ori_weighted_dist):
         """
         Set the distance difference with the mean
 
@@ -131,8 +148,11 @@ class SimulationData:
         __________
         original_distance: int
             The distance for the wild type
+        ori_weighted_dist: int
+            The weighted median
         """
-        self.dist_diff = self.frequency - ori_distance  # improvement over the wild type catalytic distance
+        # self.dist_diff = self.frequency - ori_distance  # improvement over the wild type catalytic distance
+        self.dist_diff = self.weight_dist - ori_weighted_dist
 
     def set_binding(self, ori_binding):
         """
@@ -143,7 +163,7 @@ class SimulationData:
         original_binding: int
             The binding energy for the wild type
         """
-        self.bind_diff = self.binding - ori_binding
+        self.bind_diff = self.weight_bind - ori_binding
 
 
 def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None):
@@ -174,34 +194,38 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     """
     data_dict = {}
     len_dict = {}
-    median_dict = {}
+    # median_dict = {}
+    weight_median = {}
+    residence = {}
+    len_ratio = {}
     original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, extract=extract)
     original.filtering()
     data_dict["original"] = original
     len_dict["original"] = original.len
-    median_dict["original"] = original.dist_ori
+    # median_dict["original"] = original.dist_ori
+    weight_median["original"] = original.weight_dist
+    residence["original"] = original.residence
+    len_ratio["original"] = original.len_ratio
     for folder in folders:
         name = basename(folder)
         data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist, extract=extract)
         data.filtering()
-        data.set_distance(original.dist_ori)
-        data.set_binding(original.bind_ori)
+        data.set_distance(original.weight_dist)
+        data.set_binding(original.weight_bind)
         data_dict[name] = data
         len_dict[name] = data.len
-        median_dict[name] = data.median_feq
-    # frequency of catalytic poses
-    frame = pd.DataFrame(pd.Series(len_dict), columns=["freq catalytic poses"])
-    try:
-        frame["freq mut/wt"] = frame["freq catalytic poses"] / frame["freq catalytic poses"].loc["original"]
-    except ZeroDivisionError:
-        pass
+    #    median_dict[name] = data.median_freq
+        weight_median[name] = data.weight_dist
+        residence[name] = data.residence
+        len_ratio[name] = data.len_ratio
+    # different metrics
     if not os.path.exists("{}_results".format(res_dir)):
         os.makedirs("{}_results".format(res_dir))
-    frame.to_csv("{}_results/freq_{}.csv".format(res_dir, position_num))
-
-    # median distance of catalytic poses
-    median = pd.DataFrame(pd.Series(median_dict), columns=["median distance"])
-    median["dist mut-wt"] = median["median distance"] - median["median distance"].loc["original"]
+    median = pd.DataFrame(pd.Series(weight_median), columns=["weighted median distance"])
+    median["dist mut-wt"] = median["weighted median distance"] - median["weighted median distance"].loc["original"]
+    median["freq catalytic poses"] = pd.Series(len_dict)
+    median["ratio catalytic vs total poses"] = pd.Series(len_ratio)
+    median["residence time"] = pd.Series(residence)
     median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
     return data_dict
 
@@ -246,7 +270,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     sns.set_style("ticks")
     sns.set_context("paper")
     ax = sns.catplot(data=dif_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
-    ax.set(title="{} distance variation with respect to wild type".format(position_num))
+    ax.set(title="{} weighted distance variation with respect to wild type".format(position_num))
     ax.set_ylabels("Distance variation", fontsize=8)
     ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
     ax.set_xticklabels(fontsize=6)
@@ -255,7 +279,7 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
 
     # Binding energy difference Box plot
     ex = sns.catplot(data=dif_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
-    ex.set(title="{} binding energy variation with respect to wild type".format(position_num))
+    ex.set(title="{} weighted binding energy variation with respect to wild type".format(position_num))
     ex.set_ylabels("Binding energy variation", fontsize=8)
     ex.set_xlabels("Mutations {}".format(position_num), fontsize=6)
     ex.set_xticklabels(fontsize=6)
