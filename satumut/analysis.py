@@ -17,6 +17,7 @@ from functools import partial
 from helper import isiterable, Log, commonlist, find_log, weighted_median
 import mdtraj as md
 plt.switch_backend('agg')
+import numpy as np
 
 
 def parse_args():
@@ -127,20 +128,24 @@ class SimulationData:
             frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         else:
             frequency = trajectory.loc[(trajectory["distance0.5"] <= self.catalytic) & (trajectory["Binding Energy"] <= self.energy)]
-
-        self.frequency = frequency[["distance0.5", "residence time"]].copy()
+        self.residence = frequency["residence time"].sum()
         self.len = len(frequency)
         self.len_ratio = float(len(frequency)) / len(trajectory)
+
+        self.frequency = frequency[["distance0.5", "residence time"]].copy()
+        self.frequency = pd.DataFrame(np.repeat(self.frequency.values, self.frequency["residence time"].values, aixs=0),
+                                      columns=["distance0.5", "residence time"])
         self.binding = frequency[["Binding Energy", "residence time"]].copy()
         self.binding.sort_values(inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
-        self.residence = self.frequency["residence time"].sum()
+        self.binding = pd.DataFrame(np.repeat(self.binding.values, self.binding["residence time"].values, aixs=0),
+                                    columns=["Binding Energy", "residence time"])
         # self.dist_ori = self.frequency.median()
         # self.bind_ori = self.binding.median()
-        self.weight_dist = weighted_median(self.frequency, "distance0.5", "residence time")
-        self.weight_bind = weighted_median(self.binding, "Binding Energy", "residence time")
+        self.weight_dist = self.frequency["distance0.5"].median()
+        self.weight_bind = self.binding["Binding Energy"].median()
 
-    def set_distance(self, ori_weighted_dist):
+    def set_distance(self, ori_distance):
         """
         Set the distance difference with the mean
 
@@ -148,11 +153,8 @@ class SimulationData:
         __________
         original_distance: int
             The distance for the wild type
-        ori_weighted_dist: int
-            The weighted median
         """
-        # self.dist_diff = self.frequency - ori_distance  # improvement over the wild type catalytic distance
-        self.dist_diff = self.weight_dist - ori_weighted_dist
+        self.dist_diff = self.frequency["distance0.5"] - ori_distance #improvement over the wild type catalytic distance
 
     def set_binding(self, ori_binding):
         """
@@ -163,7 +165,7 @@ class SimulationData:
         original_binding: int
             The binding energy for the wild type
         """
-        self.bind_diff = self.weight_bind - ori_binding
+        self.bind_diff = self.binding["Binding Energy"] - ori_binding
 
 
 def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None):
@@ -213,7 +215,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
         data.set_distance(original.weight_dist)
         data.set_binding(original.weight_bind)
         data_dict[name] = data
-        len_dict[name] = data.len
+    #    len_dict[name] = data.len
     #    median_dict[name] = data.median_freq
         weight_median[name] = data.weight_dist
         residence[name] = data.residence
@@ -223,7 +225,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
         os.makedirs("{}_results".format(res_dir))
     median = pd.DataFrame(pd.Series(weight_median), columns=["weighted median distance"])
     median["dist mut-wt"] = median["weighted median distance"] - median["weighted median distance"].loc["original"]
-    median["freq catalytic poses"] = pd.Series(len_dict)
+    # median["freq catalytic poses"] = pd.Series(len_dict)
     median["ratio catalytic vs total poses"] = pd.Series(len_ratio)
     median["residence time"] = pd.Series(residence)
     median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
@@ -254,8 +256,8 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     plot_dif_bind = {}
 
     for key, value in data_dict.items():
-        plot_dict_bind[key] = value.binding
-        plot_dict_freq[key] = value.frequency
+        plot_dict_bind[key] = value.binding["Binding Energy"]
+        plot_dict_freq[key] = value.frequency["distance0.5"]
         if "original" not in key:
             plot_dif_bind[key] = value.bind_diff
             plot_dif_dist[key] = value.dist_diff
