@@ -134,12 +134,12 @@ class SimulationData:
         self.len_ratio = float(len(frequency)) / len(trajectory)
 
         self.frequency = frequency[["distance0.5", "residence time"]].copy()
-        self.frequency = pd.DataFrame(np.repeat(self.frequency.values, self.frequency["residence time"].values, aixs=0),
+        self.frequency = pd.DataFrame(np.repeat(self.frequency.values, self.frequency["residence time"].values, axis=0),
                                       columns=["distance0.5", "residence time"])
         self.binding = frequency[["Binding Energy", "residence time"]].copy()
         self.binding.sort_values(inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
-        self.binding = pd.DataFrame(np.repeat(self.binding.values, self.binding["residence time"].values, aixs=0),
+        self.binding = pd.DataFrame(np.repeat(self.binding.values, self.binding["residence time"].values, axis=0),
                                     columns=["Binding Energy", "residence time"])
         # self.dist_ori = self.frequency.median()
         # self.bind_ori = self.binding.median()
