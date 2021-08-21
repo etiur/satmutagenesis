@@ -98,12 +98,11 @@ class SimulationData:
         pd.options.mode.chained_assignment = None
         reports = []
         for files in glob("{}/report_*".format(self.folder)):
-            residence_time = []
+            residence_time = [0]
             rep = basename(files).split("_")[1]
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
             data.rename(columns={'#Task': "ID"}, inplace=True)
-            residence_time[0] = 0
             for x in range(1, len(data)):
                 residence_time.append(data["Step"][x] - data["Step"][x-1])
             data["residence time"] = residence_time
