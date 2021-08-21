@@ -137,7 +137,7 @@ class SimulationData:
         self.frequency = pd.DataFrame(np.repeat(self.frequency.values, self.frequency["residence time"].values, axis=0),
                                       columns=["distance0.5", "residence time"])
         self.binding = frequency[["Binding Energy", "residence time"]].copy()
-        self.binding.sort_values(inplace=True)
+        self.binding.sort_values("Binding Energy", inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
         self.binding = pd.DataFrame(np.repeat(self.binding.values, self.binding["residence time"].values, axis=0),
                                     columns=["Binding Energy", "residence time"])
