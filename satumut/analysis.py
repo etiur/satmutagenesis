@@ -42,7 +42,6 @@ def parse_args():
                         help="The distance considered to be catalytic")
     parser.add_argument("-x", "--xtc", required=False, action="store_true", help="Change the pdb format to xtc")
     parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
-    parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
 
     args = parser.parse_args()
