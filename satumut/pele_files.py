@@ -48,11 +48,13 @@ def parse_args():
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-tu", "--turn", required=False, type=int,
                         help="the round of plurizyme generation, not needed for the 1st round")
+    parser.add_argument("--QM", required=False,
+                        help="The path to the QM charges")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.polarize_metals,
             args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc, args.template,
-            args.skip, args.rotamers, args.equilibration, args.log, args.consec, args.turn]
+            args.skip, args.rotamers, args.equilibration, args.log, args.consec, args.turn, args.QM]
 
 
 class CreateYamlFiles:
@@ -61,7 +63,7 @@ class CreateYamlFiles:
     """
     def __init__(self, mutant_list,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                  steps=500, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                 rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None):
+                 rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -111,6 +113,8 @@ class CreateYamlFiles:
             The round of plurizymer generation
         input_pdb: str, optional
             The pdb file used as input
+        QM: str, optional
+            Path to the Qm charges
         """
         self.mutant_list = mutant_list
         self.ligchain = ligchain
@@ -144,6 +148,7 @@ class CreateYamlFiles:
         self.consec = consec
         self.turn = turn
         self.input_pdb = input_pdb
+        self.qm = QM
 
     def _match_dist(self):
         """
@@ -223,6 +228,8 @@ class CreateYamlFiles:
                 lines2.append("log: true\n")
             if self.cu:
                 lines2.append("polarize_metals: true\n")
+            if self.qm:
+                lines2.append("mae_lig: {}\n".format(self.qm))
             if self.cu and self.factor:
                 lines2.append("polarization_factor: {}\n".format(self.factor))
             if self.template:
@@ -245,7 +252,7 @@ class CreateYamlFiles:
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                     steps=500, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                    rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None):
+                    rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -297,6 +304,8 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
         The round of the plurizymer generation
     input_pdb: str, optional
         The input pdb file
+    QM: str, optional
+        The path to the QM charges
 
     Returns
     _______
@@ -310,18 +319,18 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
     run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, initial=initial, cu=cu, seed=seed, nord=nord,
                           steps=steps, single=single, factor=factor, total_cpus=total_cpus, xtc=xtc, skip=skip,
                           template=template, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec,
-                          turn=turn, input_pdb=input_pdb)
+                          turn=turn, input_pdb=input_pdb, QM=QM)
     yaml = run.yaml_creation()
     return yaml
 
 
 def main():
     folder, ligchain, ligname, atoms, cpus, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
-    skip, rotamers, equilibration, log, consec, turn = parse_args()
+    skip, rotamers, equilibration, log, consec, turn, QM = parse_args()
     yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, cu=cu,
                                  seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc,
                                  skip=skip, template=template, rotamers=rotamers, equilibration=equilibration, log=log,
-                                 consec=consec, turn=turn)
+                                 consec=consec, turn=turn, QM=QM)
 
     return yaml_files
 

@@ -105,6 +105,8 @@ def parse_args():
     parser.add_argument("-tu", "--turn", required=False, type=int,
                         help="the round of plurizyme generation, not needed for the 1st round")
     parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
+    parser.add_argument("--QM", required=False,
+                        help="The path to the QM charges")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -113,7 +115,7 @@ def parse_args():
             args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
             args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
             args.template, args.skip, args.rotamers, args.equilibration, args.log, args.r1, args.r2, args.s1, args.s2,
-            args.cpus_per_task, args.improve, args.turn, args.energy_threshold]
+            args.cpus_per_task, args.improve, args.turn, args.energy_threshold, args.QM]
 
 
 class CreateSlurmFiles:
@@ -127,7 +129,7 @@ class CreateSlurmFiles:
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
                  equilibration=True, log=False, dist1r=None, dist2r=None, dist1s=None, dist2s=None, cpt=None,
-                 improve="R", turn=None, energy_thres=None):
+                 improve="R", turn=None, energy_thres=None, QM=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -211,6 +213,8 @@ class CreateSlurmFiles:
             The round of the plurizyme generation
         energy_thres: int, optional
             The binding energy to consider for catalytic poses
+        QM: str, optional
+            The path to the QM charges
         """
         assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
         self.input = input_
@@ -277,6 +281,7 @@ class CreateSlurmFiles:
         self.improve = improve
         self.turn = turn
         self.energy_thres = energy_thres
+        self.qm = QM
 
     def _size(self):
         """
@@ -340,6 +345,8 @@ class CreateSlurmFiles:
                 argument_list.append("-m ")
             if self.cu:
                 argument_list.append("-po ")
+            if self.qm:
+                argument_list.append("--QM {} ".format(self.qm))
             if self.nord:
                 argument_list.append("--nord ")
             if self.pdb_dir != "pdb_files":
@@ -460,6 +467,8 @@ class CreateSlurmFiles:
                 argument_list.append("-e ")
             if self.log:
                 argument_list.append("-l ")
+            if self.qm:
+                argument_list.append("--QM {} ".format(self.qm))
             if self.pdb_dir != "pdb_files":
                 argument_list.append("-pd {} ".format(self.pdb_dir))
             if self.dir:
@@ -523,7 +532,7 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
-    rotamers, equilibration, log, r1, r2, s1, s2, cpt, improve, turn, energy_thres = parse_args()
+    rotamers, equilibration, log, r1, r2, s1, s2, cpt, improve, turn, energy_thres, QM = parse_args()
 
     if dir_ and len(input_) > 1:
         dir_ = None
@@ -532,7 +541,7 @@ def main():
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
                                fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
-                               equilibration, log, r1, r2, s1, s2, cpt, improve, turn, energy_thres)
+                               equilibration, log, r1, r2, s1, s2, cpt, improve, turn, energy_thres, QM)
         if not nord:
             slurm = run.slurm_creation()
         else:
