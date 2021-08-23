@@ -25,6 +25,8 @@ def parse_args():
     # main required arguments
     parser.add_argument("--inp", required=True,
                         help="Include a file or list with the path to the folders with PELE simulations inside")
+    parser.add_argument("-ip","--initial_pdb", required=True,
+                        help="Include the path of input pdb of the simulation")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
     parser.add_argument("--traj", required=False, default=10, type=int,
@@ -51,8 +53,8 @@ def parse_args():
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse, args.cpus, args.thres,
-            args.catalytic_distance, args.xtc, args.r1, args.r2, args.s1, args.s2, args.improve, args.extract,
-            args.dihedral_atoms, args.energy_threshold]
+            args.catalytic_distance, args.xtc, args.improve, args.extract, args.dihedral_atoms, args.energy_threshold,
+            args.initial_pdb]
 
 
 class SimulationRS:
@@ -67,8 +69,10 @@ class SimulationRS:
         ----------
         folder: str
             The path to the simulation folder
-        atom_pairs: list[str]
+        dihedral_atoms: list[str]
             The 4 atoms necessary to calculate the dihedral in the form of chain id:res number:atom name
+        input_pdb: str
+            Path to the initial pdb
         pdb: int, optional
             The number of pdbs to extract
         catalytic_dist: float
@@ -251,18 +255,13 @@ class SimulationRS:
         self.binding = pd.concat([self.binding_r, self.binding_s])
         self.binding["mut"] = ["{}".format(self.name) for _ in range(len(self.binding))]
 
-        if "original" in self.folder:
-            self.dist_r = self.freq_r["distance0.5"].median()
-            self.dist_s = self.freq_s["distance0.5"].median()
-            self.bind_r = self.binding_r["Binding Energy"].median()
-            self.bind_s = self.binding_s["Binding Energy"].median()
-            self.median = pd.DataFrame(pd.Series({"R": self.dist_r, "S": self.dist_s})).transpose()
-            self.median.index = [self.name]
-        else:
-            median_r = self.freq_r["distance0.5"].median()
-            median_s = self.freq_s["distance0.5"].median()
-            self.median = pd.DataFrame(pd.Series({"R": median_r, "S": median_s})).transpose()
-            self.median.index = [self.name]
+        # calculate the median of the distance and energies of R and S
+        self.dist_r = self.freq_r["distance0.5"].median()
+        self.dist_s = self.freq_s["distance0.5"].median()
+        self.bind_r = self.binding_r["Binding Energy"].median()
+        self.bind_s = self.binding_s["Binding Energy"].median()
+        self.median = pd.DataFrame(pd.Series({"R": self.dist_r, "S": self.dist_s})).transpose()
+        self.median.index = [self.name]
 
     def set_distance(self, ori_dist1, ori_dist2):
         """
@@ -301,8 +300,8 @@ class SimulationRS:
         self.bind_diff["mut"] = ["{}".format(self.name) for _ in range(len(self.bind_diff))]
 
 
-def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_num, traj=10, cata_dist=3.5,
-               improve="R", extract=None):
+def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num, traj=10, cata_dist=3.5,
+               improve="R", extract=None, energy=None):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -312,14 +311,10 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
         List of paths to the different reports to be analyzed
     wild: str
         Path to the simulations of the wild type
-    dist1r: float
-        The first distance for r
-    dist2r: float
-        The second distance for r
-    dist1s: float
-        The first distance for s
-    dist2s: float
-        The second distance for s
+    dihedral_atoms: list[str]
+        The 4 atoms of the dihedral
+    initial_pdb: str
+        Path to the initial pdb
     res_dir: str
         The folder where the results of the analysis will be kept
     position_num: str
@@ -332,6 +327,8 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
         The enantiomer that improves
     extract: int, optional
         The number of steps to analyse
+    energy: int, optional
+        The energy_threshold to be considered catalytic
 
     Returns
     --------
@@ -343,14 +340,16 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
     data_dict = {}
     len_list = []
     median_list = []
-    original = SimulationRS(wild, dist1r, dist2r, dist1s, dist2s, pdb=traj, catalytic_dist=cata_dist, extract=extract)
+    original = SimulationRS(wild, dihedral_atoms, initial_pdb,
+                            pdb=traj, catalytic_dist=cata_dist, extract=extract, energy=energy)
     original.filtering()
     data_dict["original"] = original
     len_list.append(original.len)
     median_list.append(original.median)
     for folder in folders:
         name = basename(folder)
-        data = SimulationRS(folder, dist1r, dist2r, dist1s, dist2s, pdb=traj, catalytic_dist=cata_dist, extract=extract)
+        data = SimulationRS(folder, dihedral_atoms, initial_pdb,
+                            pdb=traj, catalytic_dist=cata_dist, extract=extract, energy=energy)
         data.filtering()
         data.set_distance(original.dist_r, original.dist_s)
         data.set_binding(original.bind_r, original.bind_s)
@@ -358,25 +357,16 @@ def analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, res_dir, position_
         len_list.append(data.len)
         median_list.append(data.median)
     # frequency of catalytic distances
-    len_list = pd.concat(len_list)
-    try:
-        len_list["ratio_r"] = len_list["R"] / len_list["R"].loc["original"]
-    except ZeroDivisionError:
-        pass
-    try:
-        len_list["ratio_s"] = len_list["S"] / len_list["S"].loc["original"]
-    except ZeroDivisionError:
-        pass
-    len_list["enantio excess"] = (len_list[improve] - len_list[choice[0]])/ (len_list["S"] + len_list["R"]) * 100
     if not os.path.exists("{}_RS".format(res_dir)):
         os.makedirs("{}_RS".format(res_dir))
-    len_list.to_csv("{}_RS/freq_{}.csv".format(res_dir, position_num))
-
+    len_list = pd.concat(len_list)
+    len_list["enantio excess"] = (len_list[improve] - len_list[choice[0]])/ (len_list["S"] + len_list["R"]) * 100
     # median catalytic distances
     median_list = pd.concat(median_list)
     median_list["diff_R"] = median_list["R"] - median_list["R"].loc["original"]
     median_list["diff_S"] = median_list["S"] - median_list["S"].loc["original"]
-    median_list.to_csv("{}_RS/dist_{}.csv".format(res_dir, position_num))
+    everything = pd.concat([median_list, len_list], axis=1)
+    everything.to_csv("{}_RS/dist_{}.csv".format(res_dir, position_num))
 
     return data_dict
 
@@ -703,7 +693,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
 
 
 def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=0.0,
-                       cata_dist=3.5, improve="R"):
+                       cata_dist=3.5, improve="R", energy=None):
     """
     Finds those mutations that decreases the binding distance and binding energy and creates a report
 
@@ -723,6 +713,8 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
        Set the threshold for those mutations to be included in the pdf
     cata_dist: float, optional
         The catalytic distance
+    energy: int, optional
+        The energy threshold to be considered catalytic
     """
     # Find top mutations
     log = Log("{}_RS/analysis".format(res_dir))
@@ -743,15 +735,19 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
         log.info(
-            "{} mutations at position {} decrease {} {} by {} or less".format(count, position_num, improve, analysis, thres))
+            "{} mutations at position {} decrease {} {} by {} or less"
+            "when catalytic distance {} and binding energy {}".format(count, position_num, improve, analysis, thres,
+                                                                      cata_dist, energy))
         create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, improve)
     else:
-        log.warning("No mutations at position {} decrease {} {} by {} or less".format(position_num, improve, analysis, thres))
+        log.warning("No mutations at position {} decrease {} {} by {} or less"
+                    "when catalytic distance {} and binding energy {}".format(position_num, improve, analysis, thres,
+                                                                              cata_dist, energy))
 
 
-def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None, dpi=800, traj=10, output="summary",
+def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, dpi=800, traj=10, output="summary",
                             plot_dir=None, opt="distance", cpus=10, thres=0.0, cata_dist=3.5, xtc=False, improve="R",
-                            extract=None):
+                            extract=None, energy=None):
     """
     Creates all the plots for the different mutated positions
 
@@ -759,14 +755,10 @@ def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None
     ___________
     file_name : list[str]
         An iterable that contains the path to the reports of the different simulations
-    dist1r: float
-        The first distance for r
-    dist2r: float
-        The second distance for r
-    dist1s: float
-        The first distance for s
-    dist2s: float
-        The second distance for s
+    dihedral_atoms: list[str]
+        The 4 atoms necessary to calculate the dihedral in the form of chain id:res number:atom name
+    input_pdb: str
+        Path to the initial pdb
     wild: str
         The path to the wild type simulation
     dpi : int, optional
@@ -793,6 +785,8 @@ def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None
         The enantiomer that should improve
     extract: int, optional
         The number of steps to analyse
+    energy: int, optional
+        The energy_threshold to be considered catalytic
     """
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
@@ -807,19 +801,21 @@ def consecutive_analysis_rs(file_name, dist1r, dist2r, dist1s, dist2s, wild=None
         plot_dir = basename(dirname(dirname(plot_dir))).replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_rs(folders, wild, dist1r, dist2r, dist1s, dist2s, plot_dir, base, traj=traj,
-                               cata_dist=cata_dist, improve=improve, extract=extract)
+        data_dict = analyse_rs(folders, wild, dihedral_atoms,initial_pdb, plot_dir, base, traj=traj,
+                               cata_dist=cata_dist, improve=improve, extract=extract, energy=energy)
         box_plot_rs(plot_dir, data_dict, base, dpi, cata_dist)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS")
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, function=extract_10_pdb_single_rs)
         find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
-                           improve=improve)
+                           improve=improve, energy=energy)
 
 
 def main():
-    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, r1, r2, s1, s2, improve, extract = parse_args()
-    consecutive_analysis_rs(inp, r1, r2, s1, s2, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis,
-                            cpus=cpus, thres=thres, cata_dist=cata_dist, xtc=xtc, improve=improve, extract=extract)
+    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, improve, extract, dihedral_atoms, energy,\
+        initial_pdb= parse_args()
+    consecutive_analysis_rs(inp, dihedral_atoms, initial_pdb, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis,
+                            cpus=cpus, thres=thres, cata_dist=cata_dist, xtc=xtc, improve=improve, extract=extract,
+                            energy=energy)
 
 
 if __name__ == "__main__":
