@@ -104,7 +104,7 @@ class SimulationData:
             data['#Task'].replace({1: rep}, inplace=True)
             data.rename(columns={'#Task': "ID"}, inplace=True)
             for x in range(1, len(data)):
-                residence_time.append(data["Step"][x] - data["Step"][x-1])
+                residence_time.append(data["Step"].iloc[x] - data["Step"].iloc[x-1])
             data["residence time"] = residence_time
             reports.append(data)
 
@@ -206,7 +206,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, extract=extract, energy_thres=energy_thres)
     original.filtering()
     data_dict["original"] = original
-    len_dict["original"] = original.len
+    # len_dict["original"] = original.len
     # median_dict["original"] = original.dist_ori
     weight_median["original"] = original.weight_dist
     residence["original"] = original.residence

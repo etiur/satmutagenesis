@@ -2,6 +2,7 @@
 This script is used to analyse the results of the simulations for substrate with chiral centers
 """
 from glob import glob
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import argparse
@@ -10,10 +11,12 @@ import os
 import sys
 import re
 import matplotlib.pyplot as plt
-from helper import isiterable, commonlist, find_log, Log
+from helper import isiterable, commonlist, find_log, Log, map_atom_string
 from analysis import extract_all, all_profiles
 import mdtraj as md
 from fpdf import FPDF
+import Bio.PDB
+from multiprocessing import Process
 plt.switch_backend('agg')
 
 
@@ -35,10 +38,8 @@ def parse_args():
                         help="Include the number of cpus desired")
     parser.add_argument("--thres", required=False, default=0.0, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
-    parser.add_argument("--r1", required=False, type=float, help="Distance for the R1")
-    parser.add_argument("--r2", required=False, type=float, help="Distance for the R2")
-    parser.add_argument("--s1", required=False, type=float, help="Distance for the S1")
-    parser.add_argument("--s2", required=False, type=float, help="Distance for the S2")
+    parser.add_argument("-da", "--dihedral_atoms", required=True, nargs="+",
+                        help="The 4 atom pairs necessary to calculate the dihedrals")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.8, type=float,
                         help="The distance considered to be catalytic")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
@@ -46,17 +47,19 @@ def parse_args():
     parser.add_argument("-im", "--improve", required=False, choices=("R", "S"), default="R",
                         help="The enantiomer that should improve")
     parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
+    parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse, args.cpus, args.thres,
-            args.catalytic_distance, args.xtc, args.r1, args.r2, args.s1, args.s2, args.improve, args.extract]
+            args.catalytic_distance, args.xtc, args.r1, args.r2, args.s1, args.s2, args.improve, args.extract,
+            args.dihedral_atoms, args.energy_threshold]
 
 
 class SimulationRS:
     """
     A class to analyse the simulation data from the enantiomer analysis
     """
-    def __init__(self, folder, dist1r, dist2r, dist1s, dist2s, pdb=10, catalytic_dist=3.5, extract=None):
+    def __init__(self, folder, dihedral_atoms, input_pdb, pdb=10, catalytic_dist=3.5, extract=None, energy=None):
         """
         Initialize the SimulationRS class
 
@@ -64,21 +67,18 @@ class SimulationRS:
         ----------
         folder: str
             The path to the simulation folder
-        dist1r: float
-            The first distance of R
-        dist2r: float
-            The second distance for R
-        dist1s: float
-            The first distance for S
-        dist2s: float
-            The second distance for S
+        atom_pairs: list[str]
+            The 4 atoms necessary to calculate the dihedral in the form of chain id:res number:atom name
         pdb: int, optional
             The number of pdbs to extract
         catalytic_dist: float
             The catalytic distance
         extract: int, optional
             The number of steps to extract
+        energy: int
+            The energy threshold to be considered catalytic
         """
+        self.input_pdb = input_pdb
         self.folder = folder
         self.dataframe = None
         self.profile = None
@@ -87,10 +87,7 @@ class SimulationRS:
         self.freq_r = None
         self.freq_s = None
         self.pdb = pdb
-        self.r_dist1 = dist1r
-        self.r_dist2 = dist2r
-        self.s_dist1 = dist1s
-        self.s_dist2 = dist2s
+        self.atom = dihedral_atoms[:]
         self.binding_r = None
         self.binding_s = None
         self.distance = None
@@ -101,6 +98,70 @@ class SimulationRS:
         self.binding = None
         self.name = basename(self.folder)
         self.extract = extract
+        self.topology = "{}/input/{}_processed.pdb".format(dirname(dirname(folder)), basename(folder))
+        self.energy = energy
+
+    def _match_dist(self):
+        """
+        match the user coordinates to pmx PDB coordinates
+        """
+        for i in range(len(self.atom)):
+            self.atom[i] = map_atom_string(self.atom[i], self.input_pdb, self.topology)
+
+    def _transform_coordinates(self):
+        """
+        Transform the coordinates in format chain id: resnum: atom name into md.topology.select expressions
+        """
+        self._match_dist()
+        select = []
+        parser = Bio.PDB.PDBParser(QUIET=True)
+        structure = parser.get_structure("topo", self.topology)
+        for coord in self.atom:
+            resSeq = coord.split(":")[1]
+            name = coord.split(":")[2]
+            try:
+                resname = structure[0][coord.split(":")[0]][int(resSeq)].resname
+            except KeyError:
+                resname = list(structure[0][coord.split(":")[0]].get_residues())[int(resSeq)-1].resname
+            select.append((resSeq, name, resname))
+
+        return select
+
+    def dihedral(self, trajectory):
+        """
+        Take the PELE simulation trajectory files and returns the list of values of the desired dihedral metric
+
+        RETURNS
+        -------
+        metric_list: list
+                List of values of the desired dihedral metric
+        """
+        if ".xtc" in trajectory:
+            traj = md.load_xtc(trajectory, self.topology)
+        else:
+            traj = md.load_pdb(trajectory)
+        traj = traj[int(len(traj)*0.25):]
+        select = self._transform_coordinates()
+        Atom_pair_1 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[0][0], select[0][1], select[0][2])))
+        Atom_pair_2 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[1][0], select[1][1], select[1][2])))
+        Atom_pair_3 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[2][0], select[2][1], select[2][2])))
+        Atom_pair_4 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[3][0], select[3][1], select[3][2])))
+        metric_list = md.compute_dihedrals(traj, [[Atom_pair_1, Atom_pair_2, Atom_pair_3, Atom_pair_4]])
+
+        return np.degrees(metric_list.flatten())
+
+    def accelerated_dihedral(self):
+        """
+        Paralelizes the insert atomtype function
+        """
+        pros = []
+        traject_list = sorted(glob("{}/trajectory_*.pdb".format(self.folder)), key=lambda s: int(basename(s)[:-4].split("_")[1]))
+        for traj in traject_list:
+            p = Process(target=self.dihedral, args=(traj,))
+            p.start()
+            pros.append(p)
+        for p in pros:
+            p.join()
 
     def filtering(self):
         """
@@ -108,28 +169,44 @@ class SimulationRS:
         """
         pd.options.mode.chained_assignment = None
         reports = []
-        for files in glob("{}/report_*".format(self.folder)):
+        traject = []
+        for files in sorted(glob("{}/report_*".format(self.folder)), key=lambda s: int(basename(s).split("_")[1])):
+            residence_time = [0]
             rep = basename(files).split("_")[1]
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
             data.rename(columns={'#Task': "ID"}, inplace=True)
+            for x in range(1, len(data)):
+                residence_time.append(data["Step"].iloc[x] - data["Step"].iloc[x-1])
+            data["residence time"] = residence_time
+            data = data[int(len(data)*0.25):]
             reports.append(data)
         self.dataframe = pd.concat(reports)
+        traject_list = sorted(glob("{}/trajectory_*.pdb".format(self.folder)),
+                              key=lambda s: int(basename(s)[:-4].split("_")[1]))
+        for traj in traject_list:
+            traject.append(self.dihedral(traj))
+        traject = np.array(traject).flatten()
+        self.dataframe["dihedral"] = traject
         if self.extract:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
         self.dataframe.sort_values(by="currentEnergy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 20]
+        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 25]
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
         self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 99]
         # the frequency of steps with pro-S or pro-R configurations
-        frequency = self.dataframe[self.dataframe["distance0.5"] <= self.catalytic]
-        freq_r = frequency.loc[(frequency["distance1.5"] <= self.r_dist1) & (frequency["distance2.5"] <= self.r_dist2)]
+        if not self.energy:
+            frequency = self.dataframe.loc[self.dataframe["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
+        else:
+            frequency = self.dataframe.loc[(self.dataframe["distance0.5"] <= self.catalytic) & (self.dataframe["Binding Energy"] <= self.energy)]
+        freq_r = frequency.loc[(frequency["dihedral"] >= 40) & (frequency["distance2.5"] <= 140)]
         freq_r["Type"] = ["R" for _ in range(len(freq_r))]
-        freq_s = frequency.loc[(frequency["distance3.5"] <= self.s_dist1) & (frequency["distance4.5"] <= self.s_dist2)]
+        freq_s = frequency.loc[(frequency["dihedral"] <= -40) & (frequency["dihedral"] >= -140)]
         freq_s["Type"] = ["S" for _ in range(len(freq_s))]
-        self.len = pd.DataFrame(pd.Series({"R": len(freq_r.index), "S": len(freq_s.index)})).transpose()
+        self.len = pd.DataFrame(pd.Series({"R": len(np.repeat(freq_r.values, freq_r["residence time"].values, axis=0)),
+                                           "S": len(np.repeat(freq_s.values, freq_s["residence time"].values, axis=0))})).transpose()
         self.len.index = [self.name]
         # for the PELE profiles
         self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
@@ -143,7 +220,7 @@ class SimulationRS:
                 type_.append("noise")
         self.profile["Type"] = type_
         # To extract the best distances
-        trajectory = self.dataframe.sort_values(by="distance0.5")
+        trajectory = frequency.sort_values(by="distance0.5")
         trajectory.reset_index(inplace=True)
         trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
@@ -157,14 +234,22 @@ class SimulationRS:
                 orien.append("noise")
         self.trajectory["orientation"] = orien
         # for the violin plots
-        self.freq_r = freq_r[["distance0.5", "Type"]].copy()
-        self.freq_s = freq_s[["distance0.5", "Type"]].copy()
+        self.freq_r = freq_r[["distance0.5", "Type", "residence time"]].copy()
+        self.freq_r = pd.DataFrame(np.repeat(self.freq_r.values, self.freq_r["residence time"].values, axis=0),
+                                      columns=["distance0.5", "Type", "residence time"])
+        self.freq_s = freq_s[["distance0.5", "Type", "residence time"]].copy()
+        self.freq_r = pd.DataFrame(np.repeat(self.freq_s.values, self.freq_s["residence time"].values, axis=0),
+                                   columns=["distance0.5", "Type", "residence time"])
         self.distance = pd.concat([self.freq_r, self.freq_s])
         self.distance["mut"] = ["{}".format(self.name) for _ in range(len(self.distance))]
-        self.binding_r = freq_r[["Binding Energy", "Type"]].copy()
-        self.binding_s = freq_s[["Binding Energy", "Type"]].copy()
+        self.binding_r = freq_r[["Binding Energy", "Type", "residence time"]].copy()
+        self.binding_r = pd.DataFrame(np.repeat(self.binding_r.values, self.binding_r["residence time"].values, axis=0),
+                                      columns=["Binding Energy", "Type", "residence time"])
+        self.binding_s = freq_s[["Binding Energy", "Type", "residence time"]].copy()
+        self.binding_s = pd.DataFrame(np.repeat(self.binding_s.values, self.binding_s["residence time"].values, axis=0),
+                                      columns=["Binding Energy", "Type", "residence time"])
         self.binding = pd.concat([self.binding_r, self.binding_s])
-        self.binding["mut"] = ["{}".format(self.name) for _ in range(len(self.distance))]
+        self.binding["mut"] = ["{}".format(self.name) for _ in range(len(self.binding))]
 
         if "original" in self.folder:
             self.dist_r = self.freq_r["distance0.5"].median()
