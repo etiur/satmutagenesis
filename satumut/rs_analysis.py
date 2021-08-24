@@ -16,7 +16,7 @@ from analysis import extract_all, all_profiles
 import mdtraj as md
 from fpdf import FPDF
 import Bio.PDB
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 plt.switch_backend('agg')
 
 
@@ -131,7 +131,7 @@ class SimulationRS:
 
         return select
 
-    def dihedral(self, trajectory):
+    def dihedral(self, trajectory, queue=None):
         """
         Take the PELE simulation trajectory files and returns the list of values of the desired dihedral metric
 
@@ -139,6 +139,8 @@ class SimulationRS:
         -------
         metric_list: list
                 List of values of the desired dihedral metric
+        queue: multiprocessing object
+            To return results
         """
         if ".xtc" in trajectory:
             traj = md.load_xtc(trajectory, self.topology)
@@ -151,6 +153,8 @@ class SimulationRS:
         Atom_pair_3 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[2][0], select[2][1], select[2][2])))
         Atom_pair_4 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[3][0], select[3][1], select[3][2])))
         metric_list = md.compute_dihedrals(traj, [[Atom_pair_1, Atom_pair_2, Atom_pair_3, Atom_pair_4]])
+        if queue:
+            queue.put(np.degrees(metric_list.flatten()))
 
         return np.degrees(metric_list.flatten())
 
@@ -158,14 +162,20 @@ class SimulationRS:
         """
         Paralelizes the insert atomtype function
         """
+        q = Queue()
+        metric_list = []
         pros = []
         traject_list = sorted(glob("{}/trajectory_*.pdb".format(self.folder)), key=lambda s: int(basename(s)[:-4].split("_")[1]))
         for traj in traject_list:
-            p = Process(target=self.dihedral, args=(traj,))
+            p = Process(target=self.dihedral, args=(traj, q))
             p.start()
             pros.append(p)
         for p in pros:
+            metric = q.get()
+            metric_list.append(metric)
+        for p in pros:
             p.join()
+        return metric_list
 
     def filtering(self):
         """
@@ -186,10 +196,11 @@ class SimulationRS:
             data = data[int(len(data)*0.25):]
             reports.append(data)
         self.dataframe = pd.concat(reports)
-        traject_list = sorted(glob("{}/trajectory_*.pdb".format(self.folder)),
-                              key=lambda s: int(basename(s)[:-4].split("_")[1]))
-        for traj in traject_list:
-            traject.append(self.dihedral(traj))
+        #traject_list = sorted(glob("{}/trajectory_*.pdb".format(self.folder)),
+                              #key=lambda s: int(basename(s)[:-4].split("_")[1]))
+        #for traj in traject_list:
+            #traject.append(self.dihedral(traj))
+        traject = self.accelerated_dihedral()
         traject = np.array(traject).flatten()
         self.dataframe["dihedral"] = traject
         if self.extract:
@@ -801,7 +812,7 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
         plot_dir = basename(dirname(dirname(plot_dir))).replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_rs(folders, wild, dihedral_atoms,initial_pdb, plot_dir, base, traj=traj,
+        data_dict = analyse_rs(folders, wild, dihedral_atoms, initial_pdb, plot_dir, base, traj=traj,
                                cata_dist=cata_dist, improve=improve, extract=extract, energy=energy)
         box_plot_rs(plot_dir, data_dict, base, dpi, cata_dist)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS")
