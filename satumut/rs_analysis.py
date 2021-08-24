@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument("--thres", required=False, default=0.0, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-da", "--dihedral_atoms", required=True, nargs="+",
-                        help="The 4 atom pairs necessary to calculate the dihedrals")
+                        help="The 4 atom necessary to calculate the dihedrals in format chain id:res number:atom name")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.8, type=float,
                         help="The distance considered to be catalytic")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
