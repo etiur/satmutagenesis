@@ -61,7 +61,8 @@ class SimulationRS:
     """
     A class to analyse the simulation data from the enantiomer analysis
     """
-    def __init__(self, folder, dihedral_atoms, input_pdb, pdb=10, catalytic_dist=3.5, extract=None, energy=None):
+    def __init__(self, folder, dihedral_atoms, input_pdb, res_dir, pdb=10, catalytic_dist=3.5, extract=None,
+                 energy=None):
         """
         Initialize the SimulationRS class
 
@@ -73,6 +74,8 @@ class SimulationRS:
             The 4 atoms necessary to calculate the dihedral in the form of chain id:res number:atom name
         input_pdb: str
             Path to the initial pdb
+        res_dir: str
+            The directory of the results
         pdb: int, optional
             The number of pdbs to extract
         catalytic_dist: float
@@ -104,6 +107,7 @@ class SimulationRS:
         self.extract = extract
         self.topology = "{}/input/{}_processed.pdb".format(dirname(dirname(folder)), basename(folder))
         self.energy = energy
+        self.res_dir = res_dir
 
     def _match_dist(self):
         """
@@ -133,7 +137,7 @@ class SimulationRS:
 
         return select
 
-    def dihedral(self, trajectory, queue=None):
+    def dihedral(self, trajectory):
         """
         Take the PELE simulation trajectory files and returns the list of values of the desired dihedral metric
 
@@ -141,8 +145,6 @@ class SimulationRS:
         -------
         metric_list: list
                 List of values of the desired dihedral metric
-        queue: multiprocessing object
-            To return results
         """
         if ".xtc" in trajectory:
             traj = md.load_xtc(trajectory, self.topology)
@@ -155,37 +157,33 @@ class SimulationRS:
         Atom_pair_3 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[2][0], select[2][1], select[2][2])))
         Atom_pair_4 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[3][0], select[3][1], select[3][2])))
         metric_list = md.compute_dihedrals(traj, [[Atom_pair_1, Atom_pair_2, Atom_pair_3, Atom_pair_4]])
-        if queue:
-            queue.put(np.degrees(metric_list.flatten()))
-
-        return np.degrees(metric_list.flatten())
+        metric_list = pd.Series(np.degrees(metric_list.flatten()))
+        metric_list.to_csv("{}_RS/dihedral_angles.csv".format(self.res_dir), mode="a", header=False)
 
     def accelerated_dihedral(self):
         """
         Paralelizes the insert atomtype function
         """
-        q = Queue()
-        metric_list = []
+        if not os.path.exists("{}_RS".format(self.res_dir)):
+            os.makedirs("{}_RS".format(self.res_dir))
         pros = []
         traject_list = sorted(glob("{}/trajectory_*.pdb".format(self.folder)), key=lambda s: int(basename(s)[:-4].split("_")[1]))
         for traj in traject_list:
-            p = Process(target=self.dihedral, args=(traj, q))
+            p = Process(target=self.dihedral, args=(traj,))
             p.start()
             pros.append(p)
         for p in pros:
-            metric = q.get()
-            metric_list.append(metric)
-        for p in pros:
             p.join()
-        return metric_list
 
     def filtering(self):
         """
         Get all the info from the reports
         """
         pd.options.mode.chained_assignment = None
+
         reports = []
         traject = []
+        # read the reports
         for files in sorted(glob("{}/report_*".format(self.folder)), key=lambda s: int(basename(s).split("_")[1])):
             residence_time = [0]
             rep = basename(files).split("_")[1]
@@ -198,13 +196,10 @@ class SimulationRS:
             data = data[int(len(data)*0.25):]
             reports.append(data)
         self.dataframe = pd.concat(reports)
-        #traject_list = sorted(glob("{}/trajectory_*.pdb".format(self.folder)),
-                              #key=lambda s: int(basename(s)[:-4].split("_")[1]))
-        #for traj in traject_list:
-            #traject.append(self.dihedral(traj))
-        traject = self.accelerated_dihedral()
-        traject = np.array(traject).flatten()
-        self.dataframe["dihedral"] = traject
+        # read the dihedral angles and concat with the dataframe
+        self.accelerated_dihedral()
+        angles = pd.read_csv("{}_RS/dihedral_angles.csv".format(self.res_dir), header=None, index_col=0)
+        self.dataframe["dihedral"] = angles
         if self.extract:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
         self.dataframe.sort_values(by="currentEnergy", inplace=True)
@@ -353,7 +348,7 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num
     data_dict = {}
     len_list = []
     median_list = []
-    original = SimulationRS(wild, dihedral_atoms, initial_pdb,
+    original = SimulationRS(wild, dihedral_atoms, initial_pdb, res_dir,
                             pdb=traj, catalytic_dist=cata_dist, extract=extract, energy=energy)
     original.filtering()
     data_dict["original"] = original
@@ -361,7 +356,7 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num
     median_list.append(original.median)
     for folder in folders:
         name = basename(folder)
-        data = SimulationRS(folder, dihedral_atoms, initial_pdb,
+        data = SimulationRS(folder, dihedral_atoms, initial_pdb, res_dir,
                             pdb=traj, catalytic_dist=cata_dist, extract=extract, energy=energy)
         data.filtering()
         data.set_distance(original.dist_r, original.dist_s)
