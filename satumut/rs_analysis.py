@@ -121,6 +121,7 @@ class SimulationRS:
         parser = Bio.PDB.PDBParser(QUIET=True)
         structure = parser.get_structure("topo", self.topology)
         for coord in self.atom:
+            print coord
             resSeq = coord.split(":")[1]
             name = coord.split(":")[2]
             try:
@@ -217,9 +218,9 @@ class SimulationRS:
             frequency = self.dataframe.loc[self.dataframe["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         else:
             frequency = self.dataframe.loc[(self.dataframe["distance0.5"] <= self.catalytic) & (self.dataframe["Binding Energy"] <= self.energy)]
-        freq_r = frequency.loc[(frequency["dihedral"] >= 40) & (frequency["distance2.5"] <= 140)]
+        freq_r = frequency.loc[(frequency["dihedral"] <= -40) & (frequency["distance2.5"] >= -140)]
         freq_r["Type"] = ["R" for _ in range(len(freq_r))]
-        freq_s = frequency.loc[(frequency["dihedral"] <= -40) & (frequency["dihedral"] >= -140)]
+        freq_s = frequency.loc[(frequency["dihedral"] >= 40) & (frequency["dihedral"] <= 140)]
         freq_s["Type"] = ["S" for _ in range(len(freq_s))]
         self.len = pd.DataFrame(pd.Series({"R": len(np.repeat(freq_r.values, freq_r["residence time"].values, axis=0)),
                                            "S": len(np.repeat(freq_s.values, freq_s["residence time"].values, axis=0))})).transpose()
