@@ -180,9 +180,7 @@ class SimulationRS:
         Get all the info from the reports
         """
         pd.options.mode.chained_assignment = None
-
         reports = []
-        traject = []
         # read the reports
         for files in sorted(glob("{}/report_*".format(self.folder)), key=lambda s: int(basename(s).split("_")[1])):
             residence_time = [0]
@@ -200,6 +198,7 @@ class SimulationRS:
         self.accelerated_dihedral()
         angles = pd.read_csv("{}_RS/dihedral_angles.csv".format(self.res_dir), header=None, index_col=0)
         self.dataframe["dihedral"] = angles
+        # removing unwanted values
         if self.extract:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
         self.dataframe.sort_values(by="currentEnergy", inplace=True)
