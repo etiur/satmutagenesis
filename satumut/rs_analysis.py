@@ -158,14 +158,14 @@ class SimulationRS:
         Atom_pair_4 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[3][0], select[3][1], select[3][2])))
         metric_list = md.compute_dihedrals(traj, [[Atom_pair_1, Atom_pair_2, Atom_pair_3, Atom_pair_4]])
         metric_list = pd.Series(np.degrees(metric_list.flatten()))
-        metric_list.to_csv("{}_RS/dihedral_angles.csv".format(self.res_dir), mode="a", header=False)
+        metric_list.to_csv("{}_RS/angles/{}.csv".format(self.res_dir, basename(self.folder)), mode="a", header=False)
 
     def accelerated_dihedral(self):
         """
         Paralelizes the insert atomtype function
         """
-        if not os.path.exists("{}_RS".format(self.res_dir)):
-            os.makedirs("{}_RS".format(self.res_dir))
+        if not os.path.exists("{}_RS/angles".format(self.res_dir)):
+            os.makedirs("{}_RS/angles".format(self.res_dir))
         pros = []
         traject_list = sorted(glob("{}/trajectory_*.pdb".format(self.folder)), key=lambda s: int(basename(s)[:-4].split("_")[1]))
         for traj in traject_list:
@@ -196,7 +196,7 @@ class SimulationRS:
         self.dataframe = pd.concat(reports)
         # read the dihedral angles and concat with the dataframe
         self.accelerated_dihedral()
-        angles = pd.read_csv("{}_RS/dihedral_angles.csv".format(self.res_dir), header=None, index_col=0)
+        angles = pd.read_csv("{}_RS/angles/{}.csv".format(self.res_dir, basename(self.folder)), header=None, index_col=0)
         self.dataframe["dihedral"] = angles
         # removing unwanted values
         if self.extract:
