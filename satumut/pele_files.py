@@ -50,11 +50,13 @@ def parse_args():
                         help="the round of plurizyme generation, not needed for the 1st round")
     parser.add_argument("--QM", required=False,
                         help="The path to the QM charges")
+    parser.add_argument("-br","--box_radius", required=False, type=int,
+                        help="Radius of the exploration box")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.polarize_metals,
             args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc, args.template,
-            args.skip, args.rotamers, args.equilibration, args.log, args.consec, args.turn, args.QM]
+            args.skip, args.rotamers, args.equilibration, args.log, args.consec, args.turn, args.QM, args.box_radius]
 
 
 class CreateYamlFiles:
@@ -63,7 +65,8 @@ class CreateYamlFiles:
     """
     def __init__(self, mutant_list,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                  steps=500, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                 rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None):
+                 rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None,
+                 box_radius=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -115,6 +118,8 @@ class CreateYamlFiles:
             The pdb file used as input
         QM: str, optional
             Path to the Qm charges
+        box_radius: int, optional
+            The radius of the exploration box
         """
         self.mutant_list = mutant_list
         self.ligchain = ligchain
@@ -149,6 +154,7 @@ class CreateYamlFiles:
         self.turn = turn
         self.input_pdb = input_pdb
         self.qm = QM
+        self.box = box_radius
 
     def _match_dist(self):
         """
@@ -244,6 +250,8 @@ class CreateYamlFiles:
                 lines2.append("skip_ligand_prep:\n")
                 for skip in self.skip:
                     lines2.append(" - '{}'\n".format(skip))
+            if self.box:
+                lines2.append("box_radius: {}\n".format(self.box))
             lines.extend(lines2)
             inp.writelines(lines)
 
@@ -252,7 +260,8 @@ class CreateYamlFiles:
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                     steps=500, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
-                    rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None):
+                    rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None,
+                    box_radius=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -306,6 +315,8 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
         The input pdb file
     QM: str, optional
         The path to the QM charges
+    box_radius: int, optional
+        The radius of the exploration box
 
     Returns
     _______
@@ -319,18 +330,18 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
     run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, initial=initial, cu=cu, seed=seed, nord=nord,
                           steps=steps, single=single, factor=factor, total_cpus=total_cpus, xtc=xtc, skip=skip,
                           template=template, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec,
-                          turn=turn, input_pdb=input_pdb, QM=QM)
+                          turn=turn, input_pdb=input_pdb, QM=QM, box_radius=box_radius)
     yaml = run.yaml_creation()
     return yaml
 
 
 def main():
     folder, ligchain, ligname, atoms, cpus, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
-    skip, rotamers, equilibration, log, consec, turn, QM = parse_args()
+    skip, rotamers, equilibration, log, consec, turn, QM, box_radius = parse_args()
     yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, cu=cu,
                                  seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc,
                                  skip=skip, template=template, rotamers=rotamers, equilibration=equilibration, log=log,
-                                 consec=consec, turn=turn, QM=QM)
+                                 consec=consec, turn=turn, QM=QM, box_radius=box_radius)
 
     return yaml_files
 

@@ -99,8 +99,8 @@ def parse_args():
     parser.add_argument("-tu", "--turn", required=False, type=int,
                         help="the round of plurizyme generation, not needed for the 1st round")
     parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
-    parser.add_argument("--QM", required=False,
-                        help="The path to the QM charges")
+    parser.add_argument("--QM", required=False, help="The path to the QM charges")
+    parser.add_argument("-br","--box_radius", required=False, type=int, help="Radius of the exploration box")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
@@ -109,7 +109,7 @@ def parse_args():
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
             args.skip, args.rotamers, args.equilibration, args.log, args.improve,
-            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.adaptive_restart]
+            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.adaptive_restart, args.box_radius]
 
 
 class SimulationRunner:
@@ -195,7 +195,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, improve="R",
-                         energy_threshold=None, QM=None, dihedral=None, adaptive_restart=False):
+                         energy_threshold=None, QM=None, dihedral=None, adaptive_restart=False, box_radius=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -279,6 +279,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         The 4 atoms that form the dihedral in format chain ID:position:atom name
     adaptive_restart: bool, optional
         Placing the adaptive restart flag
+    box_radius: int, optional
+        The radius of the exploration box
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -289,7 +291,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                                        consec=consec)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
-                               skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, QM=QM)
+                               skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, QM=QM,
+                               box_radius=box_radius)
     elif adaptive_restart:
         yaml = "yaml_files/simulation.yaml"
         with open(yaml, "r") as yml:
@@ -323,7 +326,7 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", cu=False, seed=12345, nord=False, steps=300, factor=None,
                          total_cpus=None, xtc=False, template=None, skip=None, rotamers=None, equilibration=True,
-                         log=False, turn=None):
+                         log=False, turn=None, box_radius=None):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -379,6 +382,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
         True to write log files about the simulations
     turn: int, optional
         The round of plurizymer generation
+    box_radius: int, optional
+        The radius of the exploration box
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -386,10 +391,10 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     pdb_names = generate_mutations(input_, position, hydrogen, pdb_dir=pdb_dir,
                                    single=single_mutagenesis, turn=turn)
-    yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_,
-                           cu=cu, seed=seed, nord=nord, steps=steps, single=single_mutagenesis,
-                           factor=factor, total_cpus=total_cpus, xtc=xtc, template=template, skip=skip,
-                           rotamers=rotamers, equilibration=equilibration, log=log, input_pdb=input_)
+    yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed, nord=nord,
+                           steps=steps, single=single_mutagenesis, factor=factor, total_cpus=total_cpus, xtc=xtc,
+                           template=template, skip=skip, rotamers=rotamers, equilibration=equilibration, log=log,
+                           input_pdb=input_, box_radius=box_radius)
     simulation.submit(yaml)
 
 
@@ -397,20 +402,21 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
-    skip, rotamers, equilibration, log, improve, turn, energy_thres, QM, dihedral, adaptive_restart = parse_args()
+    skip, rotamers, equilibration, log, improve, turn, energy_thres, QM, dihedral, adaptive_restart,\
+    box_radius = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                              radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, cu, seed, nord, steps,
-                             factor, total_cpus, xtc, template, skip, rotamers, equilibration, log, turn)
+                             factor, total_cpus, xtc, template, skip, rotamers, equilibration, log, turn, box_radius)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
                              multiple, pdb_dir, consec, cu, seed, nord, steps, dpi, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
                              total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
-                              improve, energy_thres, QM, dihedral, adaptive_restart)
+                              improve, energy_thres, QM, dihedral, adaptive_restart, box_radius)
 
 
 if __name__ == "__main__":
