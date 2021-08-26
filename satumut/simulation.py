@@ -75,7 +75,9 @@ def parse_args():
                              "to have mutated (Must write the list of residue"
                              "numbers)")
     parser.add_argument("-re", "--restart", required=False, action="store_true",
-                        help="Consecutively mutate the PDB file for several rounds")
+                        help="to place the restart flag")
+    parser.add_argument("-are", "--adaptive_restart", required=False, action="store_true",
+                        help="to place the adaptive restart flag")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
@@ -107,7 +109,7 @@ def parse_args():
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
             args.skip, args.rotamers, args.equilibration, args.log, args.improve,
-            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms]
+            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.adaptive_restart]
 
 
 class SimulationRunner:
@@ -193,7 +195,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, improve="R",
-                         energy_threshold=None, QM=None, dihedral=None):
+                         energy_threshold=None, QM=None, dihedral=None, adaptive_restart=False):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -275,23 +277,36 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         The path to the QM charges
     dihedral: list[str]
         The 4 atoms that form the dihedral in format chain ID:position:atom name
+    adaptive_restart: bool, optional
+        Placing the adaptive restart flag
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
     if not position and plurizyme_at_and_res:
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
-    if not restart:
+    if not restart and not adaptive_restart:
         pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
                                        consec=consec)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
                                skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, QM=QM)
+    elif adaptive_restart:
+        yaml = "yaml_files/simulation.yaml"
+        with open(yaml, "r") as yml:
+            lines = yml.readlines()
+            if "adaptive_restart: true\n" not in lines:
+                with open(yaml, "a") as yam:
+                    yam.write("adaptive_restart: true\n")
+            if "restart: true\n" in lines:
+                with open(yaml, "w") as yam:
+                    lines.remove("restart: true\n")
+                    yam.writelines(lines)
     else:
         yaml = "yaml_files/simulation.yaml"
         with open(yaml, "r") as yml:
-            if "adaptive_restart: true\n" not in yml.readlines():
+            if "restart: true\n" not in yml.readlines():
                 with open(yaml, "a") as yam:
-                    yam.write("adaptive_restart: true\n")
+                    yam.write("restart: true\n")
 
     simulation.submit(yaml)
     dirname, original = simulation.pele_folders()
@@ -382,7 +397,7 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
-    skip, rotamers, equilibration, log, improve, turn, energy_thres, QM, dihedral = parse_args()
+    skip, rotamers, equilibration, log, improve, turn, energy_thres, QM, dihedral, adaptive_restart = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
@@ -395,7 +410,7 @@ def main():
                              multiple, pdb_dir, consec, cu, seed, nord, steps, dpi, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
                              total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
-                              improve, energy_thres, QM, dihedral)
+                              improve, energy_thres, QM, dihedral, adaptive_restart)
 
 
 if __name__ == "__main__":
