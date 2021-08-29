@@ -411,7 +411,7 @@ def main():
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
     skip, rotamers, equilibration, log, improve, turn, energy_thres, QM, dihedral, adaptive_restart,\
-    box_radius = parse_args()
+    box_radius, mut = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
@@ -424,7 +424,7 @@ def main():
                              multiple, pdb_dir, consec, cu, seed, nord, steps, dpi, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
                              total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
-                              improve, energy_thres, QM, dihedral, adaptive_restart, box_radius)
+                              improve, energy_thres, QM, dihedral, adaptive_restart, box_radius, mut)
 
 
 if __name__ == "__main__":
