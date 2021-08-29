@@ -34,17 +34,21 @@ def parse_args():
                              "code and 1 letter code can be used. You can even specify the protonated states")
     parser.add_argument("-tu", "--turn", required=False, type=int,
                         help="the round of plurizyme generation, not needed for the 1st round")
+    parser.add_argument("-mut", "--mutation", required=False, nargs="+",
+                        choices=('ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN',
+                                 'GLN', 'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR'),
+                        help="The aminoacid in 3 letter code")
 
     args = parser.parse_args()
     return [args.input, args.position, args.hydrogen, args.multiple, args.pdb_dir, args.consec, args.single_mutagenesis,
-            args.turn]
+            args.turn, args.mutation]
 
 
 class Mutagenesis:
     """
     To perform mutations on PDB files
     """
-    def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None):
+    def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None, mut=None):
         """
         Initialize the Mutagenesis object
 
@@ -60,13 +64,18 @@ class Mutagenesis:
            If this is the second round of mutation
         turn: int, optional
             The round of plurizyme generation
+        mut: list[str], optional
+            A list of specific mutations
         """
         self.model = Model(model)
         self.input = model
         self.coords = position
         self.rotamers = load_bbdep()
-        self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
+        if not mut:
+            self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
                          'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
+        else:
+            self.residues = mut
         self.final_pdbs = []
         self.position = None
         self._invert_aa = {v: k for k, v in _aacids_ext_amber.items()}
@@ -77,6 +86,7 @@ class Mutagenesis:
         self.log = Log("mutate_errors")
         self.single = single
         self.turn = turn
+
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
@@ -267,7 +277,7 @@ class Mutagenesis:
 
 
 def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False,
-                       single=None, turn=None):
+                       single=None, turn=None, mut=None):
     """
     To generate up to 2 mutations per pdb
 
@@ -289,7 +299,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         The new residue to mutate the positions to, in 3 letter or 1 letter code
     turn: int, optional
         The round of plurizymer generation
-
+    mut: list[str]
+        A list of mutations to perform
     Returns
     ________
     pdbs: list[paths]
@@ -299,7 +310,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     # Perform single saturated mutations
     count = 0
     for mutation in position:
-        run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn)
+        run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut)
         if single:
             # If the single_mutagenesis flag is used, execute this
             single = single.upper()
@@ -334,8 +345,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
 
 
 def main():
-    input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn = parse_args()
-    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn)
+    input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut = parse_args()
+    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut)
 
     return output
 

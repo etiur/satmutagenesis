@@ -101,6 +101,10 @@ def parse_args():
     parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("--QM", required=False, help="The path to the QM charges")
     parser.add_argument("-br","--box_radius", required=False, type=int, help="Radius of the exploration box")
+    parser.add_argument("-mut", "--mutation", required=False, nargs="+",
+                        choices=('ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN',
+                                 'GLN', 'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR'),
+                        help="The aminoacid in 3 letter code")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
@@ -109,7 +113,8 @@ def parse_args():
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
             args.skip, args.rotamers, args.equilibration, args.log, args.improve,
-            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.adaptive_restart, args.box_radius]
+            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.adaptive_restart, args.box_radius,
+            args.mutation]
 
 
 class SimulationRunner:
@@ -195,7 +200,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, improve="R",
-                         energy_threshold=None, QM=None, dihedral=None, adaptive_restart=False, box_radius=None):
+                         energy_threshold=None, QM=None, dihedral=None, adaptive_restart=False, box_radius=None,
+                         mut=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -281,6 +287,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         Placing the adaptive restart flag
     box_radius: int, optional
         The radius of the exploration box
+    mut: list[str]
+        The list of mutations to perform
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -288,7 +296,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     if not restart and not adaptive_restart:
         pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
-                                       consec=consec)
+                                       consec=consec, mut=mut)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
                                skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, QM=QM,
