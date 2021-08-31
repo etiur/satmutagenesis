@@ -125,7 +125,6 @@ class SimulationRS:
         parser = Bio.PDB.PDBParser(QUIET=True)
         structure = parser.get_structure("topo", self.topology)
         for coord in self.atom:
-            print coord
             resSeq = coord.split(":")[1]
             name = coord.split(":")[2]
             try:
