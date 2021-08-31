@@ -168,7 +168,7 @@ class Mutagenesis:
                                    self.position+1), exc_info=True)
                 # writing into a pdb
                 if self.consec:
-                    name = basename(self.input).replace("pdb", "")
+                    name = basename(self.input).replace(".pdb", "")
                     output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, self._invert_aa[new_aa])
                 else:
                     output = "{}{}{}.pdb".format(aa_name, self.position + 1, self._invert_aa[new_aa])
@@ -208,7 +208,7 @@ class Mutagenesis:
         else:
             new = self._invert_aa[new_aa]
         if self.turn:
-            name = basename(self.input).replace("pdb", "")
+            name = basename(self.input).replace(".pdb", "")
             output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, new)
         else:
             output = "{}{}{}.pdb".format(aa_name, self.position + 1, new)
