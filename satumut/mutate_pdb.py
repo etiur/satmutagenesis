@@ -127,10 +127,9 @@ class Mutagenesis:
 
         if self.consec:
             count = 1
-            folder = "simulation"
-            while os.path.exists("{}".format(folder)):
+            self.folder = "next_round"
+            while os.path.exists("{}".format(self.folder)):
                 count += 1
-                folder = "{}_{}".format(folder, count)
                 self.folder = "{}_{}".format(self.folder, count)
 
         if not os.path.exists(self.folder):
@@ -332,14 +331,10 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
 
-    if single and not turn:
-        ori = "{}/original.pdb".format(pdb_dir)
-        run.insert_atomtype(ori)
-        pdbs.append("{}/original.pdb".format(pdb_dir))
-    if consec:
+    if single:
         ori = "{}/original.pdb".format(run.folder)
-        if os.path.exists(ori):
-            os.remove(ori)
+        run.insert_atomtype(ori)
+        pdbs.append("{}/original.pdb".format(run.folder))
 
     return pdbs
 
