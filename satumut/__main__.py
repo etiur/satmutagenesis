@@ -388,7 +388,7 @@ class CreateSlurmFiles:
                 argument_list.append("--plot {} ".format(self.plot_dir))
             if self.opt != "distance":
                 argument_list.append("-an {} ".format(self.opt))
-            if self.thres != -0.1:
+            if self.thres != -0.0:
                 argument_list.append("--thres {} ".format(self.thres))
             if self.cata_dist != 3.5:
                 argument_list.append("-cd {} ".format(self.cata_dist))
