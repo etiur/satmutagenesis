@@ -281,7 +281,10 @@ class CreateSlurmFiles:
             self.rotamer = None
         self.equilibration = equilibration
         self.log = log
-        self.dihedral_atoms = " ".join(dihedral)
+        if dihedral:
+            self.dihedral_atoms = " ".join(dihedral)
+        else:
+            self.dihedral_atoms = None
         self.cpt = cpt
         self.improve = improve
         self.turn = turn
