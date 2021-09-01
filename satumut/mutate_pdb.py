@@ -243,7 +243,7 @@ class Mutagenesis:
                 for linex in initial_lines:
                     if linex.startswith("HETATM") or linex.startswith("ATOM"):
                         if [float(linex[30:38]), float(linex[38:46]), float(linex[46:54])] == coords:
-                            prep_lines[ind] = line.strip("\n") + linex[66:81]
+                            prep_lines[ind] = line.strip("\n") + linex[66:]
                             break
 
             elif (line.startswith("HETATM") or line.startswith("ATOM")) and line[
