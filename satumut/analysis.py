@@ -768,7 +768,8 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
 
     if not plot_dir:
         plot_dir = commonprefix(pele_folders[0])
-        plot_dir = basename(dirname(dirname(plot_dir))).replace("_mut", "")
+        plot_dir = list(filter(lambda x: "_mut" in x, plot_dir.split("/")))
+        plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
         data_dict = analyse_all(folders, wild, plot_dir, base, traj=traj, cata_dist=cata_dist, extract=extract,

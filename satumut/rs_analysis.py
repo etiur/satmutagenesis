@@ -157,7 +157,9 @@ class SimulationRS:
         Atom_pair_4 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[3][0], select[3][1], select[3][2])))
         metric_list = md.compute_dihedrals(traj, [[Atom_pair_1, Atom_pair_2, Atom_pair_3, Atom_pair_4]])
         metric_list = pd.Series(np.degrees(metric_list.flatten()))
-        metric_list.to_csv("{}_RS/angles/{}.csv".format(self.res_dir, basename(self.folder)), mode="a", header=False)
+        filename = "{}_RS/angles/{}.csv".format(self.res_dir, basename(self.folder))
+        with open(filename, 'a') as f:
+            metric_list.to_csv(f, mode="a", header=False)
 
     def accelerated_dihedral(self):
         """
@@ -804,7 +806,8 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
 
     if not plot_dir:
         plot_dir = commonprefix(pele_folders[0])
-        plot_dir = basename(dirname(dirname(plot_dir))).replace("_mut", "")
+        plot_dir = list(filter(lambda x: "_mut" in x, plot_dir.split("/")))
+        plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
         data_dict = analyse_rs(folders, wild, dihedral_atoms, initial_pdb, plot_dir, base, traj=traj,
