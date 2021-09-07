@@ -16,7 +16,7 @@ from analysis import extract_all, all_profiles
 import mdtraj as md
 from fpdf import FPDF
 import Bio.PDB
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 plt.switch_backend('agg')
 
 
@@ -109,18 +109,10 @@ class SimulationRS:
         self.energy = energy
         self.res_dir = res_dir
 
-    def _match_dist(self):
-        """
-        match the user coordinates to pmx PDB coordinates
-        """
-        for i in range(len(self.atom)):
-            self.atom[i] = map_atom_string(self.atom[i], self.input_pdb, self.topology)
-
     def _transform_coordinates(self):
         """
         Transform the coordinates in format chain id: resnum: atom name into md.topology.select expressions
         """
-        self._match_dist()
         select = []
         parser = Bio.PDB.PDBParser(QUIET=True)
         structure = parser.get_structure("topo", self.topology)
@@ -130,13 +122,12 @@ class SimulationRS:
             try:
                 resname = structure[0][coord.split(":")[0]][int(resSeq)-1].resname
             except KeyError:
-                resname = list(structure[0].get_residues())[int(resSeq)-1].resname
-
+                resname = list(structure[0][coord.split(":")[0]].get_residues())[0].resname
             select.append((resSeq, name, resname))
 
         return select
 
-    def dihedral(self, trajectory):
+    def dihedral(self, trajectory, select):
         """
         Take the PELE simulation trajectory files and returns the list of values of the desired dihedral metric
 
@@ -150,7 +141,6 @@ class SimulationRS:
         else:
             traj = md.load_pdb(trajectory)
         traj = traj[int(len(traj)*0.25):]
-        select = self._transform_coordinates()
         Atom_pair_1 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[0][0], select[0][1], select[0][2])))
         Atom_pair_2 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[1][0], select[1][1], select[1][2])))
         Atom_pair_3 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[2][0], select[2][1], select[2][2])))
@@ -161,16 +151,16 @@ class SimulationRS:
         with open(filename, 'a') as f:
             metric_list.to_csv(f, mode="a", header=False)
 
-    def accelerated_dihedral(self):
+    def accelerated_dihedral(self, select):
         """
         Paralelizes the insert atomtype function
         """
         if not os.path.exists("{}_RS/angles".format(self.res_dir)):
             os.makedirs("{}_RS/angles".format(self.res_dir))
         pros = []
-        traject_list = sorted(glob("{}/trajectory_*.pdb".format(self.folder)), key=lambda s: int(basename(s)[:-4].split("_")[1]))
+        traject_list = sorted(glob("{}/trajectory_*".format(self.folder)), key=lambda s: int(basename(s)[:-4].split("_")[1]))
         for traj in traject_list:
-            p = Process(target=self.dihedral, args=(traj,))
+            p = Process(target=self.dihedral, args=(traj, select))
             p.start()
             pros.append(p)
         for p in pros:
@@ -182,6 +172,8 @@ class SimulationRS:
         """
         pd.options.mode.chained_assignment = None
         reports = []
+        select = self._transform_coordinates()
+        self.accelerated_dihedral(select)
         # read the reports
         for files in sorted(glob("{}/report_*".format(self.folder)), key=lambda s: int(basename(s).split("_")[1])):
             residence_time = [0]
@@ -196,8 +188,8 @@ class SimulationRS:
             reports.append(data)
         self.dataframe = pd.concat(reports)
         # read the dihedral angles and concat with the dataframe
-        self.accelerated_dihedral()
         angles = pd.read_csv("{}_RS/angles/{}.csv".format(self.res_dir, basename(self.folder)), header=None, index_col=0)
+        angles.reset_index(drop=True, inplace=True)
         self.dataframe["dihedral"] = angles
         # removing unwanted values
         if self.extract:
@@ -213,7 +205,7 @@ class SimulationRS:
             frequency = self.dataframe.loc[self.dataframe["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         else:
             frequency = self.dataframe.loc[(self.dataframe["distance0.5"] <= self.catalytic) & (self.dataframe["Binding Energy"] <= self.energy)]
-        freq_r = frequency.loc[(frequency["dihedral"] <= -40) & (frequency["distance2.5"] >= -140)]
+        freq_r = frequency.loc[(frequency["dihedral"] <= -40) & (frequency["dihedral"] >= -140)]
         freq_r["Type"] = ["R" for _ in range(len(freq_r))]
         freq_s = frequency.loc[(frequency["dihedral"] >= 40) & (frequency["dihedral"] <= 140)]
         freq_s["Type"] = ["S" for _ in range(len(freq_s))]
@@ -308,6 +300,16 @@ class SimulationRS:
         self.bind_diff["mut"] = ["{}".format(self.name) for _ in range(len(self.bind_diff))]
 
 
+def match_dist(atom, input_pdb, wild):
+    """
+    match the user coordinates to pmx PDB coordinates
+    """
+    topology = "{}/input/{}_processed.pdb".format(dirname(dirname(wild)), basename(wild))
+    for i in range(len(atom)):
+        atom[i] = map_atom_string(atom[i], input_pdb, topology)
+    return atom
+
+
 def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num, traj=10, cata_dist=3.5,
                improve="R", extract=None, energy=None):
     """
@@ -348,7 +350,8 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num
     data_dict = {}
     len_list = []
     median_list = []
-    original = SimulationRS(wild, dihedral_atoms, initial_pdb, res_dir,
+    atoms = match_dist(dihedral_atoms, initial_pdb, wild)
+    original = SimulationRS(wild, atoms, initial_pdb, res_dir,
                             pdb=traj, catalytic_dist=cata_dist, extract=extract, energy=energy)
     original.filtering()
     data_dict["original"] = original
@@ -356,7 +359,7 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num
     median_list.append(original.median)
     for folder in folders:
         name = basename(folder)
-        data = SimulationRS(folder, dihedral_atoms, initial_pdb, res_dir,
+        data = SimulationRS(folder, atoms, initial_pdb, res_dir,
                             pdb=traj, catalytic_dist=cata_dist, extract=extract, energy=energy)
         data.filtering()
         data.set_distance(original.dist_r, original.dist_s)
@@ -413,7 +416,14 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     dif_bind = pd.concat(plot_dif_bind)
     data_bind = pd.concat(plot_dict_bind)
     data_freq = pd.concat(plot_dict_freq)
-
+    print "dif_dist"
+    print dif_dist
+    print "dif_bind"
+    print dif_bind
+    print "data_freq"
+    print data_freq
+    print "data_bind"
+    print data_freq
     # Distance difference boxplot
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
@@ -426,7 +436,7 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
     ax.savefig("{}_RS/Plots/box/{}_distance_dif.png".format(res_dir, position_num), dpi=dpi)
-
+    print "here2"
     # Binding energy difference Box plot
     ex = sns.catplot(x="mut", hue="Type", y="Binding Energy", data=dif_bind, kind="violin", palette="Accent",
                      height=4.5, aspect=2.3, inner="quartile", split=True)
@@ -437,7 +447,7 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ex.set_yticklabels(fontsize=6)
     ex.savefig("{}_RS/Plots/box/{}_binding_dif.png".format(res_dir, position_num), dpi=dpi)
     plt.close("all")
-
+    print "here 3"
     # frequency boxplot
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
@@ -450,7 +460,7 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
     ax.savefig("{}_RS/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
-
+    print "here 4"
     # Binding energy boxplot
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
@@ -463,7 +473,7 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
     ax.savefig("{}_RS/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
-
+    print "here 5"
 
 def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, orientation):
     """
