@@ -188,16 +188,11 @@ class SimulationRS:
             for x in range(1, len(data)):
                 residence_time.append(data["Step"].iloc[x] - data["Step"].iloc[x-1])
             data["residence time"] = residence_time
-            data = data[int(len(data)*0.25):]
+            data = data[int(len(data)*0.10):]
             reports.append(data)
         self.dataframe = pd.concat(reports)
-        # read the dihedral angles and concat with the dataframe
-        #angles = pd.read_csv("{}_RS/angles/{}.csv".format(self.res_dir, self.name), header=None, index_col=0)
-
         self.dataframe["dihedral"] = angles
         print self.name
-        print "len dataframe"
-        print len(self.dataframe)
         # removing unwanted values
         if self.extract:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
@@ -257,6 +252,7 @@ class SimulationRS:
                                    columns=["distance0.5", "Type", "residence time"])
         self.distance = pd.concat([self.freq_r, self.freq_s])
         self.distance["mut"] = ["{}".format(self.name) for _ in range(len(self.distance))]
+        self.distance = self.distance.astype({"mut": str, "distance0.5": float, "Type": str, "residence time": int})
         self.binding_r = freq_r[["Binding Energy", "Type", "residence time"]].copy()
         self.binding_r = pd.DataFrame(np.repeat(self.binding_r.values, self.binding_r["residence time"].values, axis=0),
                                       columns=["Binding Energy", "Type", "residence time"])
@@ -265,12 +261,21 @@ class SimulationRS:
                                       columns=["Binding Energy", "Type", "residence time"])
         self.binding = pd.concat([self.binding_r, self.binding_s])
         self.binding["mut"] = ["{}".format(self.name) for _ in range(len(self.binding))]
+        self.binding = self.binding.astype({"mut": str, "Binding Energy": float, "Type": str, "residence time": int})
 
         # calculate the median of the distance and energies of R and S
         self.dist_r = self.freq_r["distance0.5"].median()
         self.dist_s = self.freq_s["distance0.5"].median()
+        if self.dist_s is np.nan:
+            self.dist_s = 0
+        if self.dist_r is np.nan:
+            self.dist_r = 0
         self.bind_r = self.binding_r["Binding Energy"].median()
         self.bind_s = self.binding_s["Binding Energy"].median()
+        if self.bind_s is np.nan:
+            self.bind_s = 0
+        if self.bind_r is np.nan:
+            self.bind_r = 0
         self.median = pd.DataFrame(pd.Series({"R": self.dist_r, "S": self.dist_s})).transpose()
         self.median.index = [self.name]
 
@@ -291,6 +296,7 @@ class SimulationRS:
         dist_s = pd.concat([dist_s, self.freq_s["Type"]], axis=1)
         self.dist_diff = pd.concat([dist_r, dist_s])
         self.dist_diff["mut"] = ["{}".format(self.name) for _ in range(len(self.dist_diff))]
+        self.dist_diff = self.dist_diff.astype({"mut": str, "distance0.5": float, "Type": str})
 
     def set_binding(self, ori_bind1, ori_bind2):
         """
@@ -309,6 +315,7 @@ class SimulationRS:
         bind_s = pd.concat([bind_s, self.binding_s["Type"]], axis=1)
         self.bind_diff = pd.concat([bind_r, bind_s])
         self.bind_diff["mut"] = ["{}".format(self.name) for _ in range(len(self.bind_diff))]
+        self.bind_diff = self.bind_diff.astype({"mut": str, "Binding Energy": float, "Type": str})
 
 
 def match_dist(atom, input_pdb, wild):
