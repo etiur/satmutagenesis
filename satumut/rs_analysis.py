@@ -192,7 +192,6 @@ class SimulationRS:
             reports.append(data)
         self.dataframe = pd.concat(reports)
         self.dataframe["dihedral"] = angles
-        print self.name
         # removing unwanted values
         if self.extract:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
@@ -207,14 +206,10 @@ class SimulationRS:
             frequency = self.dataframe.loc[self.dataframe["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         else:
             frequency = self.dataframe.loc[(self.dataframe["distance0.5"] <= self.catalytic) & (self.dataframe["Binding Energy"] <= self.energy)]
-        print "len frequency"
-        print len(frequency)
         freq_r = frequency.loc[(frequency["dihedral"] <= -40) & (frequency["dihedral"] >= -140)]
         freq_r["Type"] = ["R" for _ in range(len(freq_r))]
         freq_s = frequency.loc[(frequency["dihedral"] >= 40) & (frequency["dihedral"] <= 140)]
         freq_s["Type"] = ["S" for _ in range(len(freq_s))]
-        print len(freq_r)
-        print len(freq_s)
         self.len = pd.DataFrame(pd.Series({"R": len(np.repeat(freq_r.values, freq_r["residence time"].values, axis=0)),
                                            "S": len(np.repeat(freq_s.values, freq_s["residence time"].values, axis=0))})).transpose()
         self.len.index = [self.name]
@@ -318,11 +313,12 @@ class SimulationRS:
         self.bind_diff = self.bind_diff.astype({"mut": str, "Binding Energy": float, "Type": str})
 
 
-def match_dist(atom, input_pdb, wild):
+def match_dist(dihedral_atoms, input_pdb, wild):
     """
     match the user coordinates to pmx PDB coordinates
     """
     topology = "{}/input/{}_processed.pdb".format(dirname(dirname(wild)), basename(wild))
+    atom = dihedral_atoms[:]
     for i in range(len(atom)):
         atom[i] = map_atom_string(atom[i], input_pdb, topology)
     return atom
@@ -441,7 +437,7 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(x="mut", y="distance0.5", hue="Type", data=dif_dist, kind="violin", palette="Accent", split=True,
+    ax = sns.catplot(x="mut", y="distance0.5", hue="Type", data=dif_dist, kind="violin", palette="Accent",
                      height=4.5, aspect=2.3, inner="quartile")
     ax.set(title="{} distance variation with respect to wild type".format(position_num))
     ax.set_ylabels("Distance variation", fontsize=8)
@@ -449,10 +445,9 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
     ax.savefig("{}_RS/Plots/box/{}_distance_dif.png".format(res_dir, position_num), dpi=dpi)
-    print "here2"
     # Binding energy difference Box plot
     ex = sns.catplot(x="mut", hue="Type", y="Binding Energy", data=dif_bind, kind="violin", palette="Accent",
-                     height=4.5, aspect=2.3, inner="quartile", split=True)
+                     height=4.5, aspect=2.3, inner="quartile")
     ex.set(title="{} binding energy variation with respect to wild type".format(position_num))
     ex.set_ylabels("Binding energy variation", fontsize=8)
     ex.set_xlabels("Mutations {}".format(position_num), fontsize=6)
@@ -460,12 +455,11 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ex.set_yticklabels(fontsize=6)
     ex.savefig("{}_RS/Plots/box/{}_binding_dif.png".format(res_dir, position_num), dpi=dpi)
     plt.close("all")
-    print "here 3"
     # frequency boxplot
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(x="mut", hue="Type", y="distance0.5", split=True, data=data_freq, kind="violin", palette="Accent",
+    ax = sns.catplot(x="mut", hue="Type", y="distance0.5", data=data_freq, kind="violin", palette="Accent",
                      height=4.5, aspect=2.3, inner="quartile")
     ax.set(title="{} distances less than {}".format(position_num, cata_dist))
     ax.set_ylabels("Distances", fontsize=8)
@@ -473,12 +467,11 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
     ax.savefig("{}_RS/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
-    print "here 4"
     # Binding energy boxplot
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(x="mut", hue="Type", y="Binding Energy", split=True, data=data_bind, kind="violin",
+    ax = sns.catplot(x="mut", hue="Type", y="Binding Energy", data=data_bind, kind="violin",
                      palette="Accent", height=4.5, aspect=2.3, inner="quartile")
     ax.set(title="{} binding energy ".format(position_num))
     ax.set_ylabels("Binding energy", fontsize=8)
@@ -486,7 +479,7 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.set_xticklabels(fontsize=6)
     ax.set_yticklabels(fontsize=6)
     ax.savefig("{}_RS/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
-    print "here 5"
+
 
 def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, orientation):
     """
