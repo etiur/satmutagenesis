@@ -58,9 +58,18 @@ def parse_args():
             args.initial_pdb]
 
 
-def dihedral(trajectory, select, topology):
+def dihedral(trajectory, select, topology=None):
     """
     Take the PELE simulation trajectory files and returns the list of values of the desired dihedral metric
+
+    Parameters
+    ____________
+    trajectory: str
+        The path to the trajectory
+    select: list[tuple(position number, atom name, residue name)]
+        a list of tuple containing the 3 elements for the atom seletion in mdtraj
+    topology: str
+        Path to the topology file if xtc format
 
     RETURNS
     -------
