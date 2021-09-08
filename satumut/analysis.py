@@ -118,21 +118,21 @@ class SimulationData:
         self.dataframe.reset_index(drop=True, inplace=True)
         self.dataframe = self.dataframe.iloc[:len(self.dataframe) - int(len(self.dataframe)*0.2)] # eliminating the 20% with the highest biding energies
 
-        # for the PELE profiles
-        self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
-        self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
+        # extracting trajectories
         trajectory = self.dataframe.sort_values(by="distance0.5")
         trajectory.reset_index(drop=True, inplace=True)
-        trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
         if not self.energy:
             frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         else:
             frequency = trajectory.loc[(trajectory["distance0.5"] <= self.catalytic) & (trajectory["Binding Energy"] <= self.energy)]
+        # for the PELE profiles
+        self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
+        self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
+        # for the csv
         self.residence = frequency["residence time"].sum()
         self.len = len(frequency)
         self.len_ratio = float(len(frequency)) / len(trajectory)
-
         self.frequency = frequency[["distance0.5", "residence time"]].copy()
         self.frequency = pd.DataFrame(np.repeat(self.frequency.values, self.frequency["residence time"].values, axis=0),
                                       columns=["distance0.5", "residence time"])
@@ -346,8 +346,8 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     # Creating the scatter plots
     if not os.path.exists("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_)):
         os.makedirs("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_))
-    ax = sns.relplot(x=type_, y='Binding Energy', hue="Type", style="Type", palette="muted", data=cat,
-                     height=3.5, aspect=1.5, linewidth=0)
+    ax = sns.relplot(x=type_, y='Binding Energy', hue="Type", style="Type", sizes=(40, 400), size="residence time",
+                     palette="muted", data=cat, height=3.5, aspect=1.5, linewidth=0)
 
     ax.set(title="{} scatter plot of binding energy vs {} ".format(key, type_))
     ax.savefig("{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, type_,

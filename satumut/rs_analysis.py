@@ -16,7 +16,7 @@ from analysis import extract_all, all_profiles
 import mdtraj as md
 from fpdf import FPDF
 import Bio.PDB
-from multiprocessing import Process, Pool
+from multiprocessing import Pool
 plt.switch_backend('agg')
 from functools import partial
 
@@ -71,7 +71,7 @@ def dihedral(trajectory, select, topology):
         traj = md.load_xtc(trajectory, topology)
     else:
         traj = md.load_pdb(trajectory)
-    traj = traj[int(len(traj)*0.25):]
+    traj = traj[int(len(traj)*0.10):]
     Atom_pair_1 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[0][0], select[0][1], select[0][2])))
     Atom_pair_2 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[1][0], select[1][1], select[1][2])))
     Atom_pair_3 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[2][0], select[2][1], select[2][2])))
@@ -214,7 +214,7 @@ class SimulationRS:
                                            "S": len(np.repeat(freq_s.values, freq_s["residence time"].values, axis=0))})).transpose()
         self.len.index = [self.name]
         # for the PELE profiles
-        self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
+        self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         type_ = []
         for x in self.profile.index:
             if x in freq_r.index:
@@ -271,7 +271,7 @@ class SimulationRS:
             self.bind_s = 0
         if self.bind_r is np.nan:
             self.bind_r = 0
-        self.median = pd.DataFrame(pd.Series({"R": self.dist_r, "S": self.dist_s})).transpose()
+        self.median = pd.DataFrame(pd.Series({"R dist": self.dist_r, "S dist": self.dist_s})).transpose()
         self.median.index = [self.name]
 
     def set_distance(self, ori_dist1, ori_dist2):
@@ -390,8 +390,8 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num
     len_list["enantio excess"] = (len_list[improve] - len_list[choice[0]])/ (len_list["S"] + len_list["R"]) * 100
     # median catalytic distances
     median_list = pd.concat(median_list)
-    median_list["diff_R"] = median_list["R"] - median_list["R"].loc["original"]
-    median_list["diff_S"] = median_list["S"] - median_list["S"].loc["original"]
+    median_list["diff_R"] = median_list["R dist"] - median_list["R dist"].loc["original"]
+    median_list["diff_S"] = median_list["S dist"] - median_list["S dist"].loc["original"]
     everything = pd.concat([median_list, len_list], axis=1)
     everything.to_csv("{}_RS/dist_{}.csv".format(res_dir, position_num))
 
