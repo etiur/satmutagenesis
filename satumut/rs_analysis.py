@@ -78,8 +78,10 @@ def dihedral(trajectory, select, topology=None):
     """
     if ".xtc" in trajectory:
         traj = md.load_xtc(trajectory, topology)
+        num = int(basename(trajectory).replace(".xtc", "").split("_")[1])
     else:
         traj = md.load_pdb(trajectory)
+        num = int(basename(trajectory).replace(".pdb", "").split("_")[1])
     traj = traj[int(len(traj)*0.10):]
     Atom_pair_1 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[0][0], select[0][1], select[0][2])))
     Atom_pair_2 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[1][0], select[1][1], select[1][2])))
@@ -87,7 +89,9 @@ def dihedral(trajectory, select, topology=None):
     Atom_pair_4 = int(traj.topology.select("resSeq {} and name {} and resn {}".format(select[3][0], select[3][1], select[3][2])))
     metric_list = md.compute_dihedrals(traj, [[Atom_pair_1, Atom_pair_2, Atom_pair_3, Atom_pair_4]])
     metric_list = pd.Series(np.degrees(metric_list.flatten()))
-
+    id = pd.Series([num for _ in range(len(metric_list))])
+    metric_list = pd.concat([metric_list, id], axis=1)
+    metric_list.columns = ["dihedral", "id"]
     return metric_list
 
 
@@ -176,7 +180,7 @@ class SimulationRS:
         func = partial(dihedral, select=select, topology=self.topology)
         angles = pd.concat(list(p.map(func, traject_list)))
         angles.reset_index(drop=True, inplace=True)
-        angles.to_csv("{}_RS/angles/{}.csv".format(self.res_dir, self.name), header=False)
+        angles.to_csv("{}_RS/angles/{}.csv".format(self.res_dir, self.name), header=True)
         return angles
 
     def filtering(self):
@@ -190,7 +194,7 @@ class SimulationRS:
         # read the reports
         for files in sorted(glob("{}/report_*".format(self.folder)), key=lambda s: int(basename(s).split("_")[1])):
             residence_time = [0]
-            rep = basename(files).split("_")[1]
+            rep = int(basename(files).split("_")[1])
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
             data.rename(columns={'#Task': "ID"}, inplace=True)
@@ -200,7 +204,7 @@ class SimulationRS:
             data = data[int(len(data)*0.10):]
             reports.append(data)
         self.dataframe = pd.concat(reports)
-        self.dataframe["dihedral"] = angles
+        self.dataframe["dihedral"] = angles["dihedral"]
         # removing unwanted values
         if self.extract:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
@@ -225,10 +229,10 @@ class SimulationRS:
         # for the PELE profiles
         self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         type_ = []
-        for x in self.profile.index:
-            if x in freq_r.index:
+        for x in self.profile["dihedral"].values:
+            if -40 >= x >= -140:
                 type_.append("R_{}".format(self.name))
-            elif x in freq_s.index:
+            elif 40 <= x <= 140:
                 type_.append("S_{}".format(self.name))
             else:
                 type_.append("noise")
@@ -239,10 +243,10 @@ class SimulationRS:
         trajectory.drop(["Step", 'sasaLig', 'currentEnergy'], axis=1, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
         orien = []
-        for x in self.trajectory["index"].values:
-            if x in freq_r.index:
+        for x in self.trajectory["dihedral"].values:
+            if -40 >= x >= -140:
                 orien.append("R")
-            elif x in freq_s.index:
+            elif 40 <= x <= 140:
                 orien.append("S")
             else:
                 orien.append("noise")
@@ -490,7 +494,8 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.savefig("{}_RS/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
 
 
-def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, orientation):
+def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, orientation,
+                            dihedral):
     """
     A function that extracts pdbs from xtc files
 
@@ -512,6 +517,8 @@ def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, muta
         The distance between ligand and protein (used as name for the result file - not essential)
     bind: float
         The binding energy between ligand and protein (used as name for the result file - not essential)
+    dihedral: float
+        The dihedral angle
 
     """
     if not os.path.exists("{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
@@ -524,12 +531,14 @@ def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, muta
 
     # load the trajectory and write it to pdb
     traj = md.load_xtc(trajectories[0], topology)
-    name = "traj{}_step{}_dist{}_bind{}_{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2), orientation)
+    name = "traj{}_step{}_dist{}_bind{}_{}_{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2), orientation,
+                                                          dihedral)
     path_ = "{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
     traj[int(step)].save_pdb(os.path.join(path_, name))
 
 
-def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, orientation):
+def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, orientation,
+                         dihedral):
     """
     Extracts PDB files from trajectories
 
@@ -551,6 +560,8 @@ def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutatio
         The distance between ligand and protein (used as name for the result file - not essential)
     bind: float
         The binding energy between ligand and protein (used as name for the result file - not essential)
+    dihedral: float
+        The dihedral angle of the trajectory
     """
     if not os.path.exists("{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
         os.makedirs("{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
@@ -567,7 +578,8 @@ def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutatio
     # Output Snapshot
     traj = []
     path_ = "{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
-    name = "traj{}_step{}_dist{}_bind{}_{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2), orientation)
+    name = "traj{}_step{}_dist{}_bind{}_{}_{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2), orientation,
+                                                          dihedral)
     with open(os.path.join(path_, name), 'w') as f:
         traj.append("MODEL     {}".format(int(step) + 1))
         try:
@@ -601,12 +613,13 @@ def extract_10_pdb_single_rs(info, res_dir, data_dict, xtc=False):
         dist = data.trajectory["distance0.5"][ind]
         bind = data.trajectory["Binding Energy"][ind]
         orientation = data.trajectory["orientation"][ind]
+        angle = data.trajectory["dihedral"][ind]
         if not xtc:
             snapshot_from_pdb_rs(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind,
-                                 orientation)
+                                 orientation, angle)
         else:
             extract_snapshot_xtc_rs(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind,
-                                    orientation)
+                                    orientation, angle)
 
 
 def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5, improve="R"):
