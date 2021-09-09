@@ -224,11 +224,15 @@ class CreateSlurmFiles:
         mut: list[str], optional
             The list of mutations to perform
         """
-        assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
+
         self.input = input_
         self.ligchain = ligchain
         self.ligname = ligname
-        self.atoms = " ".join(atoms)
+        if atoms:
+            assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
+            self.atoms = " ".join(atoms)
+        else:
+            self.atoms = None
         self.cpus = cpus_mutant
         self.test = test
         self.slurm = None
@@ -340,8 +344,10 @@ class CreateSlurmFiles:
                       "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.0\n\n"]
 
             argument_list = []
-            arguments = "-i {} -lc {} -ln {} -at {} ".format(self.input, self.ligchain, self.ligname, self.atoms)
+            arguments = "-i {} -lc {} -ln {} ".format(self.input, self.ligchain, self.ligname)
             argument_list.append(arguments)
+            if self.atoms:
+                argument_list.append("-at {} ".format(self.atoms))
             if self.position:
                 argument_list.append("-p {} ".format(self.position))
             if self.seed != 12345:
@@ -457,8 +463,10 @@ class CreateSlurmFiles:
                       'conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.0_nord\n']
 
             argument_list = []
-            arguments = "-i {} -lc {} -ln {} -at {} ".format(self.input, self.ligchain, self.ligname, self.atoms)
+            arguments = "-i {} -lc {} -ln {} ".format(self.input, self.ligchain, self.ligname)
             argument_list.append(arguments)
+            if self.atoms:
+                argument_list.append("-at {} ".format(self.atoms))
             if self.position:
                 argument_list.append("-p {} ".format(self.position))
             if self.seed != 12345:
@@ -561,9 +569,10 @@ def main():
             slurm = run.slurm_creation()
         else:
             slurm = run.slurm_nord()
-        if sbatch:
+        if sbatch and not nord:
             call(["sbatch", "{}".format(slurm)])
-
+        if sbatch and nord:
+            call(["bsub", ">", "{}".format(slurm)])
 
 if __name__ == "__main__":
     # Run this if this file is executed from command line but not if is imported as API
