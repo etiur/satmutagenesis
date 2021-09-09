@@ -495,7 +495,7 @@ def box_plot_rs(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
 
 
 def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, orientation,
-                            dihedral):
+                            angle):
     """
     A function that extracts pdbs from xtc files
 
@@ -517,7 +517,7 @@ def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, muta
         The distance between ligand and protein (used as name for the result file - not essential)
     bind: float
         The binding energy between ligand and protein (used as name for the result file - not essential)
-    dihedral: float
+    angle: float
         The dihedral angle
 
     """
@@ -532,13 +532,13 @@ def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, muta
     # load the trajectory and write it to pdb
     traj = md.load_xtc(trajectories[0], topology)
     name = "traj{}_step{}_dist{}_bind{}_{}_{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2), orientation,
-                                                          dihedral)
+                                                          round(angle, 2))
     path_ = "{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
     traj[int(step)].save_pdb(os.path.join(path_, name))
 
 
 def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, orientation,
-                         dihedral):
+                         angle):
     """
     Extracts PDB files from trajectories
 
@@ -560,7 +560,7 @@ def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutatio
         The distance between ligand and protein (used as name for the result file - not essential)
     bind: float
         The binding energy between ligand and protein (used as name for the result file - not essential)
-    dihedral: float
+    angle: float
         The dihedral angle of the trajectory
     """
     if not os.path.exists("{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
@@ -579,7 +579,7 @@ def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutatio
     traj = []
     path_ = "{}_RS/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
     name = "traj{}_step{}_dist{}_bind{}_{}_{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2), orientation,
-                                                          dihedral)
+                                                          round(angle, 2))
     with open(os.path.join(path_, name), 'w') as f:
         traj.append("MODEL     {}".format(int(step) + 1))
         try:
