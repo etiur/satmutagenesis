@@ -204,7 +204,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, extract=extract, energy_thres=energy_thres)
     original.filtering()
     data_dict["original"] = original
-    # len_dict["original"] = original.len
+    len_dict["original"] = original.len
     # median_dict["original"] = original.dist_ori
     weight_median["original"] = original.weight_dist
     residence["original"] = original.residence
@@ -216,7 +216,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
         data.set_distance(original.weight_dist)
         data.set_binding(original.weight_bind)
         data_dict[name] = data
-    #    len_dict[name] = data.len
+        len_dict[name] = data.len
     #    median_dict[name] = data.median_freq
         weight_median[name] = data.weight_dist
         residence[name] = data.residence
@@ -228,6 +228,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     median["dist mut-wt"] = median["weighted median distance"] - median["weighted median distance"].loc["original"]
     # median["freq catalytic poses"] = pd.Series(len_dict)
     median["ratio catalytic vs total poses"] = pd.Series(len_ratio)
+    median["frequency"] = pd.Series(len_dict)
     median["residence time"] = pd.Series(residence)
     median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
     return data_dict
