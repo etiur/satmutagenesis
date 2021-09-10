@@ -204,6 +204,7 @@ class SimulationRS:
             data = data[int(len(data)*0.10):]
             reports.append(data)
         self.dataframe = pd.concat(reports)
+        self.dataframe.reset_index(drop=True, inplace=True)
         self.dataframe["dihedral"] = angles["dihedral"]
         # removing unwanted values
         if self.extract:
