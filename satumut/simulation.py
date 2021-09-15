@@ -107,6 +107,8 @@ def parse_args():
                         help="The aminoacid in 3 letter code")
     parser.add_argument("-cst", "--conservative", required=False, choices=(1, 2), default=None, type=int,
                         help="How conservative should the mutations be, choises are 1 and 2")
+    parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
+                        default="Binding Energy", help="The metric to generate the pele profiles with")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
@@ -116,7 +118,7 @@ def parse_args():
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
             args.skip, args.rotamers, args.equilibration, args.log, args.improve,
             args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.adaptive_restart, args.box_radius,
-            args.mutation, args.conservative]
+            args.mutation, args.conservative, args.profile_with]
 
 
 class SimulationRunner:
@@ -203,7 +205,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, improve="R",
                          energy_threshold=None, QM=None, dihedral=None, adaptive_restart=False, box_radius=None,
-                         mut=None, conservative=None):
+                         mut=None, conservative=None, profile_with="Binding Energy"):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -293,6 +295,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         The list of mutations to perform
     conservative: int, optional
         How conservative should be the mutations according to Blossum62
+    profile_with: str, optional
+        The metric to generate the pele profiles with
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -328,10 +332,10 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     if dir_ and not plot_dir:
         plot_dir = dir_
     consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc,
-                         energy_thres=energy_threshold)
+                         energy_thres=energy_threshold, profile_with=profile_with)
     if dihedral:
         consecutive_analysis_rs(dirname, dihedral, input_, original, dpi, traj, output, plot_dir, opt, cpus,
-                                thres, cata_dist, xtc, improve, energy=energy_threshold)
+                                thres, cata_dist, xtc, improve, energy=energy_threshold, profile_with=profile_with)
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
@@ -415,7 +419,7 @@ def main():
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
     skip, rotamers, equilibration, log, improve, turn, energy_thres, QM, dihedral, adaptive_restart,\
-    box_radius, mut, conservative = parse_args()
+    box_radius, mut, conservative, profile_with = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
@@ -428,7 +432,8 @@ def main():
                              multiple, pdb_dir, consec, cu, seed, nord, steps, dpi, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
                              total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
-                              improve, energy_thres, QM, dihedral, adaptive_restart, box_radius, mut)
+                             improve, energy_thres, QM, dihedral, adaptive_restart, box_radius, mut, conservative,
+                             profile_with)
 
 
 if __name__ == "__main__":

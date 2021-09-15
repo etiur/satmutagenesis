@@ -51,11 +51,13 @@ def parse_args():
                         help="The enantiomer that should improve")
     parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
+    parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
+                        default="Binding Energy", help="The metric to generate the pele profiles with")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse, args.cpus, args.thres,
             args.catalytic_distance, args.xtc, args.improve, args.extract, args.dihedral_atoms, args.energy_threshold,
-            args.initial_pdb]
+            args.initial_pdb, args.profile_with]
 
 
 def dihedral(trajectory, select, topology=None):
@@ -794,7 +796,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
 def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, dpi=800, traj=10, output="summary",
                             plot_dir=None, opt="distance", cpus=10, thres=0.0, cata_dist=3.5, xtc=False, improve="R",
-                            extract=None, energy=None):
+                            extract=None, energy=None, profile_with="Binding Energy"):
     """
     Creates all the plots for the different mutated positions
 
@@ -834,6 +836,8 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
         The number of steps to analyse
     energy: int, optional
         The energy_threshold to be considered catalytic
+    profile_with: str, optional
+        The metric to generate the pele profiles with
     """
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
@@ -852,7 +856,7 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
         data_dict = analyse_rs(folders, wild, dihedral_atoms, initial_pdb, plot_dir, base, traj=traj,
                                cata_dist=cata_dist, improve=improve, extract=extract, energy=energy, cpus=cpus)
         box_plot_rs(plot_dir, data_dict, base, dpi, cata_dist)
-        all_profiles(plot_dir, data_dict, base, dpi, mode="RS")
+        all_profiles(plot_dir, data_dict, base, dpi, mode="RS", profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, function=extract_10_pdb_single_rs)
         find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
                            improve=improve, energy=energy)
@@ -860,10 +864,10 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
 
 def main():
     inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, improve, extract, dihedral_atoms, energy,\
-        initial_pdb = parse_args()
+        initial_pdb, profile_with = parse_args()
     consecutive_analysis_rs(inp, dihedral_atoms, initial_pdb, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis,
                             cpus=cpus, thres=thres, cata_dist=cata_dist, xtc=xtc, improve=improve, extract=extract,
-                            energy=energy)
+                            energy=energy, profile_with=profile_with)
 
 
 if __name__ == "__main__":

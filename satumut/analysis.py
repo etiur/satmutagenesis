@@ -43,11 +43,13 @@ def parse_args():
     parser.add_argument("-x", "--xtc", required=False, action="store_true", help="Change the pdb format to xtc")
     parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
+    parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
+                        default="Binding Energy", help="The metric to generate the pele profiles with")
 
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse,  args.cpus, args.thres,
-            args.catalytic_distance, args.xtc, args.extract, args.energy_threshold]
+            args.catalytic_distance, args.xtc, args.extract, args.energy_threshold, args.profile_with]
 
 
 class SimulationData:
@@ -316,7 +318,8 @@ def box_plot(res_dir, data_dict, position_num, dpi=800, cata_dist=3.5):
     ax.savefig("{}_results/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
 
 
-def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=800, mode="results"):
+def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=800, mode="results",
+                        profile_with="Binding Energy"):
     """
     Creates a plot for a single mutation
 
@@ -336,6 +339,8 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
         name for the folder to keep the images from the different mutations
     dpi: int, optional
         Quality of the plots
+    profile_with: str, optional
+        The metric to generate the pele profiles with
     """
     # Configuring the plot
     sns.set(font_scale=1.2)
@@ -347,7 +352,7 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     # Creating the scatter plots
     if not os.path.exists("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_)):
         os.makedirs("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_))
-    ax = sns.relplot(x=type_, y='Binding Energy', hue="Type", style="Type", sizes=(40, 400), size="residence time",
+    ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
                      palette="muted", data=cat, height=3.5, aspect=1.5, linewidth=0)
 
     ax.set(title="{} scatter plot of binding energy vs {} ".format(key, type_))
@@ -356,7 +361,7 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     plt.close(ax.fig)
 
 
-def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800, mode="results"):
+def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800, mode="results", profile_with="Binding Energy"):
     """
     Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
 
@@ -374,14 +379,16 @@ def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800, mode="result
         Quality of the plots
     mode: str, optional
         The name of the results folder, if results then activity mode if RS then rs mode
+    profile_with: str, optional
+        The metric to generate the pele profiles with
     """
     for key, value in data_dict.items():
         if "original" not in key:
             pele_profile_single(key, value, res_dir=res_dir, wild=data_dict["original"],
-                                type_=type_, position_num=position_num, dpi=dpi, mode=mode)
+                                type_=type_, position_num=position_num, dpi=dpi, mode=mode, profile_with=profile_with)
 
 
-def all_profiles(res_dir, data_dict, position_num, dpi=800, mode="results"):
+def all_profiles(res_dir, data_dict, position_num, dpi=800, mode="results", profile_with="Binding Energy"):
     """
     Creates all the possible scatter plots for the same mutated position
 
@@ -397,8 +404,13 @@ def all_profiles(res_dir, data_dict, position_num, dpi=800, mode="results"):
         Quality of the plots
     mode: str, optional
         The name of the results folder, if results then activity mode if RS then rs mode
+    profile_with: str, optional
+        The metric to generate the pele profiles with
     """
-    types = ["distance0.5", "sasaLig", "currentEnergy"]
+    if profile_with == "Binding Energy":
+        types = ["distance0.5", "sasaLig", "currentEnergy"]
+    else:
+        types = ["distance0.5", "sasaLig", "Binding Energy"]
     for type_ in types:
         pele_profiles(type_, res_dir, data_dict, position_num, dpi, mode=mode)
 
@@ -723,7 +735,8 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
 
 
 def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
-                         cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None):
+                         cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
+                         profile_with="Binding Energy"):
     """
     Creates all the plots for the different mutated positions
 
@@ -758,6 +771,8 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         The number of steps to analyse
     energy_thres: int, optional
         The binding energy to consider for catalytic poses
+    profile_with: str, optional
+        The metric to generate the pele profiles with
     """
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
@@ -776,16 +791,17 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         data_dict = analyse_all(folders, wild, plot_dir, base, traj=traj, cata_dist=cata_dist, extract=extract,
                                 energy_thres=energy_thres)
         box_plot(plot_dir, data_dict, base, dpi, cata_dist)
-        all_profiles(plot_dir, data_dict, base, dpi)
+        all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
         find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
                            energy_thres=energy_thres)
 
 
 def main():
-    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, extract, energy_thres = parse_args()
+    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, extract, energy_thres, profile_with = parse_args()
     consecutive_analysis(inp, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis, cpus=cpus, thres=thres,
-                         cata_dist=cata_dist, xtc=xtc, extract=extract, energy_thres=energy_thres)
+                         cata_dist=cata_dist, xtc=xtc, extract=extract, energy_thres=energy_thres,
+                         profile_with=profile_with)
 
 
 if __name__ == "__main__":
