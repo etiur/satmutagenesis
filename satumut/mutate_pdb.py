@@ -94,7 +94,6 @@ class Mutagenesis:
         elif conservative and not mut:
             self.residues = self.mutation_library(conservative)
 
-
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
         Mutate the wild type residue to a new residue
@@ -119,6 +118,14 @@ class Mutagenesis:
         self.model.replace_residue(residue, new_r)
     
     def mutation_library(self, library=1):
+        """
+        Determines how conservative should be the mutations
+
+        Parameters
+        ___________
+        library: int
+            Choose between 1 and 2 to configure how conservative should be the mutations
+        """
         aa = self._invert_aa[self.aa_init_resname]
         matrix = mat.blosum62
         matrix = {k:v for k,v in matrix.items() if "X" not in k and "B" not in k and "Z" not in k}
@@ -131,8 +138,7 @@ class Mutagenesis:
             reduced_dict = {k:v for k, v in new_dict.items() if v >= -1}
 
         return reduced_dict.keys()
-    
-    
+
     def _check_coords(self):
         """
         map the user coordinates with pmx coordinates
