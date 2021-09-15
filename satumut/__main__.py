@@ -109,6 +109,8 @@ def parse_args():
                         choices=('ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN',
                                  'GLN', 'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR'),
                         help="The aminoacid in 3 letter code")
+    parser.add_argument("-cst", "--conservative", required=False, choices=(1, 2), default=None, type=int,
+                        help="How conservative should the mutations be, choises are 1 and 2")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -117,7 +119,7 @@ def parse_args():
             args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
             args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
             args.template, args.skip, args.rotamers, args.equilibration, args.log, args.cpus_per_task, args.improve,
-            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius, args.mutation]
+            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius, args.mutation, args.conservative]
 
 
 class CreateSlurmFiles:
@@ -131,7 +133,7 @@ class CreateSlurmFiles:
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
                  equilibration=True, log=False, cpt=None, improve="R", turn=None, energy_thres=None, QM=None,
-                 dihedral=None, box_radius=None, mut=None):
+                 dihedral=None, box_radius=None, mut=None, conservative=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -223,6 +225,8 @@ class CreateSlurmFiles:
             The radius of the exploration box
         mut: list[str], optional
             The list of mutations to perform
+        conservative: int, optional
+            How conservative should be the mutations according to Blossum62
         """
 
         self.input = input_
@@ -299,6 +303,10 @@ class CreateSlurmFiles:
             self.mut = " ".join(mut)
         else:
             self.mut = None
+        if conservative:
+            self.conservative = conservative
+        else:
+            self.conservative = None
 
     def _size(self):
         """
@@ -422,6 +430,8 @@ class CreateSlurmFiles:
                 argument_list.append("-tu {} ".format(self.turn))
             if self.energy_thres:
                 argument_list.append("-en {} ".format(self.energy_thres))
+            if self.conservative:
+                argument_list.append("-cst {} ".format(self.conservative))
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
@@ -541,6 +551,8 @@ class CreateSlurmFiles:
                 argument_list.append("-tu {} ".format(self.turn))
             if self.energy_thres:
                 argument_list.append("-en {} ".format(self.energy_thres))
+            if self.conservative:
+                argument_list.append("-cst {} ".format(self.conservative))
             all_arguments = "".join(argument_list)
             python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
                 all_arguments)
@@ -555,7 +567,7 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
-    rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut = parse_args()
+    rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut, conservative= parse_args()
 
     if dir_ and len(input_) > 1:
         dir_ = None
@@ -564,7 +576,7 @@ def main():
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
                                fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
-                               equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut)
+                               equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut, conservative)
         if not nord:
             slurm = run.slurm_creation()
         else:
@@ -572,7 +584,8 @@ def main():
         if sbatch and not nord:
             call(["sbatch", "{}".format(slurm)])
         if sbatch and nord:
-            call(["bsub", ">", "{}".format(slurm)])
+            call(["bsub", "<", "{}".format(slurm)])
+
 
 if __name__ == "__main__":
     # Run this if this file is executed from command line but not if is imported as API
