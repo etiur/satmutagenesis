@@ -51,7 +51,8 @@ class Mutagenesis:
     """
     To perform mutations on PDB files
     """
-    def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None, mut=None, conservative=None):
+    def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None, mut=None,
+                 conservative=None):
         """
         Initialize the Mutagenesis object
 
@@ -69,6 +70,8 @@ class Mutagenesis:
             The round of plurizyme generation
         mut: list[str], optional
             A list of specific mutations
+        conservative: int, optional
+            How conservative should be the mutations according to Blossum62
         """
         self.model = Model(model)
         self.input = model
@@ -324,6 +327,9 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         The round of plurizymer generation
     mut: list[str]
         A list of mutations to perform
+    conservative: int, optional
+        How conservative should be the mutations according to Blossum62
+
     Returns
     ________
     pdbs: list[paths]
@@ -365,7 +371,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
 
 def main():
     input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut, conservative = parse_args()
-    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut, conservative)
+    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut,
+                                conservative)
 
     return output
 

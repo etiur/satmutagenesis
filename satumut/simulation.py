@@ -291,6 +291,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         The radius of the exploration box
     mut: list[str]
         The list of mutations to perform
+    conservative: int, optional
+        How conservative should be the mutations according to Blossum62
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()

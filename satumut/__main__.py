@@ -225,16 +225,18 @@ class CreateSlurmFiles:
             The radius of the exploration box
         mut: list[str], optional
             The list of mutations to perform
+        conservative: int, optional
+            How conservative should be the mutations according to Blossum62
         """
 
         self.input = input_
         self.ligchain = ligchain
         self.ligname = ligname
         if atoms:
-	  assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
-	  self.atoms = " ".join(atoms)
-	else:
-	  self.atoms = None
+            assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
+            self.atoms = " ".join(atoms)
+        else:
+            self.atoms = None
         self.cpus = cpus_mutant
         self.test = test
         self.slurm = None
@@ -353,7 +355,7 @@ class CreateSlurmFiles:
             arguments = "-i {} -lc {} -ln {} ".format(self.input, self.ligchain, self.ligname)
             argument_list.append(arguments)
             if self.atoms:
-		argument_list.append("-at {} ".format(self.atoms))
+                argument_list.append("-at {} ".format(self.atoms))
             if self.position:
                 argument_list.append("-p {} ".format(self.position))
             if self.seed != 12345:
@@ -474,7 +476,7 @@ class CreateSlurmFiles:
             arguments = "-i {} -lc {} -ln {} ".format(self.input, self.ligchain, self.ligname)
             argument_list.append(arguments)
             if self.atoms:
-		argument_list.append("-at {} ".format(self.atoms))
+                argument_list.append("-at {} ".format(self.atoms))
             if self.position:
                 argument_list.append("-p {} ".format(self.position))
             if self.seed != 12345:
@@ -582,7 +584,7 @@ def main():
         if sbatch and not nord:
             call(["sbatch", "{}".format(slurm)])
         if sbatch and nord:
-	    call(["bsub", "<", "{}".format(slurm)])
+            call(["bsub", "<", "{}".format(slurm)])
 
 
 if __name__ == "__main__":
