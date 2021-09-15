@@ -12,6 +12,7 @@ from pmx.rotamer import get_rotamers, select_best_rotamer
 from os.path import basename
 from multiprocessing import Process
 from helper import Log
+from Bio.SubsMat import MatrixInfo as mat
 
 
 # Argument parsers
@@ -38,17 +39,20 @@ def parse_args():
                         choices=('ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN',
                                  'GLN', 'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR'),
                         help="The aminoacid in 3 letter code")
+    parser.add_argument("-cst", "--conservative", required=False, choices=(1, 2), default=None, type=int,
+                        help="How conservative should the mutations be, choises are 1 and 2")
 
     args = parser.parse_args()
     return [args.input, args.position, args.hydrogen, args.multiple, args.pdb_dir, args.consec, args.single_mutagenesis,
-            args.turn, args.mutation]
+            args.turn, args.mutation, args.conservative]
 
 
 class Mutagenesis:
     """
     To perform mutations on PDB files
     """
-    def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None, mut=None):
+    def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None, mut=None,
+                 conservative=None):
         """
         Initialize the Mutagenesis object
 
@@ -66,16 +70,13 @@ class Mutagenesis:
             The round of plurizyme generation
         mut: list[str], optional
             A list of specific mutations
+        conservative: int, optional
+            How conservative should be the mutations according to Blossum62
         """
         self.model = Model(model)
         self.input = model
         self.coords = position
         self.rotamers = load_bbdep()
-        if not mut:
-            self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
-                         'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
-        else:
-            self.residues = mut
         self.final_pdbs = []
         self.position = None
         self._invert_aa = {v: k for k, v in _aacids_ext_amber.items()}
@@ -86,7 +87,15 @@ class Mutagenesis:
         self.log = Log("mutate_errors")
         self.single = single
         self.turn = turn
-
+        self._check_coords()
+        self.aa_init_resname = self.model.residues[self.position].resname
+        if not mut and not conservative:
+            self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
+                         'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
+        elif mut and not conservative:
+            self.residues = mut
+        elif conservative and not mut:
+            self.residues = self.mutation_library(conservative)
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
@@ -110,6 +119,28 @@ class Mutagenesis:
         rotamers = get_rotamers(bbdep, new_aa, phi, psi, residue=residue, full=True, hydrogens=hydrogens)
         new_r = select_best_rotamer(self.model, rotamers)
         self.model.replace_residue(residue, new_r)
+    
+    def mutation_library(self, library=1):
+        """
+        Determines how conservative should be the mutations
+
+        Parameters
+        ___________
+        library: int
+            Choose between 1 and 2 to configure how conservative should be the mutations
+        """
+        aa = self._invert_aa[self.aa_init_resname]
+        matrix = mat.blosum62
+        matrix = {k:v for k,v in matrix.items() if "X" not in k and "B" not in k and "Z" not in k}
+        blosum = [key for key in matrix.keys() if aa in key and key.count(aa) < 2]
+        value = [matrix[x] for x in blosum]
+        new_dict = dict(zip([_aacids_ext_amber[x[1]] if x[0] == aa else _aacids_ext_amber[x[0]] for x in blosum], value))
+        if library == 1:
+            reduced_dict = {k:v for k, v in new_dict.items() if v >= 0}
+        elif library == 2:
+            reduced_dict = {k:v for k, v in new_dict.items() if v >= -1}
+
+        return reduced_dict.keys()
 
     def _check_coords(self):
         """
@@ -155,11 +186,9 @@ class Mutagenesis:
          final_pdbs: list[path]
             A list of the new files
         """
-        self._check_coords()
-        aa_init_resname = self.model.residues[self.position].resname
-        aa_name = self._invert_aa[aa_init_resname]
+        aa_name = self._invert_aa[self.aa_init_resname]
         for new_aa in self.residues:
-            if new_aa != aa_init_resname:
+            if new_aa != self.aa_init_resname:
                 try:
                     self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
                 except KeyError:
@@ -193,9 +222,7 @@ class Mutagenesis:
         file_: str
             The name of the new pdb file
         """
-        self._check_coords()
-        aa_init_resname = self.model.residues[self.position].resname
-        aa_name = self._invert_aa[aa_init_resname]
+        aa_name = self._invert_aa[self.aa_init_resname]
         try:
             self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
         except KeyError:
@@ -276,7 +303,7 @@ class Mutagenesis:
 
 
 def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False,
-                       single=None, turn=None, mut=None):
+                       single=None, turn=None, mut=None, conservative=None):
     """
     To generate up to 2 mutations per pdb
 
@@ -300,6 +327,9 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         The round of plurizymer generation
     mut: list[str]
         A list of mutations to perform
+    conservative: int, optional
+        How conservative should be the mutations according to Blossum62
+
     Returns
     ________
     pdbs: list[paths]
@@ -309,7 +339,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     # Perform single saturated mutations
     count = 0
     for mutation in position:
-        run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut)
+        run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative)
         if single:
             # If the single_mutagenesis flag is used, execute this
             single = single.upper()
@@ -340,8 +370,9 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
 
 
 def main():
-    input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut = parse_args()
-    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut)
+    input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut, conservative = parse_args()
+    output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut,
+                                conservative)
 
     return output
 

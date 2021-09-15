@@ -105,6 +105,8 @@ def parse_args():
                         choices=('ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN',
                                  'GLN', 'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR'),
                         help="The aminoacid in 3 letter code")
+    parser.add_argument("-cst", "--conservative", required=False, choices=(1, 2), default=None, type=int,
+                        help="How conservative should the mutations be, choises are 1 and 2")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
@@ -114,7 +116,7 @@ def parse_args():
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
             args.skip, args.rotamers, args.equilibration, args.log, args.improve,
             args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.adaptive_restart, args.box_radius,
-            args.mutation]
+            args.mutation, args.conservative]
 
 
 class SimulationRunner:
@@ -201,7 +203,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, improve="R",
                          energy_threshold=None, QM=None, dihedral=None, adaptive_restart=False, box_radius=None,
-                         mut=None):
+                         mut=None, conservative=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -289,6 +291,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         The radius of the exploration box
     mut: list[str]
         The list of mutations to perform
+    conservative: int, optional
+        How conservative should be the mutations according to Blossum62
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -296,7 +300,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     if not restart and not adaptive_restart:
         pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
-                                       consec=consec, mut=mut)
+                                       consec=consec, mut=mut, conservative=conservative)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
                                skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, QM=QM,
@@ -411,7 +415,7 @@ def main():
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
     skip, rotamers, equilibration, log, improve, turn, energy_thres, QM, dihedral, adaptive_restart,\
-    box_radius, mut = parse_args()
+    box_radius, mut, conservative = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
