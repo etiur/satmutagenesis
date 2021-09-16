@@ -355,7 +355,7 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
                      palette="muted", data=cat, height=3.5, aspect=1.5, linewidth=0)
 
-    ax.set(title="{} scatter plot of binding energy vs {} ".format(key, type_))
+    ax.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
     ax.savefig("{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, type_,
                                                                  key, type_), dpi=dpi)
     plt.close(ax.fig)
@@ -412,7 +412,7 @@ def all_profiles(res_dir, data_dict, position_num, dpi=800, mode="results", prof
     else:
         types = ["distance0.5", "sasaLig", "Binding Energy"]
     for type_ in types:
-        pele_profiles(type_, res_dir, data_dict, position_num, dpi, mode=mode)
+        pele_profiles(type_, res_dir, data_dict, position_num, dpi, mode=mode, profile_with=profile_with)
 
 
 def extract_snapshot_xtc(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind):
@@ -566,7 +566,8 @@ def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, function=None):
     p.terminate()
 
 
-def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5, mode="results"):
+def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5, mode="results",
+                  profile_with="Binding Energy"):
     """
     Create pdf files with the plots of chosen mutations and the path to the
 
@@ -655,8 +656,12 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         plot1 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "distance0.5", mut,
                                                              "distance0.5")
         plot2 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "sasaLig", mut, "sasaLig")
-        plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "currentEnergy", mut,
-                                                             "currentEnergy")
+        if profile_with == "Binding Energy":
+            plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "currentEnergy", mut,
+                                                                 "currentEnergy")
+        else:
+            plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "Binding Energy", mut,
+                                                                 "Binding Energy")
         pdf.image(plot1, w=180)
         pdf.ln(3)
         pdf.image(plot2, w=180)
@@ -682,7 +687,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
 
 
 def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=0.0,
-                       cata_dist=3.5, mode="results", energy_thres=None):
+                       cata_dist=3.5, mode="results", energy_thres=None, profile_with="Binding Energy"):
     """
     Finds those mutations that decreases the binding distance and binding energy and creates a report
 
@@ -727,7 +732,8 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
             "{} mutations at position {} decrease {} by {} or less "
             "when catalytic distance {} and binding energy {}".format(count, position_num,analysis, thres, cata_dist,
                                                                    energy_thres))
-        create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, mode=mode)
+        create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, mode=mode,
+                      profile_with=profile_with)
     else:
         log.warning("No mutations at position {} decrease {} by {} or less "
                     "when catalytic distance {} and binding energy {}".format(position_num, analysis, thres, cata_dist,
@@ -794,7 +800,7 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
         find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
-                           energy_thres=energy_thres)
+                           energy_thres=energy_thres, profile_with=profile_with)
 
 
 def main():

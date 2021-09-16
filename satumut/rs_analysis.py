@@ -625,7 +625,8 @@ def extract_10_pdb_single_rs(info, res_dir, data_dict, xtc=False):
                                     orientation, angle)
 
 
-def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5, improve="R"):
+def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5, improve="R",
+                  profile_with="Binding Energy"):
     """
     Create pdf files with the plots of chosen mutations and the path to the
 
@@ -715,8 +716,12 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         plot1 = "{}_RS/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "distance0.5", mut,
                                                              "distance0.5")
         plot2 = "{}_RS/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "sasaLig", mut, "sasaLig")
-        plot3 = "{}_RS/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", mut,
-                                                             "currentEnergy")
+        if profile_with == "Binding Energy":
+            plot3 = "{}_RS/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "currentEnergy", mut,
+                                                                 "currentEnergy")
+        else:
+            plot3 = "{}_RS/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, position_num, "Binding Energy", mut,
+                                                                 "Binding Energy")
         pdf.image(plot1, w=180)
         pdf.ln(3)
         pdf.image(plot2, w=180)
@@ -742,7 +747,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
 
 
 def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=0.0,
-                       cata_dist=3.5, improve="R", energy=None):
+                       cata_dist=3.5, improve="R", energy=None, profile_with="Binding Energy"):
     """
     Finds those mutations that decreases the binding distance and binding energy and creates a report
 
@@ -787,7 +792,7 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
             "{} mutations at position {} decrease {} {} by {} or less"
             "when catalytic distance {} and binding energy {}".format(count, position_num, improve, analysis, thres,
                                                                       cata_dist, energy))
-        create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, improve)
+        create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, improve, profile_with)
     else:
         log.warning("No mutations at position {} decrease {} {} by {} or less"
                     "when catalytic distance {} and binding energy {}".format(position_num, improve, analysis, thres,
@@ -859,7 +864,7 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS", profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, function=extract_10_pdb_single_rs)
         find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
-                           improve=improve, energy=energy)
+                           improve=improve, energy=energy, profile_with=profile_with)
 
 
 def main():
