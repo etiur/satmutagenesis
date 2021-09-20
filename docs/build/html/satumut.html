@@ -166,11 +166,11 @@
 <p>This script is used to analyse the results of the simulations</p>
 <dl class="class">
 <dt id="satumut.analysis.SimulationData">
-<em class="property">class </em><code class="descclassname">satumut.analysis.</code><code class="descname">SimulationData</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em>, <em>catalytic_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">satumut.analysis.</code><code class="descname">SimulationData</code><span class="sig-paren">(</span><em>folder</em>, <em>pdb=10</em>, <em>catalytic_dist=3.5</em>, <em>extract=None</em>, <em>energy_thres=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class to store data from the simulations</p>
 <dl class="method">
 <dt id="satumut.analysis.SimulationData.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>folder</em>, <em>points=30</em>, <em>pdb=10</em>, <em>catalytic_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>folder</em>, <em>pdb=10</em>, <em>catalytic_dist=3.5</em>, <em>extract=None</em>, <em>energy_thres=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the SimulationData Object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -180,6 +180,8 @@
 <li><strong>folder</strong> (<em>str</em>) – path to the simulation folder</li>
 <li><strong>points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points to consider for the boxplots</li>
 <li><strong>pdb</strong> (<em>int</em><em>, </em><em>optional</em>) – how many pdbs to extract from the trajectories</li>
+<li><strong>extract</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of steps to analyse</li>
+<li><strong>energy_thres</strong> (<em>int</em><em>, </em><em>optional</em>) – The binding energy to consider for catalytic poses</li>
 </ul>
 </td>
 </tr>
@@ -190,13 +192,12 @@
 <dl class="method">
 <dt id="satumut.analysis.SimulationData.filtering">
 <code class="descname">filtering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.filtering" title="Permalink to this definition">¶</a></dt>
-<dd><p>Constructs a dataframe from all the reports in a PELE simulation folder with the best 20% binding energies
-and a Series with the 100 best ligand distances</p>
+<dd><p>Constructs a dataframe from all the reports in a PELE simulation folder</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="satumut.analysis.SimulationData.set_binding">
-<code class="descname">set_binding</code><span class="sig-paren">(</span><em>original_binding</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.set_binding" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_binding</code><span class="sig-paren">(</span><em>ori_binding</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.set_binding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the binding energy difference</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -210,27 +211,13 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="method">
 <dt id="satumut.analysis.SimulationData.set_distance">
-<code class="descname">set_distance</code><span class="sig-paren">(</span><em>original_distance</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.set_distance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the distance difference</p>
+<code class="descname">set_distance</code><span class="sig-paren">(</span><em>ori_distance</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.set_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the distance difference with the mean</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>original_distance</strong> (<em>int</em>) – The distrance for the wild type</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="satumut.analysis.SimulationData.set_len">
-<code class="descname">set_len</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.SimulationData.set_len" title="Permalink to this definition">¶</a></dt>
-<dd><p>sets the difference in frequency</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> (<em>int</em>) – The frequency of catalytic poses</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>original_distance</strong> (<em>int</em>) – The distance for the wild type</td>
 </tr>
 </tbody>
 </table>
@@ -240,7 +227,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.all_profiles">
-<code class="descclassname">satumut.analysis.</code><code class="descname">all_profiles</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.all_profiles" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">all_profiles</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em>, <em>mode='results'</em>, <em>profile_with='Binding Energy'</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.all_profiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates all the possible scatter plots for the same mutated position</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -251,6 +238,8 @@ and a Series with the 100 best ligand distances</p>
 <li><strong>data_dict</strong> (<em>dict</em>) – A dictionary that contains SimulationData objects from the simulation folders</li>
 <li><strong>position_num</strong> (<em>str</em>) – name for the folders where you want the scatter plot go in</li>
 <li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Quality of the plots</li>
+<li><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the results folder, if results then activity mode if RS then rs mode</li>
+<li><strong>profile_with</strong> (<em>str</em><em>, </em><em>optional</em>) – The metric to generate the pele profiles with</li>
 </ul>
 </td>
 </tr>
@@ -260,7 +249,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.analyse_all">
-<code class="descclassname">satumut.analysis.</code><code class="descname">analyse_all</code><span class="sig-paren">(</span><em>folders</em>, <em>wild</em>, <em>box=30</em>, <em>traj=10</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.analyse_all" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">analyse_all</code><span class="sig-paren">(</span><em>folders</em>, <em>wild</em>, <em>res_dir</em>, <em>position_num</em>, <em>traj=10</em>, <em>cata_dist=3.5</em>, <em>extract=None</em>, <em>energy_thres=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.analyse_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analyse all the 19 simulations folders and build SimulationData objects for each of them</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -269,9 +258,12 @@ and a Series with the 100 best ligand distances</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>folders</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of paths to the different reports to be analyzed</li>
 <li><strong>wild</strong> (<em>str</em>) – Path to the simulations of the wild type</li>
-<li><strong>box</strong> (<em>int</em><em>, </em><em>optional</em>) – How many points to use for the box plots</li>
+<li><strong>res_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – The directory where the results will be kept</li>
+<li><strong>position_num</strong> (<em>str</em>) – Position at the which the mutations occurred</li>
 <li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – How many snapshots to extract from the trajectories</li>
 <li><strong>cata_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – The catalytic distance</li>
+<li><strong>extract</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of steps to analyse</li>
+<li><strong>energy_thres</strong> (<em>int</em><em>, </em><em>optional</em>) – The binding energy to consider for catalytic poses</li>
 </ul>
 </td>
 </tr>
@@ -287,7 +279,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.box_plot">
-<code class="descclassname">satumut.analysis.</code><code class="descname">box_plot</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.box_plot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">box_plot</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.box_plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a box plot of the 19 mutations from the same position</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -307,15 +299,16 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.consecutive_analysis">
-<code class="descclassname">satumut.analysis.</code><code class="descname">consecutive_analysis</code><span class="sig-paren">(</span><em>file_name</em>, <em>wild</em>, <em>dpi=800</em>, <em>box=30</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>cpus=10</em>, <em>thres=-0.1</em>, <em>cata_dist=3.5</em>, <em>xtc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.consecutive_analysis" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">consecutive_analysis</code><span class="sig-paren">(</span><em>file_name</em>, <em>wild=None</em>, <em>dpi=800</em>, <em>traj=10</em>, <em>output='summary'</em>, <em>plot_dir=None</em>, <em>opt='distance'</em>, <em>cpus=10</em>, <em>thres=0.0</em>, <em>cata_dist=3.5</em>, <em>xtc=False</em>, <em>extract=None</em>, <em>energy_thres=None</em>, <em>profile_with='Binding Energy'</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.consecutive_analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates all the plots for the different mutated positions</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>file_name</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – An iterable that contains the path to the reports of the different simulations</li>
-<li><strong>wild</strong> (<em>str</em>) – The path to the wild type simulation</li>
+<li><strong>file_name</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>str</em>) – An iterable that contains the path to the reports of the different simulations or the path to the directory
+where the simulations are</li>
+<li><strong>wild</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the wild type simulation</li>
 <li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – The quality of the plots</li>
 <li><strong>box</strong> (<em>int</em><em>, </em><em>optional</em>) – how many points are used for the box plots</li>
 <li><strong>traj</strong> (<em>int</em><em>, </em><em>optional</em>) – how many top pdbs are extracted from the trajectories</li>
@@ -326,6 +319,9 @@ and a Series with the 100 best ligand distances</p>
 <li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – The threshold for the mutations to be included in the pdf</li>
 <li><strong>cata_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – The catalytic distance</li>
 <li><strong>xtc</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set to true if the pdb is in xtc format</li>
+<li><strong>extract</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of steps to analyse</li>
+<li><strong>energy_thres</strong> (<em>int</em><em>, </em><em>optional</em>) – The binding energy to consider for catalytic poses</li>
+<li><strong>profile_with</strong> (<em>str</em><em>, </em><em>optional</em>) – The metric to generate the pele profiles with</li>
 </ul>
 </td>
 </tr>
@@ -335,7 +331,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.create_report">
-<code class="descclassname">satumut.analysis.</code><code class="descname">create_report</code><span class="sig-paren">(</span><em>res_dir</em>, <em>mutation</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.create_report" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">create_report</code><span class="sig-paren">(</span><em>res_dir</em>, <em>mutation</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>cata_dist=3.5</em>, <em>mode='results'</em>, <em>profile_with='Binding Energy'</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.create_report" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create pdf files with the plots of chosen mutations and the path to the</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -383,7 +379,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.extract_all">
-<code class="descclassname">satumut.analysis.</code><code class="descname">extract_all</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>folders</em>, <em>cpus=10</em>, <em>xtc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.extract_all" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">extract_all</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>folders</em>, <em>cpus=10</em>, <em>xtc=False</em>, <em>function=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.extract_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts the top 10 distances for the 19 mutations at the same position</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -395,6 +391,7 @@ and a Series with the 100 best ligand distances</p>
 <li><strong>folders</strong> (<em>str</em>) – Path to the folder that has all the simulations at the same position</li>
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – How many cpus to paralelize the function</li>
 <li><strong>xtc</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set to true if the pdb is in xtc format</li>
+<li><strong>function</strong> (<em>function</em>) – a extract pdb function</li>
 </ul>
 </td>
 </tr>
@@ -452,7 +449,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.find_top_mutations">
-<code class="descclassname">satumut.analysis.</code><code class="descname">find_top_mutations</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>thres=-0.1</em>, <em>cata_dist=3.5</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.find_top_mutations" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">find_top_mutations</code><span class="sig-paren">(</span><em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>output='summary'</em>, <em>analysis='distance'</em>, <em>thres=0.0</em>, <em>cata_dist=3.5</em>, <em>mode='results'</em>, <em>energy_thres=None</em>, <em>profile_with='Binding Energy'</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.find_top_mutations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds those mutations that decreases the binding distance and binding energy and creates a report</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -466,6 +463,7 @@ and a Series with the 100 best ligand distances</p>
 <li><strong>analysis</strong> (<em>str</em><em>, </em><em>optional</em>) – Choose between (“distance”, “binding” or “all”) to specify how to filter the mutations to keep</li>
 <li><strong>thres</strong> (<em>float</em><em>, </em><em>optional</em>) – Set the threshold for those mutations to be included in the pdf</li>
 <li><strong>cata_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – The catalytic distance</li>
+<li><strong>energy_thres</strong> (<em>int</em><em>, </em><em>optional</em>) – The binding energy to consider for catalytic poses</li>
 </ul>
 </td>
 </tr>
@@ -475,7 +473,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.pele_profile_single">
-<code class="descclassname">satumut.analysis.</code><code class="descname">pele_profile_single</code><span class="sig-paren">(</span><em>key</em>, <em>mutation</em>, <em>res_dir</em>, <em>wild</em>, <em>type_</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.pele_profile_single" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">pele_profile_single</code><span class="sig-paren">(</span><em>key</em>, <em>mutation</em>, <em>res_dir</em>, <em>wild</em>, <em>type_</em>, <em>position_num</em>, <em>dpi=800</em>, <em>mode='results'</em>, <em>profile_with='Binding Energy'</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.pele_profile_single" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a plot for a single mutation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -489,6 +487,7 @@ and a Series with the 100 best ligand distances</p>
 <li><strong>type</strong> (<em>str</em>) – Type of scatter plot - distance0.5, sasaLig or currentEnergy</li>
 <li><strong>position_num</strong> (<em>str</em>) – name for the folder to keep the images from the different mutations</li>
 <li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Quality of the plots</li>
+<li><strong>profile_with</strong> (<em>str</em><em>, </em><em>optional</em>) – The metric to generate the pele profiles with</li>
 </ul>
 </td>
 </tr>
@@ -498,7 +497,7 @@ and a Series with the 100 best ligand distances</p>
 
 <dl class="function">
 <dt id="satumut.analysis.pele_profiles">
-<code class="descclassname">satumut.analysis.</code><code class="descname">pele_profiles</code><span class="sig-paren">(</span><em>type_</em>, <em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.pele_profiles" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.analysis.</code><code class="descname">pele_profiles</code><span class="sig-paren">(</span><em>type_</em>, <em>res_dir</em>, <em>data_dict</em>, <em>position_num</em>, <em>dpi=800</em>, <em>mode='results'</em>, <em>profile_with='Binding Energy'</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.analysis.pele_profiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -510,6 +509,8 @@ and a Series with the 100 best ligand distances</p>
 <li><strong>data_dict</strong> (<em>dict</em>) – A dictionary that contains SimulationData objects from the 19 simulation folders</li>
 <li><strong>position_num</strong> (<em>str</em>) – Name for the folders where you want the scatter plot go in</li>
 <li><strong>dpi</strong> (<em>int</em><em>, </em><em>optional</em>) – Quality of the plots</li>
+<li><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the results folder, if results then activity mode if RS then rs mode</li>
+<li><strong>profile_with</strong> (<em>str</em><em>, </em><em>optional</em>) – The metric to generate the pele profiles with</li>
 </ul>
 </td>
 </tr>
@@ -650,6 +651,26 @@ and a Series with the 100 best ligand distances</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="satumut.helper.find_log">
+<code class="descclassname">satumut.helper.</code><code class="descname">find_log</code><span class="sig-paren">(</span><em>folder_name</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.find_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the completed log file and gets the path of the different mutations
+:param folder_name: The name of the folder where the simulations are
+:type folder_name: str</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>original</strong> (<em>str</em>) – Path to the wild type</li>
+<li><strong>folder</strong> (<em>list[str]</em>) – A list of the path to the different mutants</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="satumut.helper.isiterable">
 <code class="descclassname">satumut.helper.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>p_object</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.isiterable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test if the parameter is an iterable (not a string or a dict) or a file</p>
@@ -719,6 +740,31 @@ in a PDB file.</p>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="satumut.helper.weighted_median">
+<code class="descclassname">satumut.helper.</code><code class="descname">weighted_median</code><span class="sig-paren">(</span><em>df</em>, <em>val</em>, <em>weight</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.helper.weighted_median" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the weighted median of a pandas dataframe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>df</strong> (<em>Dataframe object</em>) – Pandas dataframe</li>
+<li><strong>val</strong> (<em>str</em>) – The column name for the values</li>
+<li><strong>weight</strong> (<em>str</em>) – The column name of the weights</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>df</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Dataframe object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="satumut-mutate-pdb-module">
 <h2>satumut.mutate_pdb module<a class="headerlink" href="#satumut-mutate-pdb-module" title="Permalink to this headline">¶</a></h2>
@@ -728,23 +774,22 @@ in a PDB file.</p>
 <p>This script is used to generate the yaml files for pele platform</p>
 <dl class="class">
 <dt id="satumut.pele_files.CreateYamlFiles">
-<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em>, <em>template=None</em>, <em>skip=None</em>, <em>rotamers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">satumut.pele_files.</code><code class="descname">CreateYamlFiles</code><span class="sig-paren">(</span><em>mutant_list</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms=None</em>, <em>cpus=25</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em>, <em>template=None</em>, <em>skip=None</em>, <em>rotamers=None</em>, <em>equilibration=True</em>, <em>log=False</em>, <em>consec=False</em>, <em>turn=None</em>, <em>input_pdb=None</em>, <em>QM=None</em>, <em>box_radius=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the 2 necessary files for the pele simulations</p>
 <dl class="method">
 <dt id="satumut.pele_files.CreateYamlFiles.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_path</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em>, <em>template=None</em>, <em>skip=None</em>, <em>rotamers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>mutant_list</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms=None</em>, <em>cpus=25</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em>, <em>template=None</em>, <em>skip=None</em>, <em>rotamers=None</em>, <em>equilibration=True</em>, <em>log=False</em>, <em>consec=False</em>, <em>turn=None</em>, <em>input_pdb=None</em>, <em>QM=None</em>, <em>box_radius=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the CreateLaunchFiles object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_path</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – A list of the path to the mutant pdbs</li>
+<li><strong>mutant_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – A list of the path to the mutant pdbs</li>
 <li><strong>ligchain</strong> (<em>str</em>) – the chain ID where the ligand is located</li>
 <li><strong>ligname</strong> (<em>str</em>) – the residue name of the ligand in the PDB</li>
 <li><strong>atoms</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – list of atom of the residue to follow, in this format –&gt; chain ID:position:atom name</li>
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – How many cpus do you want to use</li>
-<li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
 <li><strong>initial</strong> (<em>file</em><em>, </em><em>optional</em>) – The initial PDB file before the modification by pmx</li>
 <li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are metals with more than 2 charges (positive or negative) in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
@@ -758,6 +803,12 @@ in a PDB file.</p>
 <li><strong>template</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to the external forcefield templates</li>
 <li><strong>skip</strong> (<em>str</em><em>, </em><em>optional</em>) – Skip the processing of ligands by PlopRotTemp</li>
 <li><strong>rotamers</strong> (<em>str: optional</em>) – Path to the external rotamers</li>
+<li><strong>equilibration</strong> (<em>bool</em><em>, </em><em>optional</em>) – True to include equilibration step before PELE</li>
+<li><strong>log</strong> (<em>bool</em><em>, </em><em>optional</em>) – True to write log files about pele</li>
+<li><strong>round</strong> (<em>int</em><em>, </em><em>optional</em>) – The round of plurizymer generation</li>
+<li><strong>input_pdb</strong> (<em>str</em><em>, </em><em>optional</em>) – The pdb file used as input</li>
+<li><strong>QM</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to the Qm charges</li>
+<li><strong>box_radius</strong> (<em>int</em><em>, </em><em>optional</em>) – The radius of the exploration box</li>
 </ul>
 </td>
 </tr>
@@ -766,16 +817,22 @@ in a PDB file.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="satumut.pele_files.CreateYamlFiles.input_creation">
-<code class="descname">input_creation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.input_creation" title="Permalink to this definition">¶</a></dt>
-<dd><p>create the .yaml input files for PELE</p>
+<dt id="satumut.pele_files.CreateYamlFiles.yaml_creation">
+<code class="descname">yaml_creation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.yaml_creation" title="Permalink to this definition">¶</a></dt>
+<dd><p>create the .yaml files for PELE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="satumut.pele_files.CreateYamlFiles.yaml_file">
+<code class="descname">yaml_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.CreateYamlFiles.yaml_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generating the corresponding yaml files for each of the mutation rounds</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="satumut.pele_files.create_20sbatch">
-<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>pdb_files</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>test=False</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em>, <em>template=None</em>, <em>skip=None</em>, <em>rotamers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">satumut.pele_files.</code><code class="descname">create_20sbatch</code><span class="sig-paren">(</span><em>pdb_files</em>, <em>ligchain</em>, <em>ligname</em>, <em>atoms</em>, <em>cpus=25</em>, <em>initial=None</em>, <em>cu=False</em>, <em>seed=12345</em>, <em>nord=False</em>, <em>steps=1000</em>, <em>single=None</em>, <em>factor=None</em>, <em>total_cpus=None</em>, <em>xtc=False</em>, <em>template=None</em>, <em>skip=None</em>, <em>rotamers=None</em>, <em>equilibration=True</em>, <em>log=False</em>, <em>consec=False</em>, <em>turn=None</em>, <em>input_pdb=None</em>, <em>QM=None</em>, <em>box_radius=None</em><span class="sig-paren">)</span><a class="headerlink" href="#satumut.pele_files.create_20sbatch" title="Permalink to this definition">¶</a></dt>
 <dd><p>creates for each of the mutants the yaml and slurm files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -787,7 +844,6 @@ in a PDB file.</p>
 <li><strong>ligname</strong> (<em>str</em>) – the residue name of the ligand in the PDB</li>
 <li><strong>atoms</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – list of atom of the residue to follow, in this format –&gt; chain ID:position:atom name</li>
 <li><strong>cpus</strong> (<em>int</em><em>, </em><em>optional</em>) – how many cpus do you want to use</li>
-<li><strong>test</strong> (<em>bool</em><em>, </em><em>optional</em>) – Setting the simulation to test mode</li>
 <li><strong>initial</strong> (<em>file</em><em>, </em><em>optional</em>) – The initial PDB file before the modification by pmx if the residue number are changed</li>
 <li><strong>cu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set it to true if there are metals in the system in the system</li>
 <li><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – A seed number to make the simulations reproducible</li>
@@ -801,6 +857,13 @@ in a PDB file.</p>
 <li><strong>template</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to the external forcefield templates</li>
 <li><strong>skip</strong> (<em>str</em><em>, </em><em>optional</em>) – Skip the processing of ligands by PlopRotTemp</li>
 <li><strong>rotamers</strong> (<em>str: optional</em>) – Path to the external rotamers</li>
+<li><strong>equilibration</strong> (<em>bool</em><em>, </em><em>default=False</em>) – True to include equilibration steps before the simulations</li>
+<li><strong>log</strong> (<em>bool</em><em>, </em><em>optional</em>) – True to write logs abour PELE steps</li>
+<li><strong>consec</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if it is the second round of mutation</li>
+<li><strong>turn</strong> (<em>int</em><em>, </em><em>optional</em>) – The round of the plurizymer generation</li>
+<li><strong>input_pdb</strong> (<em>str</em><em>, </em><em>optional</em>) – The input pdb file</li>
+<li><strong>QM</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the QM charges</li>
+<li><strong>box_radius</strong> (<em>int</em><em>, </em><em>optional</em>) – The radius of the exploration box</li>
 </ul>
 </td>
 </tr>

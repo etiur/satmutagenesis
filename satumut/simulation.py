@@ -58,7 +58,7 @@ def parse_args():
                         help="Path of the plots folder")
     parser.add_argument("-an", "--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
                         help="The metric to measure the improvement of the system")
-    parser.add_argument("--thres", required=False, default=0.0, type=float,
+    parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-sm", "--single_mutagenesis", required=False,
                         help="Specifiy the name of the residue that you want the "
