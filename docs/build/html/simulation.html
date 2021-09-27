@@ -86,6 +86,8 @@
 <li class="toctree-l1"><a class="reference internal" href="pele_files.html">The creation of yaml files for PELE platform</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Running the PELE simulations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Api_examples.html">The API guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysing the PELE simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rs_analysis.html">Analysing the PELE simulations that includes enantiomers</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="satumut.html">satumut</a></li>
@@ -160,79 +162,123 @@
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: simulation.py <span class="o">[</span>-h<span class="o">]</span> -i INPUT <span class="o">[</span>-p POSITION <span class="o">[</span>POSITION ...<span class="o">]]</span> -lc LIGCHAIN
-                 -ln LIGNAME -at ATOMS <span class="o">[</span>ATOMS ...<span class="o">]</span> <span class="o">[</span>--cpus CPUS<span class="o">]</span> <span class="o">[</span>-po<span class="o">]</span>
-                 <span class="o">[</span>-fa POLARIZATION_FACTOR<span class="o">]</span> <span class="o">[</span>-t<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-m<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-d DIR<span class="o">]</span>
-                 <span class="o">[</span>-pd PDB_DIR<span class="o">]</span> <span class="o">[</span>-hy<span class="o">]</span>
-                 <span class="o">[</span>-co<span class="o">]</span>   <span class="o">[</span>-st STEPS<span class="o">]</span> <span class="o">[</span>--dpi DPI<span class="o">]</span> <span class="o">[</span>--box BOX<span class="o">]</span>
-                 <span class="o">[</span>--traj TRAJ<span class="o">]</span> <span class="o">[</span>--out OUT<span class="o">]</span> <span class="o">[</span>--plot PLOT<span class="o">]</span>
+                 -ln LIGNAME <span class="o">[</span>-at ATOMS <span class="o">[</span>ATOMS ...<span class="o">]]</span>
+                 <span class="o">[</span>-cpm CPUS_PER_MUTANT<span class="o">]</span> <span class="o">[</span>-tcpus TOTAL_CPUS<span class="o">]</span> <span class="o">[</span>-po<span class="o">]</span>
+                 <span class="o">[</span>-fa POLARIZATION_FACTOR<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-m<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-d DIR<span class="o">]</span>
+                 <span class="o">[</span>-pd PDB_DIR<span class="o">]</span> <span class="o">[</span>-hy<span class="o">]</span> <span class="o">[</span>-co<span class="o">]</span> <span class="o">[</span>-st STEPS<span class="o">]</span> <span class="o">[</span>--dpi DPI<span class="o">]</span>
+                 <span class="o">[</span>-tr TRAJECTORY<span class="o">]</span> <span class="o">[</span>--out OUT<span class="o">]</span> <span class="o">[</span>--plot PLOT<span class="o">]</span>
                  <span class="o">[</span>-an <span class="o">{</span>energy,distance,both<span class="o">}]</span> <span class="o">[</span>--thres THRES<span class="o">]</span>
                  <span class="o">[</span>-sm SINGLE_MUTAGENESIS<span class="o">]</span> <span class="o">[</span>-PR PLURIZYME_AT_AND_RES<span class="o">]</span>
-                 <span class="o">[</span>-r RADIUS<span class="o">]</span> <span class="o">[</span>-f FIXED_RESIDS <span class="o">[</span>FIXED_RESIDS ...<span class="o">]]</span> <span class="o">[</span>-pa<span class="o">]</span>
+                 <span class="o">[</span>-r RADIUS<span class="o">]</span> <span class="o">[</span>-f FIXED_RESIDS <span class="o">[</span>FIXED_RESIDS ...<span class="o">]]</span> <span class="o">[</span>-re<span class="o">]</span>
+                 <span class="o">[</span>-are<span class="o">]</span> <span class="o">[</span>-x<span class="o">]</span> <span class="o">[</span>-cd CATALYTIC_DISTANCE<span class="o">]</span>
+                 <span class="o">[</span>-tem TEMPLATE <span class="o">[</span>TEMPLATE ...<span class="o">]]</span> <span class="o">[</span>-sk SKIP <span class="o">[</span>SKIP ...<span class="o">]]</span>
+                 <span class="o">[</span>-rot ROTAMERS <span class="o">[</span>ROTAMERS ...<span class="o">]]</span> <span class="o">[</span>-e<span class="o">]</span> <span class="o">[</span>-l<span class="o">]</span>
+                 <span class="o">[</span>-da DIHEDRAL_ATOMS <span class="o">[</span>DIHEDRAL_ATOMS ...<span class="o">]]</span> <span class="o">[</span>-im <span class="o">{</span>R,S<span class="o">}]</span>
+                 <span class="o">[</span>-tu TURN<span class="o">]</span> <span class="o">[</span>-en ENERGY_THRESHOLD<span class="o">]</span> <span class="o">[</span>--QM QM<span class="o">]</span>
+                 <span class="o">[</span>-br BOX_RADIUS<span class="o">]</span>
+                 <span class="o">[</span>-mut <span class="o">{</span>ALA,CYS,GLU,ASP,GLY,PHE,ILE,HIS,LYS,MET,LEU,ASN,GLN,PRO,SER,ARG,THR,TRP,VAL,TYR<span class="o">}</span> <span class="o">[{</span>ALA,CYS,GLU,ASP,GLY,PHE,ILE,HIS,LYS,MET,LEU,ASN,GLN,PRO,SER,ARG,THR,TRP,VAL,TYR<span class="o">}</span> ...<span class="o">]]</span>
+                 <span class="o">[</span>-cst <span class="o">{</span><span class="m">1</span>,2<span class="o">}]</span> <span class="o">[</span>-pw <span class="o">{</span>Binding Energy,currentEnergy<span class="o">}]</span>
 
 Generate the mutant PDB and the corresponding running files
 
-optional arguments:
-    -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
-    -i INPUT, --input INPUT
-                    Include PDB file<span class="s1">&#39;s path</span>
-<span class="s1">    -p POSITION [POSITION ...], --position POSITION [POSITION ...]</span>
-<span class="s1">                    Include one or more chain IDs and positions -&gt; Chain</span>
-<span class="s1">                    ID:position</span>
-<span class="s1">    -lc LIGCHAIN, --ligchain LIGCHAIN</span>
-<span class="s1">                    Include the chain ID of the ligand</span>
-<span class="s1">    -ln LIGNAME, --ligname LIGNAME</span>
+    optional arguments:
+        -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
+        -i INPUT, --input INPUT
+                        Include PDB file<span class="s1">&#39;s path</span>
+<span class="s1">        -p POSITION [POSITION ...], --position POSITION [POSITION ...]</span>
+<span class="s1">                        Include one or more chain IDs and positions -&gt; Chain</span>
+<span class="s1">                        ID:position</span>
+<span class="s1">        -lc LIGCHAIN, --ligchain LIGCHAIN</span>
+<span class="s1">                        Include the chain ID of the ligand</span>
+<span class="s1">        -ln LIGNAME, --ligname LIGNAME</span>
 <span class="s1">                    The ligand residue name</span>
-<span class="s1">    -at ATOMS [ATOMS ...], --atoms ATOMS [ATOMS ...]</span>
+<span class="s1">        -at ATOMS [ATOMS ...], --atoms ATOMS [ATOMS ...]</span>
 <span class="s1">                    Series of atoms of the residues to follow in this</span>
 <span class="s1">                    format -&gt; chain ID:position:atom name</span>
-<span class="s1">    --cpus CPUS           Include the number of cpus desired</span>
-<span class="s1">    -po, --polarize_metals</span>
-<span class="s1">                        used if there are metals in the system</span>
-<span class="s1">    -fa POLARIZATION_FACTOR, --polarization_factor POLARIZATION_FACTOR</span>
-<span class="s1">                          The number to divide the charges</span>
-<span class="s1">    -t, --test            Used if you want to run a test before</span>
-<span class="s1">    -n, --nord            used if LSF is the utility managing the jobs</span>
-<span class="s1">    -m, --multiple        if you want to mutate 2 residue in the same pdb</span>
-<span class="s1">    -s SEED, --seed SEED  Include the seed number to make the simulation</span>
+<span class="s1">        -cpm CPUS_PER_MUTANT, --cpus_per_mutant CPUS_PER_MUTANT</span>
+<span class="s1">                    Include the number of cpus desired</span>
+<span class="s1">        -tcpus TOTAL_CPUS, --total_cpus TOTAL_CPUS</span>
+<span class="s1">                    Include the number of cpus desired</span>
+<span class="s1">        -po, --polarize_metals</span>
+<span class="s1">                    used if there are metals in the system</span>
+<span class="s1">        -fa POLARIZATION_FACTOR, --polarization_factor POLARIZATION_FACTOR</span>
+<span class="s1">                    The number to divide the charges</span>
+<span class="s1">        -n, --nord            used if LSF is the utility managing the jobs</span>
+<span class="s1">        -m, --multiple        if you want to mutate 2 residue in the same pdb</span>
+<span class="s1">        -s SEED, --seed SEED  Include the seed number to make the simulation</span>
 <span class="s1">                    reproducible</span>
-<span class="s1">    -d DIR, --dir DIR     The name of the folder for all the simulations</span>
-<span class="s1">    -pd PDB_DIR, --pdb_dir PDB_DIR</span>
+<span class="s1">        -d DIR, --dir DIR     The name of the folder for all the simulations</span>
+<span class="s1">        -pd PDB_DIR, --pdb_dir PDB_DIR</span>
 <span class="s1">                    The name for the mutated pdb folder</span>
-<span class="s1">    -hy, --hydrogen       leave it to default</span>
-<span class="s1">    -co, --consec         Consecutively mutate the PDB file for several rounds</span>
-
-<span class="s1">    -st STEPS, --steps STEPS</span>
+<span class="s1">        -hy, --hydrogen       leave it to default</span>
+<span class="s1">        -co, --consec         Consecutively mutate the PDB file for several rounds</span>
+<span class="s1">        -st STEPS, --steps STEPS</span>
 <span class="s1">                    The number of PELE steps</span>
-<span class="s1">    --dpi DPI             Set the quality of the plots</span>
-<span class="s1">    --box BOX             Set how many data points are used for the boxplot</span>
-<span class="s1">    --traj TRAJ           Set how many PDBs are extracted from the trajectories</span>
-<span class="s1">    --out OUT             Name of the summary file created at the end of the</span>
+<span class="s1">        --dpi DPI             Set the quality of the plots</span>
+<span class="s1">        -tr TRAJECTORY, --trajectory TRAJECTORY</span>
+<span class="s1">                    Set how many PDBs are extracted from the trajectories</span>
+<span class="s1">        --out OUT             Name of the summary file created at the end of the</span>
 <span class="s1">                    analysis</span>
-<span class="s1">    --plot PLOT           Path of the plots folder</span>
-<span class="s1">    -an {energy,distance,both}, --analyse {energy,distance,both}</span>
+<span class="s1">        --plot PLOT           Path of the plots folder</span>
+<span class="s1">        -an {energy,distance,both}, --analyse {energy,distance,both}</span>
 <span class="s1">                    The metric to measure the improvement of the system</span>
-<span class="s1">    --thres THRES         The threshold for the improvement which will affect</span>
+<span class="s1">        --thres THRES         The threshold for the improvement which will affect</span>
 <span class="s1">                    what will be included in the summary</span>
-<span class="s1">    -sm SINGLE_MUTAGENESIS, --single_mutagenesis SINGLE_MUTAGENESIS</span>
+<span class="s1">        -sm SINGLE_MUTAGENESIS, --single_mutagenesis SINGLE_MUTAGENESIS</span>
 <span class="s1">                    Specifiy the name of the residue that you want the</span>
 <span class="s1">                    original residue to be mutated to. Both 3 letter code</span>
-<span class="s1">                    and 1 letter code can be used. You can even specify the protonated states</span>
-<span class="s1">    -PR PLURIZYME_AT_AND_RES, --plurizyme_at_and_res PLURIZYME_AT_AND_RES</span>
+<span class="s1">                    and 1 letter code can be used. You can even specify</span>
+<span class="s1">                    the protonated states</span>
+<span class="s1">        -PR PLURIZYME_AT_AND_RES, --plurizyme_at_and_res PLURIZYME_AT_AND_RES</span>
 <span class="s1">                    Specify the chain ID, residue number and the PDB atom</span>
 <span class="s1">                    name thatwill set the list of the neighbouring</span>
 <span class="s1">                    residues for thenext round. Example: chain</span>
 <span class="s1">                    ID:position:atom name</span>
-<span class="s1">    -r RADIUS, --radius RADIUS</span>
+<span class="s1">        -r RADIUS, --radius RADIUS</span>
 <span class="s1">                    The radius around the selected atom to search for the</span>
 <span class="s1">                    other residues</span>
-<span class="s1">    -f FIXED_RESIDS [FIXED_RESIDS ...], --fixed_resids FIXED_RESIDS [FIXED_RESIDS ...]</span>
+<span class="s1">        -f FIXED_RESIDS [FIXED_RESIDS ...], --fixed_resids FIXED_RESIDS [FIXED_RESIDS ...]</span>
 <span class="s1">                    Specify the list of residues that you don&#39;</span>t wantto
                     have mutated <span class="o">(</span>Must write the list of residuenumbers<span class="o">)</span>
-    -pa, --pele_analysis  <span class="k">if</span> you want to turn on the analysis by PELE
+        -re, --restart        to place the restart flag
+        -are, --adaptive_restart
+                    to place the adaptive restart flag
+        -x, --xtc             Change the pdb format to xtc
+        -cd CATALYTIC_DISTANCE, --catalytic_distance CATALYTIC_DISTANCE
+                    The distance considered to be catalytic
+        -tem TEMPLATE <span class="o">[</span>TEMPLATE ...<span class="o">]</span>, --template TEMPLATE <span class="o">[</span>TEMPLATE ...<span class="o">]</span>
+                    Path to external forcefield templates
+        -sk SKIP <span class="o">[</span>SKIP ...<span class="o">]</span>, --skip SKIP <span class="o">[</span>SKIP ...<span class="o">]</span>
+                    skip the processing of ligands by PlopRotTemp
+        -rot ROTAMERS <span class="o">[</span>ROTAMERS ...<span class="o">]</span>, --rotamers ROTAMERS <span class="o">[</span>ROTAMERS ...<span class="o">]</span>
+                    Path to external rotamers templates
+        -e, --equilibration   Set equilibration
+        -l, --log             write logs
+        -da DIHEDRAL_ATOMS <span class="o">[</span>DIHEDRAL_ATOMS ...<span class="o">]</span>, --dihedral_atoms DIHEDRAL_ATOMS <span class="o">[</span>DIHEDRAL_ATOMS ...<span class="o">]</span>
+                    The <span class="m">4</span> atom necessary to calculate the dihedrals in
+                    format chain id:res number:atom name
+        -im <span class="o">{</span>R,S<span class="o">}</span>, --improve <span class="o">{</span>R,S<span class="o">}</span>
+                    The enantiomer that should improve
+        -tu TURN, --turn TURN
+                    the round of plurizyme generation, not needed <span class="k">for</span> the
+                    1st round
+        -en ENERGY_THRESHOLD, --energy_threshold ENERGY_THRESHOLD
+                    The number of steps to analyse
+        --QM QM               The path to the QM charges
+        -br BOX_RADIUS, --box_radius BOX_RADIUS
+                    Radius of the exploration box
+        -mut <span class="o">{</span>ALA,CYS,GLU,ASP,GLY,PHE,ILE,HIS,LYS,MET,LEU,ASN,GLN,PRO,SER,ARG,THR,TRP,VAL,TYR<span class="o">}</span> ,
+        --mutation <span class="o">{</span>ALA,CYS,GLU,ASP,GLY,PHE,ILE,HIS,LYS,MET,LEU,ASN,GLN,PRO,SER,ARG,THR,TRP,VAL,TYR<span class="o">}</span>
+                    The aminoacid in <span class="m">3</span> letter code
+        -cst <span class="o">{</span><span class="m">1</span>,2<span class="o">}</span>, --conservative <span class="o">{</span><span class="m">1</span>,2<span class="o">}</span>
+                    How conservative should the mutations be, choises are
+                    <span class="m">1</span> and <span class="m">2</span>
+        -pw <span class="o">{</span>Binding Energy,currentEnergy<span class="o">}</span>, --profile_with <span class="o">{</span>Binding Energy,currentEnergy<span class="o">}</span>
+                    The metric to generate the pele profiles with
 </pre></div>
 </div>
 <div class="line-block">
-<div class="line">It has all the required arguments for the classes and functions from the other modules if the falgs <code class="docutils literal notranslate"><span class="pre">-sm</span></code> and <code class="docutils literal notranslate"><span class="pre">-PR</span></code> are present it runs <code class="docutils literal notranslate"><span class="pre">plurizymes_simulation</span></code> instead of <code class="docutils literal notranslate"><span class="pre">saturated_simulation</span></code>.</div>
+<div class="line">It has all the required arguments for the classes and functions from the other modules if the flags <code class="docutils literal notranslate"><span class="pre">-sm</span></code> and <code class="docutils literal notranslate"><span class="pre">-PR</span></code> are present it runs <code class="docutils literal notranslate"><span class="pre">plurizymes_simulation</span></code> instead of <code class="docutils literal notranslate"><span class="pre">saturated_simulation</span></code>.</div>
 <div class="line">An example would be:</div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.simulation --input PK2_F454T.pdb --position A:454 --ligchain L --ligname ANL --atoms C:1:CU L:1:N1 --cpus <span class="m">5</span> -po --test

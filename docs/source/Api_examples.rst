@@ -186,3 +186,15 @@ The rs_analysis module
 .. code-block:: python
 
     extract_all(res_dir="analysis_dir", data_dict=data_dict, folders="PELE_fimulations", cpus=25, function="extract_10_pdb_single_rs") # the folders if the same argument for the folder sin analyse_all
+    
+``find_top_mutations`` is a function that searches within the data_dict to find those mutations that improves on a chosen metric (energy, distance or both) with an increment superior to a predetermined threshold, as a results it creates a report with all the plots generated for those mutations in a PDF file.
+
+.. code-block:: python
+
+    find_top_mutations(res_dir="analysis_dir", data_dict=data_dict, position_num="T165", output="summary", analysis="distance", thres=-0.1)
+
+``consecutive_analysis`` is the function that gathers all of the previous functions and allows the analysis of more than 1 position.
+
+.. code-block:: python
+
+    consecutive_analysis(file_name=["path1", "path2", "path3"], dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", cpus=25, thres=-0.1) # file_name argument can accept an iterable, directory or a file that contains the path to the folders where the different pele simulations are stored.

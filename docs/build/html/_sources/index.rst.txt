@@ -17,6 +17,8 @@ User's guide
    pele_files
    simulation
    Api_examples
+   analysis
+   rs_analysis
 
 API documentation
 -----------------

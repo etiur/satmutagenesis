@@ -9,28 +9,40 @@ Now let's look at the individual scripts starting with the mutate_pdb.py which c
 .. code-block:: bash
 
     usage: mutate_pdb.py [-h] -i INPUT -p POSITION [POSITION ...] [-m] [-hy] [-co]
-                     [-pd PDB_DIR] [-sm SINGLE_MUTAGENESIS]
+                     [-pd PDB_DIR] [-sm SINGLE_MUTAGENESIS] [-tu TURN]
+                     [-mut {ALA,CYS,GLU,ASP,GLY,PHE,ILE,HIS,LYS,MET,LEU,ASN,GLN,PRO,SER,ARG,THR,TRP,VAL,TYR} [{ALA,CYS,GLU,ASP,GLY,PHE,ILE,HIS,LYS,MET,LEU,ASN,GLN,PRO,SER,ARG,THR,TRP,VAL,TYR} ...]]
+                     [-cst {1,2}]
 
     Performs saturated mutagenesis given a PDB file
 
     optional arguments:
         -h, --help            show this help message and exit
         -i INPUT, --input INPUT
-                            Include PDB file's path
+                        Include PDB file's path
         -p POSITION [POSITION ...], --position POSITION [POSITION ...]
-                            Include one or more chain IDs and positions -> Chain
-                            ID:position
+                        Include one or more chain IDs and positions -> Chain
+                        ID:position
         -m, --multiple        if you want to mutate 2 residue in the same pdb
         -hy, --hydrogen       leave it to default
         -co, --consec         Consecutively mutate the PDB file for several rounds
         -pd PDB_DIR, --pdb_dir PDB_DIR
-                            The name for the mutated pdb folder
+                        The name for the mutated pdb folder
         -sm SINGLE_MUTAGENESIS, --single_mutagenesis SINGLE_MUTAGENESIS
-                            Specifiy the name of the residue that you want the
-                            original residue to be mutated to. Both 3 letter code
-                            and 1 letter code can be used. You can even specify the protonated states
-        
-There are 2 necessary arguments, input or the wildtype PDB file and the position or positions to mutate, for example:
+                        Specify the name of the residue that you want the
+                        original residue to be mutated to. Both 3 letter code
+                        and 1 letter code can be used. You can even specify
+                        the protonated states
+        -tu TURN, --turn TURN
+                        the round of plurizyme generation, not needed for the
+                        1st round
+        -mut {ALA,CYS,GLU,ASP,GLY,PHE,ILE,HIS,LYS,MET,LEU,ASN,GLN,PRO,SER,ARG,THR,TRP,VAL,TYR} 
+        --mutation {ALA,CYS,GLU,ASP,GLY,PHE,ILE,HIS,LYS,MET,LEU,ASN,GLN,PRO,SER,ARG,THR,TRP,VAL,TYR} 
+                        The aminoacid in 3 letter code
+        -cst {1,2}, --conservative {1,2}
+                        How conservative should the mutations be, choises are
+                        1 and 2
+                        
+There are 2 necessary arguments, input or the wildtype PDB file and the position or positions to mutate, the flag ``-cst`` will generate a set of conservative mutations according to the blossum62, for example:
 
 .. code-block:: bash
 
