@@ -135,8 +135,12 @@ class SimulationData:
         distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i+1]) for i in range(len(distance_bin)-1)]
         frequency["energy bin"] = pd.cut(frequency["Binding Energy"], bins=energy_bin, include_lowest=True)
         frequency["distance bin"] = pd.cut(frequency["distance0.5"], bins=distance_bin, include_lowest=True)
+        bins = frequency[["distance bin", "energy bin", "residence time"]].copy()
+        bins = pd.DataFrame(np.repeat(bins.values, bins["residence time"].values, axis=0),
+                            columns=["distance bin", "energy bin", "residence time"])
+
         # for the PELE profiles
-        self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
+        self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID', 'energy bin', 'distance bin'], axis=1)
         self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
         # for the csv
         self.residence = frequency["residence time"].sum()
