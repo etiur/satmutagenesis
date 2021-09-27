@@ -128,6 +128,13 @@ class SimulationData:
             frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         else:
             frequency = trajectory.loc[(trajectory["distance0.5"] <= self.catalytic) & (trajectory["Binding Energy"] <= self.energy)]
+        # bining
+        energy_bin = np.linspace(min(frequency["Binding Energy"]), max(frequency["Binding Energy"]), num=5)
+        energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i+1]) for i in range(len(energy_bin)-1)]
+        distance_bin = np.linspace(min(frequency["distance0.5"]), max(frequency["distance0.5"]), num=5)
+        distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i+1]) for i in range(len(distance_bin)-1)]
+        frequency["energy bin"] = pd.cut(frequency["Binding Energy"], bins=energy_bin, include_lowest=True)
+        frequency["distance bin"] = pd.cut(frequency["distance0.5"], bins=distance_bin, include_lowest=True)
         # for the PELE profiles
         self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
