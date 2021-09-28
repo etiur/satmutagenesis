@@ -130,14 +130,13 @@ class SimulationData:
         else:
             frequency = trajectory.loc[(trajectory["distance0.5"] <= self.catalytic) &
                                        (trajectory["Binding Energy"] <= self.energy)]
-        # binning
-        self.all = pd.DataFrame(np.repeat(frequency[["distance0.5", "Binding Energy", "residence time"]].values,
-                                          frequency["residence time"].values, axis=0),
-                                columns=["distance0.5", "Binding Energy", "residence time"])
-        self.all["Type"] = [self.name for _ in range(len(self.all.index))]
         # for the PELE profiles
         self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
+        # binning
+        self.all = pd.DataFrame(np.repeat(self.profile[["distance0.5", "Binding Energy", "residence time", "Type"]].values,
+                                          self.profile["residence time"].values, axis=0),
+                                columns=["distance0.5", "Binding Energy", "residence time", "Type"])
         # for the csv
         self.residence = frequency["residence time"].sum()
         self.len = len(frequency)
