@@ -151,6 +151,7 @@ class SimulationRS:
         self.energy = energy
         self.res_dir = res_dir
         self.cpus = cpus
+        self.all = None
 
     def _transform_coordinates(self):
         """
@@ -240,6 +241,10 @@ class SimulationRS:
             else:
                 type_.append("noise")
         self.profile["Type"] = type_
+        # for the binning
+        self.all = pd.DataFrame(np.repeat(self.profile[["distance0.5", "Binding Energy", "residence time", "Type"]].values,
+                                          self.profile["residence time"].values, axis=0),
+                                columns=["distance0.5", "Binding Energy", "residence time", "Type"])
         # To extract the best distances
         trajectory = frequency.sort_values(by="distance0.5")
         trajectory.reset_index(inplace=True)
@@ -338,6 +343,44 @@ def match_dist(dihedral_atoms, input_pdb, wild):
     for i in range(len(atom)):
         atom[i] = map_atom_string(atom[i], input_pdb, topology)
     return atom
+
+
+def binning(bin_dict, enantiomer):
+    """
+    Bins the values as to have a better analysis of the pele reports
+
+    Parameters
+    ___________
+    bin_dict: dict
+        A dictionary containing the mutations as keys and the SimulationData.all dataframe as values
+    """
+    data = pd.concat(bin_dict.values())
+    energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
+    distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
+    energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i + 1]) for i in range(len(energy_bin) - 1)]
+    distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i + 1]) for i in range(len(distance_bin) - 1)]
+    dist_active_labels = ["{} Amg vs {} Kcal {}".format(distancebin_labels[0], i, enantiomer) for i in energybin_labels]
+    ener_active_labels = ["{} Kcal vs {} Amg {}".format(energybin_labels[0], i, enantiomer) for i in distancebin_labels]
+    distance_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
+                       (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
+    energy_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
+                     (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
+    distance_len = [{key: len(frame[frame["Type"] == "{}_{}".format(enantiomer, key)]) for key in bin_dict.keys()} for frame in distance_active]
+    energy_len = [{key: len(frame[frame["Type"] == "{}_{}".format(enantiomer, key)]) for key in bin_dict.keys()} for frame in energy_active]
+    distance_median = [{key: frame[frame["Type"] == "{}_{}".format(enantiomer, key)]["distance0.5"].median() for key in bin_dict.keys()} for frame in distance_active]
+    energy_median = [{key: frame[frame["Type"] == "{}_{}".format(enantiomer, key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in energy_active]
+    # to dataframe
+    energy_median = pd.DataFrame(energy_median, index=ener_active_labels)
+    distance_median = pd.DataFrame(distance_median, index=dist_active_labels)
+    distance_len = pd.DataFrame(distance_len, index=dist_active_labels)
+    energy_len = pd.DataFrame(energy_len, index=ener_active_labels)
+    median = pd.concat([energy_median, distance_median])
+    len_ = pd.concat([energy_len, distance_len])
+    everything = pd.concat([len_, median])
+    everything.fillna(0, inplace=True)
+    everything = everything.transpose()
+
+    return everything
 
 
 def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num, traj=10, cata_dist=3.5,
