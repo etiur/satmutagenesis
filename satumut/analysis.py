@@ -92,6 +92,7 @@ class SimulationData:
         self.residence = None
         self.weight_dist = None
         self.weight_bind = None
+        self.all = None
 
     def filtering(self):
         """
@@ -128,28 +129,20 @@ class SimulationData:
             frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         else:
             frequency = trajectory.loc[(trajectory["distance0.5"] <= self.catalytic) & (trajectory["Binding Energy"] <= self.energy)]
-        # bining
-        energy_bin = np.linspace(min(frequency["Binding Energy"]), max(frequency["Binding Energy"]), num=5)
-        energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i+1]) for i in range(len(energy_bin)-1)]
-        distance_bin = np.linspace(min(frequency["distance0.5"]), max(frequency["distance0.5"]), num=5)
-        distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i+1]) for i in range(len(distance_bin)-1)]
-        frequency["energy bin"] = pd.cut(frequency["Binding Energy"], bins=energy_bin, include_lowest=True)
-        frequency["distance bin"] = pd.cut(frequency["distance0.5"], bins=distance_bin, include_lowest=True)
-        bins = frequency[["distance bin", "energy bin", "residence time"]].copy()
-        bins = pd.DataFrame(np.repeat(bins.values, bins["residence time"].values, axis=0),
-                            columns=["distance bin", "energy bin", "residence time"])
-
+        # binning
+        self.all = pd.DataFrame(np.repeat(frequency[["distance0.5", "Binding Energy", "residence time"]].values,
+                                          frequency["residence time"].values, axis=0),
+                                columns=["distance0.5", "Binding Energy", "residence time"])
+        self.all["Type"] = [self.name for _ in range(len(self.all.index))]
         # for the PELE profiles
-        self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID', 'energy bin', 'distance bin'], axis=1)
+        self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
         # for the csv
         self.residence = frequency["residence time"].sum()
         self.len = len(frequency)
         self.len_ratio = float(len(frequency)) / len(trajectory)
-        self.frequency = frequency[["distance0.5", "residence time"]].copy()
-        self.frequency = pd.DataFrame(np.repeat(self.frequency.values, self.frequency["residence time"].values, axis=0),
-                                      columns=["distance0.5", "residence time"])
-        self.binding = frequency[["Binding Energy", "residence time"]].copy()
+        self.frequency = self.all[["distance0.5", "residence time"]].copy()
+        self.binding = self.all[["Binding Energy", "residence time"]].copy()
         self.binding.sort_values("Binding Energy", inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
         self.binding = pd.DataFrame(np.repeat(self.binding.values, self.binding["residence time"].values, axis=0),
@@ -178,6 +171,16 @@ class SimulationData:
             The binding energy for the wild type
         """
         self.bind_diff = self.binding["Binding Energy"] - ori_binding
+
+
+def binning(data_dict):
+    data = pd.DataFrame(data_dict)
+    energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
+    energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i + 1]) for i in range(len(energy_bin) - 1)]
+    distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
+    distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i + 1]) for i in range(len(distance_bin) - 1)]
+    data["energy bin"] = pd.cut(data["Binding Energy"], bins=energy_bin, include_lowest=True)
+    data["distance bin"] = pd.cut(data["distance0.5"], bins=distance_bin, include_lowest=True)
 
 
 def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None, energy_thres=None):
@@ -210,7 +213,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     """
     data_dict = {}
     len_dict = {}
-    # median_dict = {}
+    bin_dict = {}
     weight_median = {}
     residence = {}
     len_ratio = {}
@@ -218,7 +221,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     original.filtering()
     data_dict["original"] = original
     len_dict["original"] = original.len
-    # median_dict["original"] = original.dist_ori
+    bin_dict["original"] = original.all[["Binding Energy", "distance0.5"]].copy()
     weight_median["original"] = original.weight_dist
     residence["original"] = original.residence
     len_ratio["original"] = original.len_ratio
@@ -230,7 +233,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
         data.set_binding(original.weight_bind)
         data_dict[name] = data
         len_dict[name] = data.len
-    #    median_dict[name] = data.median_freq
+        bin_dict[name] = data.all[["Binding Energy", "distance0.5"]].copy()
         weight_median[name] = data.weight_dist
         residence[name] = data.residence
         len_ratio[name] = data.len_ratio
