@@ -180,6 +180,8 @@ def binning(bin_dict):
     distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
     energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i + 1]) for i in range(len(energy_bin) - 1)]
     distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i + 1]) for i in range(len(distance_bin) - 1)]
+    dist_active_labels = ["{} Amg vs {} Kcal".format(distancebin_labels[0], i) for i in energybin_labels]
+    ener_active_labels = ["{} Kcal vs {} Amg".format(energybin_labels[0], i) for i in distancebin_labels]
     distance_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
                        (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
     energy_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
@@ -188,6 +190,18 @@ def binning(bin_dict):
     energy_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in energy_active]
     distance_median = [{key: frame[frame["Type"] == key]["distance0.5"].median() for key in bin_dict.keys()} for frame in distance_active]
     energy_median = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in energy_active]
+    # to dataframe
+    energy_median = pd.DataFrame(energy_median, index=ener_active_labels)
+    distance_median = pd.DataFrame(distance_median, index=dist_active_labels)
+    distance_len = pd.DataFrame(distance_len, index=dist_active_labels)
+    energy_len = pd.DataFrame(energy_len, index=ener_active_labels)
+    median = pd.concat([energy_median, distance_median])
+    len_ = pd.concat([energy_len, distance_len])
+    everything = pd.concat([len_, median])
+    everything.fillna(0, inplace=True)
+    everything = everything.transpose()
+
+    return everything
 
 
 def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None, energy_thres=None):
@@ -247,6 +261,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     # different metrics
     if not os.path.exists("{}_results".format(res_dir)):
         os.makedirs("{}_results".format(res_dir))
+    everything = binning(bin_dict)
     median = pd.DataFrame(pd.Series(weight_median), columns=["weighted median distance"])
     median["dist mut-wt"] = median["weighted median distance"] - median["weighted median distance"].loc["original"]
     # median["freq catalytic poses"] = pd.Series(len_dict)
@@ -254,6 +269,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     median["frequency"] = pd.Series(len_dict)
     median["residence time"] = pd.Series(residence)
     median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
+    everything.to_csv("{}_results/binning_{}.csv".format(res_dir, position_num))
     return data_dict
 
 
