@@ -175,6 +175,14 @@ class SimulationData:
 
 
 def binning(bin_dict):
+    """
+    Bins the values as to have a better analysis of the pele reports
+
+    Parameters
+    ___________
+    bin_dict: dict
+        A dictionary containing the mutations as keys and the SimulationData.all dataframe as values
+    """
     data = pd.concat(bin_dict.values())
     energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
     distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
