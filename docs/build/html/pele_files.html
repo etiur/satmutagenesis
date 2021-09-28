@@ -86,6 +86,8 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The creation of yaml files for PELE platform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Running the PELE simulations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Api_examples.html">The API guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysing the PELE simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rs_analysis.html">Analysing the PELE simulations that includes enantiomers</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="satumut.html">satumut</a></li>
@@ -156,20 +158,23 @@
   <div class="section" id="the-creation-of-yaml-files-for-pele-platform">
 <h1>The creation of yaml files for PELE platform<a class="headerlink" href="#the-creation-of-yaml-files-for-pele-platform" title="Permalink to this headline">¶</a></h1>
 <p>The second script is used when you have the PDB files and you want to generate the yamls files for each of the PDBs.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.mutate_pdb --help
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.pele_files --help
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: pele_files.py <span class="o">[</span>-h<span class="o">]</span> --folder FOLDER -lc LIGCHAIN -ln LIGNAME -at ATOMS
-                 <span class="o">[</span>ATOMS ...<span class="o">]</span> <span class="o">[</span>--cpus CPUS<span class="o">]</span> <span class="o">[</span>-po<span class="o">]</span> <span class="o">[</span>-fa POLARIZATION_FACTOR<span class="o">]</span>
-                 <span class="o">[</span>-t<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span> <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-st STEPS<span class="o">]</span> <span class="o">[</span>-pa<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: pele_files.py <span class="o">[</span>-h<span class="o">]</span> --folder FOLDER -lc LIGCHAIN -ln LIGNAME
+                 <span class="o">[</span>-at ATOMS <span class="o">[</span>ATOMS ...<span class="o">]]</span> <span class="o">[</span>-cpm CPUS_PER_MUTANT<span class="o">]</span>
+                 <span class="o">[</span>-tcpus TOTAL_CPUS<span class="o">]</span> <span class="o">[</span>-po<span class="o">]</span> <span class="o">[</span>-fa POLARIZATION_FACTOR<span class="o">]</span> <span class="o">[</span>-n<span class="o">]</span>
+                 <span class="o">[</span>-s SEED<span class="o">]</span> <span class="o">[</span>-st STEPS<span class="o">]</span> <span class="o">[</span>-x<span class="o">]</span> <span class="o">[</span>-e<span class="o">]</span>
+                 <span class="o">[</span>-tem TEMPLATE <span class="o">[</span>TEMPLATE ...<span class="o">]]</span>
+                 <span class="o">[</span>-rot ROTAMERS <span class="o">[</span>ROTAMERS ...<span class="o">]]</span> <span class="o">[</span>-sk SKIP <span class="o">[</span>SKIP ...<span class="o">]]</span> <span class="o">[</span>-l<span class="o">]</span>
+                 <span class="o">[</span>-co<span class="o">]</span> <span class="o">[</span>-tu TURN<span class="o">]</span> <span class="o">[</span>--QM QM<span class="o">]</span> <span class="o">[</span>-br BOX_RADIUS<span class="o">]</span>
 
 Generate running files <span class="k">for</span> PELE
 
 optional arguments:
     -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
     --folder FOLDER       An iterable of the path to different pdb files, a name
-                    of the folder or a file with the path to the different
-                    pdb files
+                    of the folder with the pdbs
     -lc LIGCHAIN, --ligchain LIGCHAIN
                     Include the chain ID of the ligand
     -ln LIGNAME, --ligname LIGNAME
@@ -177,22 +182,39 @@ optional arguments:
     -at ATOMS <span class="o">[</span>ATOMS ...<span class="o">]</span>, --atoms ATOMS <span class="o">[</span>ATOMS ...<span class="o">]</span>
                     Series of atoms of the residues to follow in this
                     format -&gt; chain ID:position:atom name
-    --cpus CPUS           Include the number of cpus desired
+    -cpm CPUS_PER_MUTANT, --cpus_per_mutant CPUS_PER_MUTANT
+                    Include the number of cpus desired
+    -tcpus TOTAL_CPUS, --total_cpus TOTAL_CPUS
+                    Include the number of cpus desired
     -po, --polarize_metals
-                        used <span class="k">if</span> there are metals in the system
+                    used <span class="k">if</span> there are metals in the system
     -fa POLARIZATION_FACTOR, --polarization_factor POLARIZATION_FACTOR
-                          The number to divide the charges
-    -t, --test            Used <span class="k">if</span> you want to run a <span class="nb">test</span> before
+                    The number to divide the charges
     -n, --nord            used <span class="k">if</span> LSF is the utility managing the <span class="nb">jobs</span>
     -s SEED, --seed SEED  Include the seed number to make the simulation
                     reproducible
     -st STEPS, --steps STEPS
                     The number of PELE steps
-    -pa, --pele_analysis  <span class="k">if</span> you want to turn on the analysis by PELE
+    -x, --xtc             Change the pdb format to xtc
+    -e, --equilibration   Set equilibration
+    -tem TEMPLATE <span class="o">[</span>TEMPLATE ...<span class="o">]</span>, --template TEMPLATE <span class="o">[</span>TEMPLATE ...<span class="o">]</span>
+                    Path to external forcefield templates
+    -rot ROTAMERS <span class="o">[</span>ROTAMERS ...<span class="o">]</span>, --rotamers ROTAMERS <span class="o">[</span>ROTAMERS ...<span class="o">]</span>
+                    Path to external rotamers templates
+    -sk SKIP <span class="o">[</span>SKIP ...<span class="o">]</span>, --skip SKIP <span class="o">[</span>SKIP ...<span class="o">]</span>
+                    skip the processing of ligands by PlopRotTemp
+    -l, --log             write logs
+    -co, --consec         Consecutively mutate the PDB file <span class="k">for</span> several rounds
+    -tu TURN, --turn TURN
+                    the round of plurizyme generation, not needed <span class="k">for</span> the
+                    1st round
+    --QM QM               The path to the QM charges
+    -br BOX_RADIUS, --box_radius BOX_RADIUS
+                    Radius of the exploration box
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">--folder</span></code> flag accepts folders where the PDB files are located, files containing the path to the different PDBs (one path per line) or lists of paths to the PDBs, for example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.mutate_pdb --folder pdb_files --ligchain <span class="s1">&#39;L&#39;</span> --ligname <span class="s1">&#39;ANL&#39;</span> --atoms <span class="s2">&quot;C:1:CU&quot;</span> <span class="s2">&quot;L:1:N1&quot;</span> -po --test
+<p>The <code class="docutils literal notranslate"><span class="pre">-br</span></code> flag modifies the radius of the box where induce_fir simulation happens</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m satumut.pele_files --folder pdb_files --ligchain <span class="s1">&#39;L&#39;</span> --ligname <span class="s1">&#39;ANL&#39;</span> --atoms <span class="s2">&quot;C:1:CU&quot;</span> <span class="s2">&quot;L:1:N1&quot;</span> -po --test
 </pre></div>
 </div>
 <p>As a result, it will create the yaml files which are the input files for the PELE platform.</p>

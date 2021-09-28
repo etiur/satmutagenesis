@@ -66,7 +66,7 @@ def parse_args():
                         help="Path of the plots folder")
     parser.add_argument("-an", "--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
                         help="The metric to measure the improvement of the system")
-    parser.add_argument("--thres", required=False, default=0.0, type=float,
+    parser.add_argument("--thres", required=False, default=-0.1, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-sm", "--single_mutagenesis", required=False,
                         help="Specifiy the name of the residue that you want the "
@@ -111,6 +111,8 @@ def parse_args():
                         help="The aminoacid in 3 letter code")
     parser.add_argument("-cst", "--conservative", required=False, choices=(1, 2), default=None, type=int,
                         help="How conservative should the mutations be, choises are 1 and 2")
+    parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
+                        default="Binding Energy", help="The metric to generate the pele profiles with")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -119,7 +121,8 @@ def parse_args():
             args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
             args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
             args.template, args.skip, args.rotamers, args.equilibration, args.log, args.cpus_per_task, args.improve,
-            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius, args.mutation, args.conservative]
+            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius, args.mutation,
+            args.conservative, args.profile_with]
 
 
 class CreateSlurmFiles:
@@ -133,7 +136,7 @@ class CreateSlurmFiles:
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
                  equilibration=True, log=False, cpt=None, improve="R", turn=None, energy_thres=None, QM=None,
-                 dihedral=None, box_radius=None, mut=None, conservative=None):
+                 dihedral=None, box_radius=None, mut=None, conservative=None, profile_with="Binding Energy"):
         """
         Initialize the CreateLaunchFiles object
 
@@ -227,6 +230,8 @@ class CreateSlurmFiles:
             The list of mutations to perform
         conservative: int, optional
             How conservative should be the mutations according to Blossum62
+        profile_with: str, optional
+            The metric to generate the pele profiles with
         """
 
         self.input = input_
@@ -307,6 +312,7 @@ class CreateSlurmFiles:
             self.conservative = conservative
         else:
             self.conservative = None
+        self.profile_with = profile_with
 
     def _size(self):
         """
@@ -384,6 +390,8 @@ class CreateSlurmFiles:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.equilibration:
                 argument_list.append("-e ")
+            if self.profile_with != "Binding Energy":
+                argument_list.append("-pw {} ".format(self.profile_with))
             if self.log:
                 argument_list.append("-l ")
             if self.xtc:
@@ -499,6 +507,8 @@ class CreateSlurmFiles:
                 argument_list.append("--nord ")
             if self.equilibration:
                 argument_list.append("-e ")
+            if self.profile_with != "Binding Energy":
+                argument_list.append("-pw {} ".format(self.profile_with))
             if self.log:
                 argument_list.append("-l ")
             if self.box_radius:
@@ -567,7 +577,8 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
-    rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut, conservative= parse_args()
+    rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut, conservative, \
+    profile_with = parse_args()
 
     if dir_ and len(input_) > 1:
         dir_ = None
@@ -576,7 +587,8 @@ def main():
                                multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
                                fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
-                               equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut, conservative)
+                               equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut,
+                               conservative, profile_with)
         if not nord:
             slurm = run.slurm_creation()
         else:

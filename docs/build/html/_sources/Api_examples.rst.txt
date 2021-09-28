@@ -9,6 +9,7 @@ Now let's see how to use the python API instead of the command line
     from satumut.pele_files import CreateYamlFiles, create_20sbatch
     from satumut.simulation import SimulationRunner, saturated_simulation, plurizyme_simulation
     from satumut.analysis import SimulationData, analyse_all, box_plot, all_profiles, extract_all, find_top_mutations, consecutive_analysis
+    from satumut.rs_analysis import SimulationRS, analyse_rs, box_plot_rs, create_report, consecutive_analysis_rs
 
     
 The main script
@@ -106,7 +107,7 @@ The Analysis module
 
 .. code-block:: python
 
-    data = SimulationData(folder="PELE_simulation", points=30, pdb=10) # points are how many data points to consider for binding energies and the distance analysis, and pdb is how many best trajectories to extract 
+    data = SimulationData(folder="PELE_simulation", traj=10, cata_dist=3.5) # points are how many data points to consider for binding energies and the distance analysis, and pdb is how many best trajectories to extract  
     data.filtering() #Takes the previous arguments and performs the filtering process to keep the top 30 data points
     data.set_distance(original_distance)
     data.set_binding(original_binding_energy)
@@ -115,7 +116,7 @@ The Analysis module
 
 .. code-block:: python
 
-    data_dict = analyse_all(folders=".", box=30, traj=10)
+    data_dict = analyse_all(folder="PELE_simulation", wild="original", res_dir="mutant_results", box=30, traj=10)
     
 ``box_plot`` takes as the argument the *data_dict* to generate a box plot of all the distance and binding energy variations of the 19 mutations
 
@@ -129,7 +130,7 @@ The Analysis module
 
      all_profiles(res_dir="analysis_dir", data_dict=data_dict, position_num="T165", dpi=800)
 
-``extract_all`` is a function that extracts, of all the simulation steps from a mutation, the top 10 steps in terms of ligand-protein binding distance. The function takes as argument data_dict to extract from all the mutations.
+``extract_all`` is a function that extracts, of all the simulation steps from a mutation, the top 10 steps in terms of ligand-protein binding distance. The function takes as argument *data_dict* to extract from all the mutations.
 
 .. code-block:: python
 
@@ -147,3 +148,53 @@ The Analysis module
 
     consecutive_analysis(file_name=["path1", "path2", "path3"], dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", cpus=25, thres=-0.1) # file_name argument can accept an iterable, directory or a file that contains the path to the folders where the different pele simulations are stored.
     
+The rs_analysis module
+========================
+| The rs analysis module is used to analyse thoses simulations where it is posible to determine the enantiomeric product from the susbtrates using the dihedral angles.
+| The functions are very similar of those in the Analysis module but used to distinguish the enantiomers.
+
+
+``SimulationRS`` is a class that stores data of the simulation, it contains the binding energies, the distance in angstroms of protein-ligand pairs and the enantiomeric information.
+
+.. code-block:: python
+
+    data = SimulationRS(folder="PELE_simulation", dihedral_atoms=["A:X:X", "A:X:X", "A:X:X", "A:X:X"], input_pdb="input.pdb", res_dir="mutant_RS", pdb=10) # points are how many data points to consider for binding energies and the distance analysis, and pdb is how many best trajectories to extract 
+    data.filtering() #Takes the previous arguments and performs the filtering process to keep the top 30 data points
+    data.set_distance(original_distance)
+    data.set_binding(original_binding_energy)
+
+``analyse_rs`` is the function that uses the class to store the simulation data from the 20 simulations (19 for the mutations + 1 for the wildtype) and returns a dictionary
+
+.. code-block:: python
+
+    data_dict = analyse_rs(folder="PELE_simulation",wild="original", initial_pdb="input.pdb", res_dir="mutant_RS", improve="R", cpus=10, traj=10, position_num="T234")
+
+``all_profiles`` is a function that creates scatter plots, the same as those created after the PELE simulations but the mutations are superimposed with the wildtype. Again it takes as arguments *data_dict* and *mode*
+
+.. code-block:: python
+
+     all_profiles(res_dir="analysis_dir", data_dict=data_dict, position_num="T165", dpi=800, mode="RS")
+
+``box_plot_rs`` takes as the argument the *data_dict* to generate a box plot of all the distance and binding energy variations of the 19 mutations
+
+.. code-block:: python
+
+    box_plot_rs(res_dir="analysis_RS", data_dict=data_dict, position_num="T165", dpi=800) # the position_num is an argument used to give name to the different plots, the default is the residue anem and position     
+     
+``extract_all`` is a function that extracts, of all the simulation steps from a mutation, the top 10 steps in terms of ligand-protein binding distance. The function takes as arguments *data_dict* and *function* to extract from all the mutations and determine the enantiomer it produces.
+
+.. code-block:: python
+
+    extract_all(res_dir="analysis_dir", data_dict=data_dict, folders="PELE_fimulations", cpus=25, function="extract_10_pdb_single_rs") # the folders if the same argument for the folder sin analyse_all
+    
+``find_top_mutations`` is a function that searches within the data_dict to find those mutations that improves on a chosen metric (energy, distance or both) with an increment superior to a predetermined threshold, as a results it creates a report with all the plots generated for those mutations in a PDF file.
+
+.. code-block:: python
+
+    find_top_mutations(res_dir="analysis_dir", data_dict=data_dict, position_num="T165", output="summary", analysis="distance", thres=-0.1)
+
+``consecutive_analysis`` is the function that gathers all of the previous functions and allows the analysis of more than 1 position.
+
+.. code-block:: python
+
+    consecutive_analysis(file_name=["path1", "path2", "path3"], dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", cpus=25, thres=-0.1) # file_name argument can accept an iterable, directory or a file that contains the path to the folders where the different pele simulations are stored.
