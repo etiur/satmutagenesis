@@ -128,7 +128,8 @@ class SimulationData:
         if not self.energy:
             frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
         else:
-            frequency = trajectory.loc[(trajectory["distance0.5"] <= self.catalytic) & (trajectory["Binding Energy"] <= self.energy)]
+            frequency = trajectory.loc[(trajectory["distance0.5"] <= self.catalytic) &
+                                       (trajectory["Binding Energy"] <= self.energy)]
         # binning
         self.all = pd.DataFrame(np.repeat(frequency[["distance0.5", "Binding Energy", "residence time"]].values,
                                           frequency["residence time"].values, axis=0),
@@ -176,11 +177,17 @@ class SimulationData:
 def binning(data_dict):
     data = pd.DataFrame(data_dict)
     energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
-    energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i + 1]) for i in range(len(energy_bin) - 1)]
     distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
+    energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i + 1]) for i in range(len(energy_bin) - 1)]
     distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i + 1]) for i in range(len(distance_bin) - 1)]
-    data["energy bin"] = pd.cut(data["Binding Energy"], bins=energy_bin, include_lowest=True)
-    data["distance bin"] = pd.cut(data["distance0.5"], bins=distance_bin, include_lowest=True)
+    distance_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
+                       (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
+    energy_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
+                     (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
+    distance_len = [len(distance_active[i]) for i in range(len(distance_active))]
+    distance_len = [len(energy_active[i]) for i in range(len(energy_active))]
+    energy_median = [energy_active[i]["Binding Energy"].median() if len(energy_active[i]) != 0 else 0 for i in range(len(energy_active))]
+    distance_median = [distance_active[i]["distance0.5"].median() if len(distance_active[i]) != 0 else 0 for i in range(len(distance_active))]
 
 
 def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None, energy_thres=None):
