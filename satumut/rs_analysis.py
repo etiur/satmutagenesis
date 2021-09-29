@@ -359,26 +359,33 @@ def binning(bin_dict, enantiomer):
     distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
     energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i + 1]) for i in range(len(energy_bin) - 1)]
     distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i + 1]) for i in range(len(distance_bin) - 1)]
-    dist_active_labels = ["{} Amg vs {} Kcal {}".format(distancebin_labels[0], i, enantiomer) for i in energybin_labels]
-    ener_active_labels = ["{} Kcal vs {} Amg {}".format(energybin_labels[0], i, enantiomer) for i in distancebin_labels]
-    distance_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
-                       (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
-    energy_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
-                     (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
-    distance_len = [{key: len(frame[frame["Type"] == "{}_{}".format(enantiomer, key)]) for key in bin_dict.keys()} for frame in distance_active]
-    energy_len = [{key: len(frame[frame["Type"] == "{}_{}".format(enantiomer, key)]) for key in bin_dict.keys()} for frame in energy_active]
-    distance_median = [{key: frame[frame["Type"] == "{}_{}".format(enantiomer, key)]["distance0.5"].median() for key in bin_dict.keys()} for frame in distance_active]
-    energy_median = [{key: frame[frame["Type"] == "{}_{}".format(enantiomer, key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in energy_active]
-    # to dataframe
-    energy_median = pd.DataFrame(energy_median, index=ener_active_labels)
-    distance_median = pd.DataFrame(distance_median, index=dist_active_labels)
-    distance_len = pd.DataFrame(distance_len, index=dist_active_labels)
-    energy_len = pd.DataFrame(energy_len, index=ener_active_labels)
+    # The best distance with different energies
+    best_distance = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
+                     (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
+    # The best energies with different distances
+    best_energy = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
+                   (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
+    # For each bin in distance active, I calculate the frequency and the median of data points for each of the mutations
+    distance_len = [{key: len(frame[frame["Type"] == "{}_{}".format(enantiomer, key)]) for key in bin_dict.keys()} for frame in best_distance]
+    distance_median = [{key: frame[frame["Type"] == "{}_{}".format(enantiomer, key)]["distance0.5"].median() for key in bin_dict.keys()} for frame in best_distance]
+
+    # For each bin in energy active, I calculate the frequency and the median of data points for each of the mutations
+    energy_len = [{key: len(frame[frame["Type"] == "{}_{}".format(enantiomer, key)]) for key in bin_dict.keys()} for frame in best_energy]
+    energy_median = [{key: frame[frame["Type"] == "{}_{}".format(enantiomer, key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
+
+    # For the energy bins, distance changes so using distance labels
+    energy_median = pd.DataFrame(energy_median, index=distancebin_labels)
+    energy_len = pd.DataFrame(energy_len, index=distancebin_labels)
+    energy_median.fillna(0, inplace=True)
+    # For the distance bins, energy changes so using energy labels
+    distance_median = pd.DataFrame(distance_median, index=energybin_labels)
+    distance_median.fillna(0, inplace=True)
+    distance_len = pd.DataFrame(distance_len, index=energybin_labels)
+
+    # concatenate everything
     median = pd.concat([energy_median, distance_median])
     len_ = pd.concat([energy_len, distance_len])
     everything = pd.concat([len_, median])
-    everything.fillna(0, inplace=True)
-    everything = everything.transpose()
 
     return everything
 
