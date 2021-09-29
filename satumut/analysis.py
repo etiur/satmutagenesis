@@ -304,9 +304,11 @@ def box_plot(res_dir, data_dict, position_num, bins, dpi=800, cata_dist=3.5):
     plot_dict_freq = {}
     plot_dif_dist = {}
     plot_dif_bind = {}
-    plt.bar(median.index, median["W294D"], width=0.35, label="W294D")
-    plt.xticks(rotation=90)
-    plt.legend(loc='best')
+    #plt.bar(ind, median["W294D"], width=0.35, label="W294D")
+    #plt.legend(loc='best')
+    #plt.xticks(ind + 0.35 / 2, median.index, rotation=90)
+    #ind = np.array([x for x, _ in enumerate(median.index)])
+
     for key, value in data_dict.items():
         plot_dict_bind[key] = value.binding["Binding Energy"]
         plot_dict_freq[key] = value.frequency["distance0.5"]
