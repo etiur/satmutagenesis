@@ -297,75 +297,36 @@ def box_plot(res_dir, data_dict, position_num, bins, dpi=800, cata_dist=3.5):
     dpi: int, optional
         The quality of the plots produced
     """
-    if not os.path.exists("{}_results/Plots/box".format(res_dir)):
-        os.makedirs("{}_results/Plots/box".format(res_dir))
-    # create a dataframe with only the distance differences for each simulation
-    plot_dict_bind = {}
-    plot_dict_freq = {}
-    plot_dif_dist = {}
-    plot_dif_bind = {}
-    #plt.bar(ind, median["W294D"], width=0.35, label="W294D")
-    #plt.legend(loc='best')
-    #plt.xticks(ind + 0.35 / 2, median.index, rotation=90)
-    #ind = np.array([x for x, _ in enumerate(median.index)])
+    if not os.path.exists("{}_results/Plots/bar".format(res_dir)):
+        os.makedirs("{}_results/Plots/bar".format(res_dir))
+    # create bar plots with each of the mutants
+    median_bin, len_bin = bins
+    ind_median = np.array([x for x, _ in enumerate(median_bin.index)])
+    ind_len = np.array([x for x, _ in enumerate(len_bin.index)])
 
-    for key, value in data_dict.items():
-        plot_dict_bind[key] = value.binding["Binding Energy"]
-        plot_dict_freq[key] = value.frequency["distance0.5"]
-        if "original" not in key:
-            plot_dif_bind[key] = value.bind_diff
-            plot_dif_dist[key] = value.dist_diff
-
-    dif_dist = pd.DataFrame(plot_dif_dist)
-    dif_bind = pd.DataFrame(plot_dif_bind)
-    data_bind = pd.DataFrame(plot_dict_bind)
-    data_freq = pd.DataFrame(plot_dict_freq)
-
-    # Distance difference boxplot
+    # median bar plot
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(data=dif_dist, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
-    ax.set(title="{} weighted distance variation with respect to wild type".format(position_num))
-    ax.set_ylabels("Distance variation", fontsize=8)
-    ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
-    ax.set_xticklabels(fontsize=6)
-    ax.set_yticklabels(fontsize=6)
-    ax.savefig("{}_results/Plots/box/{}_distance_dif.png".format(res_dir, position_num), dpi=dpi)
+    for num, key in enumerate(median_bin.columns):
+        plt.bar(ind_median+(0.35*num), median_bin[key], width=0.35, label=key)
+    plt.legend(loc='best')
+    plt.xticks(ind_median + 0.35 * len(median_bin.columns)/2, median_bin.index, rotation=40, fontsize=8)
+    plt.tight_layout()
+    plt.savefig("{}_results/Plots/box/{}_median_bar.png".format(res_dir, position_num), dpi=dpi)
+    plt.close()
 
-    # Binding energy difference Box plot
-    ex = sns.catplot(data=dif_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
-    ex.set(title="{} weighted binding energy variation with respect to wild type".format(position_num))
-    ex.set_ylabels("Binding energy variation", fontsize=8)
-    ex.set_xlabels("Mutations {}".format(position_num), fontsize=6)
-    ex.set_xticklabels(fontsize=6)
-    ex.set_yticklabels(fontsize=6)
-    ex.savefig("{}_results/Plots/box/{}_binding_dif.png".format(res_dir, position_num), dpi=dpi)
-    plt.close("all")
-
-    # frequency boxplot
+    # len bar plot
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    ax = sns.catplot(data=data_freq, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
-    ax.set(title="{} distances less than {}".format(position_num, cata_dist))
-    ax.set_ylabels("Distances", fontsize=8)
-    ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
-    ax.set_xticklabels(fontsize=6)
-    ax.set_yticklabels(fontsize=6)
-    ax.savefig("{}_results/Plots/box/{}_distance.png".format(res_dir, position_num), dpi=dpi)
-
-    # Binding energy boxplot
-    sns.set(font_scale=1.8)
-    sns.set_style("ticks")
-    sns.set_context("paper")
-    ax = sns.catplot(data=data_bind, kind="violin", palette="Accent", height=4.5, aspect=2.3, inner="quartile")
-    ax.set(title="{} binding energy ".format(position_num))
-    ax.set_ylabels("Binding energy", fontsize=8)
-    ax.set_xlabels("Mutations {}".format(position_num), fontsize=6)
-    ax.set_xticklabels(fontsize=6)
-    ax.set_yticklabels(fontsize=6)
-    ax.savefig("{}_results/Plots/box/{}_binding.png".format(res_dir, position_num), dpi=dpi)
+    for num, key in enumerate(len_bin.columns):
+        plt.bar(ind_len+(0.35*num), len_bin[key], width=0.35, label=key)
+    plt.legend(loc='best')
+    plt.xticks(ind_len + 0.35 * len(len_bin.columns)/2, len_bin.index, rotation=40, fontsize=8)
+    plt.tight_layout()
+    plt.savefig("{}_results/Plots/box/{}_residence_bar.png".format(res_dir, position_num), dpi=dpi)
+    plt.close()
 
 
 def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=800, mode="results",
