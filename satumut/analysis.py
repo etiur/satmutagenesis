@@ -173,6 +173,56 @@ class SimulationData:
         self.bind_diff = self.binding["Binding Energy"] - ori_binding
 
 
+def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="Distance"):
+    """
+    Creates a box plot of the 19 mutations from the same position
+
+    Parameters
+    ___________
+    res_dir: str
+        name of the results folder
+    data_dict: dict
+        A dictionary that contains SimulationData objects from the simulation folders
+    bins: tuple(pd.Dataframe, pd.Dataframe)
+    position_num: str
+        Position at the which the mutations occurred
+    dpi: int, optional
+        The quality of the plots produced
+    """
+    if not os.path.exists("{}_results/Plots/bar".format(res_dir)):
+        os.makedirs("{}_results/Plots/bar".format(res_dir))
+    # create bar plots with each of the mutants
+    median_bin, len_bin = bins
+    ind_median = np.array([x for x, _ in enumerate(median_bin.index)])
+    ind_len = np.array([x for x, _ in enumerate(len_bin.index)])
+
+    # median bar plot
+    sns.set(font_scale=1.8)
+    sns.set_style("ticks")
+    sns.set_context("paper")
+    for num, key in enumerate(median_bin.columns):
+        plt.bar(ind_median+(0.35*num), median_bin[key], width=0.35, label=key)
+    plt.title("Median bar plot of {} bins - {}".format(bin_type, interval))
+    plt.legend(loc='best')
+    plt.xticks(ind_median+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), median_bin.index, rotation=40, fontsize=8)
+    plt.tight_layout()
+    plt.savefig("{}_results/Plots/box/{}_median_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
+    plt.close()
+
+    # len bar plot
+    sns.set(font_scale=1.8)
+    sns.set_style("ticks")
+    sns.set_context("paper")
+    for num, key in enumerate(len_bin.columns):
+        plt.bar(ind_len+(0.35*num), len_bin[key], width=0.35, label=key)
+    plt.title("frequency bar plot of {} bins- {}".format(bin_type, interval))
+    plt.legend(loc='best')
+    plt.xticks(ind_len+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), len_bin.index, rotation=40, fontsize=8)
+    plt.tight_layout()
+    plt.savefig("{}_results/Plots/box/{}_frequency_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
+    plt.close()
+
+
 def binning(bin_dict):
     """
     Bins the values as to have a better analysis of the pele reports
@@ -187,8 +237,6 @@ def binning(bin_dict):
     distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
     energybin_labels = ["({}, {}]".format(round(energy_bin[i], 2), round(energy_bin[i + 1]), 2) for i in range(len(energy_bin) - 1)]
     distancebin_labels = ["({}, {}]".format(round(distance_bin[i], 2), round(distance_bin[i + 1]), 2) for i in range(len(distance_bin) - 1)]
-    dist_active_labels = ["{} A vs {} J".format(distancebin_labels[0], i) for i in energybin_labels]
-    ener_active_labels = ["{} J vs {} A".format(energybin_labels[0], i) for i in distancebin_labels]
 
     # The best distance with different energies
     distance_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
@@ -204,18 +252,21 @@ def binning(bin_dict):
     energy_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in energy_active]
     energy_median = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in energy_active]
 
-    # to dataframe
-    energy_median = pd.DataFrame(energy_median, index=ener_active_labels)
-    distance_median = pd.DataFrame(distance_median, index=dist_active_labels)
-    distance_len = pd.DataFrame(distance_len, index=dist_active_labels)
-    energy_len = pd.DataFrame(energy_len, index=ener_active_labels)
+    # For the energy bins, distance changes so using distance labels
+    energy_median = pd.DataFrame(energy_median, index=distancebin_labels)
+    energy_len = pd.DataFrame(energy_len, index=distancebin_labels)
+    energy_median.fillna(0, inplace=True)
+    # For the distance bins, energy changes so using energy labels
+    distance_median = pd.DataFrame(distance_median, index=energybin_labels)
+    distance_median.fillna(0, inplace=True)
+    distance_len = pd.DataFrame(distance_len, index=energybin_labels)
+
+    # concatenate everything
     median = pd.concat([energy_median, distance_median])
     len_ = pd.concat([energy_len, distance_len])
-    median.fillna(0, inplace=True)
-    len_.fillna(0, inplace=True)
     everything = pd.concat([len_, median])
 
-    return everything, median, len_
+    return everything
 
 
 def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None, energy_thres=None):
@@ -275,7 +326,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     # different metrics
     if not os.path.exists("{}_results".format(res_dir)):
         os.makedirs("{}_results".format(res_dir))
-    everything, median_bin, len_bin = binning(bin_dict)
+    everything = binning(bin_dict)
     median = pd.DataFrame(pd.Series(weight_median), columns=["weighted median distance"])
     median["dist mut-wt"] = median["weighted median distance"] - median["weighted median distance"].loc["original"]
     # median["freq catalytic poses"] = pd.Series(len_dict)
@@ -284,57 +335,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
     median["residence time"] = pd.Series(residence)
     median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
     everything.to_csv("{}_results/binning_{}.csv".format(res_dir, position_num))
-    return data_dict, (median_bin, len_bin)
-
-
-def box_plot(res_dir, data_dict, position_num, bins, dpi=800, cata_dist=3.5):
-    """
-    Creates a box plot of the 19 mutations from the same position
-
-    Parameters
-    ___________
-    res_dir: str
-        name of the results folder
-    data_dict: dict
-        A dictionary that contains SimulationData objects from the simulation folders
-    bins: tuple(pd.Dataframe, pd.Dataframe)
-    position_num: str
-        Position at the which the mutations occurred
-    dpi: int, optional
-        The quality of the plots produced
-    """
-    if not os.path.exists("{}_results/Plots/bar".format(res_dir)):
-        os.makedirs("{}_results/Plots/bar".format(res_dir))
-    # create bar plots with each of the mutants
-    median_bin, len_bin = bins
-    ind_median = np.array([x for x, _ in enumerate(median_bin.index)])
-    ind_len = np.array([x for x, _ in enumerate(len_bin.index)])
-
-    # median bar plot
-    sns.set(font_scale=1.8)
-    sns.set_style("ticks")
-    sns.set_context("paper")
-    for num, key in enumerate(median_bin.columns):
-        plt.bar(ind_median+(0.35*num), median_bin[key], width=0.35, label=key)
-    plt.title("frequency bar plot")
-    plt.legend(loc='best')
-    plt.xticks(ind_median+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), median_bin.index, rotation=40, fontsize=8)
-    plt.tight_layout()
-    plt.savefig("{}_results/Plots/box/{}_median_bar.png".format(res_dir, position_num), dpi=dpi)
-    plt.close()
-
-    # len bar plot
-    sns.set(font_scale=1.8)
-    sns.set_style("ticks")
-    sns.set_context("paper")
-    for num, key in enumerate(len_bin.columns):
-        plt.bar(ind_len+(0.35*num), len_bin[key], width=0.35, label=key)
-    plt.title("frequency bar plot")
-    plt.legend(loc='best')
-    plt.xticks(ind_len+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), len_bin.index, rotation=40, fontsize=8)
-    plt.tight_layout()
-    plt.savefig("{}_results/Plots/box/{}_residence_bar.png".format(res_dir, position_num), dpi=dpi)
-    plt.close()
+    return data_dict
 
 
 def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=800, mode="results",
