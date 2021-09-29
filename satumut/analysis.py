@@ -193,18 +193,20 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="Distance"
         os.makedirs("{}_results/Plots/bar".format(res_dir))
     # create bar plots with each of the mutants
     median_bin, len_bin = bins
-    ind_median = np.array([x for x, _ in enumerate(median_bin.index)])
-    ind_len = np.array([x for x, _ in enumerate(len_bin.index)])
 
     # median bar plot
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    for num, key in enumerate(median_bin.columns):
-        plt.bar(ind_median+(0.35*num), median_bin[key], width=0.35, label=key)
+    median_bin.reset_index(inplace=True)
+    median_bin.plot(x="index", kind="bar", stacked=False)
+    if bin_type == "Distance":
+        plt.xlabel('Energy intervals')
+    else:
+        plt.xlabel('Distance intervals')
     plt.title("Median bar plot of {} bins - {}".format(bin_type, interval))
     plt.legend(loc='best')
-    plt.xticks(ind_median+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), median_bin.index, rotation=40, fontsize=8)
+    plt.xticks(rotation=40, fontsize=8)
     plt.tight_layout()
     plt.savefig("{}_results/Plots/box/{}_median_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
     plt.close()
@@ -213,11 +215,15 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="Distance"
     sns.set(font_scale=1.8)
     sns.set_style("ticks")
     sns.set_context("paper")
-    for num, key in enumerate(len_bin.columns):
-        plt.bar(ind_len+(0.35*num), len_bin[key], width=0.35, label=key)
-    plt.title("frequency bar plot of {} bins- {}".format(bin_type, interval))
+    len_bin.reset_index(inplace=True)
+    len_bin.plot(x="index", kind="bar", stacked=False)
+    if bin_type == "Distance":
+        plt.xlabel('Energy intervals')
+    else:
+        plt.xlabel('Distance intervals')
+    plt.title("Frequency bar plot of {} bins - {}".format(bin_type, interval))
     plt.legend(loc='best')
-    plt.xticks(ind_len+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), len_bin.index, rotation=40, fontsize=8)
+    plt.xticks(rotation=40, fontsize=8)
     plt.tight_layout()
     plt.savefig("{}_results/Plots/box/{}_frequency_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
     plt.close()
@@ -239,18 +245,18 @@ def binning(bin_dict, res_dir, position_number, dpi=800):
     distancebin_labels = ["({}, {}]".format(round(distance_bin[i], 2), round(distance_bin[i + 1]), 2) for i in range(len(distance_bin) - 1)]
 
     # The best distance with different energies
-    distance_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
-                       (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
+    best_distance = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
+                     (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
     # The best energies with different distances
-    energy_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
-                     (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
+    best_energy = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
+                   (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
     # For each bin in distance active, I calculate the frequency and the median of data points for each of the mutations
-    distance_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in distance_active]
-    distance_median = [{key: frame[frame["Type"] == key]["distance0.5"].median() for key in bin_dict.keys()} for frame in distance_active]
+    distance_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in best_distance]
+    distance_median = [{key: frame[frame["Type"] == key]["distance0.5"].median() for key in bin_dict.keys()} for frame in best_distance]
 
     # For each bin in energy active, I calculate the frequency and the median of data points for each of the mutations
-    energy_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in energy_active]
-    energy_median = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in energy_active]
+    energy_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in best_energy]
+    energy_median = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
 
     # For the energy bins, distance changes so using distance labels
     energy_median = pd.DataFrame(energy_median, index=distancebin_labels)
