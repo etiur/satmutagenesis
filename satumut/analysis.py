@@ -311,7 +311,7 @@ def box_plot(res_dir, data_dict, position_num, bins, dpi=800, cata_dist=3.5):
     for num, key in enumerate(median_bin.columns):
         plt.bar(ind_median+(0.35*num), median_bin[key], width=0.35, label=key)
     plt.legend(loc='best')
-    plt.xticks(ind_median + 0.35 * len(median_bin.columns)/2, median_bin.index, rotation=40, fontsize=8)
+    plt.xticks(ind_median+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), median_bin.index, rotation=40, fontsize=8)
     plt.tight_layout()
     plt.savefig("{}_results/Plots/box/{}_median_bar.png".format(res_dir, position_num), dpi=dpi)
     plt.close()
@@ -323,7 +323,7 @@ def box_plot(res_dir, data_dict, position_num, bins, dpi=800, cata_dist=3.5):
     for num, key in enumerate(len_bin.columns):
         plt.bar(ind_len+(0.35*num), len_bin[key], width=0.35, label=key)
     plt.legend(loc='best')
-    plt.xticks(ind_len + 0.35 * len(len_bin.columns)/2, len_bin.index, rotation=40, fontsize=8)
+    plt.xticks(ind_len+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), len_bin.index, rotation=40, fontsize=8)
     plt.tight_layout()
     plt.savefig("{}_results/Plots/box/{}_residence_bar.png".format(res_dir, position_num), dpi=dpi)
     plt.close()
