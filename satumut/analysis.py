@@ -223,7 +223,7 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="Distance"
     plt.close()
 
 
-def binning(bin_dict):
+def binning(bin_dict, res_dir, position_number, dpi=800):
     """
     Bins the values as to have a better analysis of the pele reports
 
@@ -260,6 +260,10 @@ def binning(bin_dict):
     distance_median = pd.DataFrame(distance_median, index=energybin_labels)
     distance_median.fillna(0, inplace=True)
     distance_len = pd.DataFrame(distance_len, index=energybin_labels)
+
+    # plotting
+    bar_plot(res_dir, position_number, (distance_median, distance_len), distancebin_labels[0], dpi, "Distance")
+    bar_plot(res_dir, position_number, (energy_median, energy_len), energybin_labels[0], dpi, "Energy")
 
     # concatenate everything
     median = pd.concat([energy_median, distance_median])
