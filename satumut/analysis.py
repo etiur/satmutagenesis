@@ -189,14 +189,21 @@ def binning(bin_dict):
     distancebin_labels = ["({}, {}]".format(round(distance_bin[i], 2), round(distance_bin[i + 1]), 2) for i in range(len(distance_bin) - 1)]
     dist_active_labels = ["{} A vs {} J".format(distancebin_labels[0], i) for i in energybin_labels]
     ener_active_labels = ["{} J vs {} A".format(energybin_labels[0], i) for i in distancebin_labels]
+
+    # The best distance with different energies
     distance_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
                        (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
+    # The best energies with different distances
     energy_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
                      (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
+    # For each bin in distance active, I calculate the frequency and the median of data points for each of the mutations
     distance_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in distance_active]
-    energy_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in energy_active]
     distance_median = [{key: frame[frame["Type"] == key]["distance0.5"].median() for key in bin_dict.keys()} for frame in distance_active]
+
+    # For each bin in energy active, I calculate the frequency and the median of data points for each of the mutations
+    energy_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in energy_active]
     energy_median = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in energy_active]
+
     # to dataframe
     energy_median = pd.DataFrame(energy_median, index=ener_active_labels)
     distance_median = pd.DataFrame(distance_median, index=dist_active_labels)
@@ -207,7 +214,6 @@ def binning(bin_dict):
     median.fillna(0, inplace=True)
     len_.fillna(0, inplace=True)
     everything = pd.concat([len_, median])
-    everything = everything.transpose()
 
     return everything, median, len_
 
@@ -310,6 +316,7 @@ def box_plot(res_dir, data_dict, position_num, bins, dpi=800, cata_dist=3.5):
     sns.set_context("paper")
     for num, key in enumerate(median_bin.columns):
         plt.bar(ind_median+(0.35*num), median_bin[key], width=0.35, label=key)
+    plt.title("frequency bar plot")
     plt.legend(loc='best')
     plt.xticks(ind_median+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), median_bin.index, rotation=40, fontsize=8)
     plt.tight_layout()
@@ -322,6 +329,7 @@ def box_plot(res_dir, data_dict, position_num, bins, dpi=800, cata_dist=3.5):
     sns.set_context("paper")
     for num, key in enumerate(len_bin.columns):
         plt.bar(ind_len+(0.35*num), len_bin[key], width=0.35, label=key)
+    plt.title("frequency bar plot")
     plt.legend(loc='best')
     plt.xticks(ind_len+0.35*(len(median_bin.columns)-1)/len(median_bin.columns), len_bin.index, rotation=40, fontsize=8)
     plt.tight_layout()
