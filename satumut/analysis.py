@@ -187,8 +187,8 @@ def binning(bin_dict):
     distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
     energybin_labels = ["({}, {}]".format(round(energy_bin[i], 2), round(energy_bin[i + 1]), 2) for i in range(len(energy_bin) - 1)]
     distancebin_labels = ["({}, {}]".format(round(distance_bin[i], 2), round(distance_bin[i + 1]), 2) for i in range(len(distance_bin) - 1)]
-    dist_active_labels = ["{} Amg vs {} Kcal".format(distancebin_labels[0], i) for i in energybin_labels]
-    ener_active_labels = ["{} Kcal vs {} Amg".format(energybin_labels[0], i) for i in distancebin_labels]
+    dist_active_labels = ["{} A vs {} J".format(distancebin_labels[0], i) for i in energybin_labels]
+    ener_active_labels = ["{} J vs {} A".format(energybin_labels[0], i) for i in distancebin_labels]
     distance_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
                        (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
     energy_active = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
