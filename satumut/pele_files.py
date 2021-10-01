@@ -17,7 +17,8 @@ def parse_args():
     parser.add_argument("-lc", "--ligchain", required=True, help="Include the chain ID of the ligand")
     parser.add_argument("-ln", "--ligname", required=True, help="The ligand residue name")
     parser.add_argument("-at", "--atoms", required=False, nargs="+",
-                        help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
+                        help="Series of atoms of the residues to follow by PELE during simulation in this format "
+                             "-> chain ID:position:atom name")
     parser.add_argument("-cpm", "--cpus_per_mutant", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("-tcpus", "--total_cpus", required=False, type=int,
