@@ -174,7 +174,7 @@ class SimulationData:
         self.bind_diff = self.binding["Binding Energy"] - ori_binding
 
 
-def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="Distance"):
+def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance"):
     """
     Creates a box plot of the 19 mutations from the same position
 
@@ -212,7 +212,7 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="Distance"
     plt.legend(loc='best')
     plt.xticks(rotation=40, fontsize=8)
     plt.tight_layout()
-    plt.savefig("{}_results/Plots/box/{}_median_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
+    plt.savefig("{}_results/Plots/bar/{}_median_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
     plt.close()
 
     # len bar plot
@@ -229,7 +229,7 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="Distance"
     plt.legend(loc='best')
     plt.xticks(rotation=40, fontsize=8)
     plt.tight_layout()
-    plt.savefig("{}_results/Plots/box/{}_frequency_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
+    plt.savefig("{}_results/Plots/bar/{}_frequency_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
     plt.close()
 
 
@@ -250,9 +250,9 @@ def binning(data_dict, res_dir, position_number, dpi=800):
     """
     bin_dict = {}
     for key, value in data_dict.items():
-        bin_dict[key] = value.all[["Binding Energy", "distance0.5"]].copy()
+        bin_dict[key] = value.all[["Binding Energy", "distance0.5", "Type"]].copy()
     data = pd.concat(bin_dict.values())
-    tup = namedtuple("bins", ["e_median", "e_len", "d_median", "d_len"])
+    tup = namedtuple("bins", ["e_median", "e_len", "e_interval", "d_median", "d_len", "d_interval"])
     # creating the intervals or bins
     energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
     distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
@@ -265,33 +265,39 @@ def binning(data_dict, res_dir, position_number, dpi=800):
     # The best energies with different distances
     best_energy = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
                    (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
-    # For each bin in distance active, I calculate the frequency and the median of data points for each of the mutations
+    # For each bin in best_distance, I calculate the frequency, the median distance and energy for each of the mutations
     distance_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in best_distance]
     distance_median = [{key: frame[frame["Type"] == key]["distance0.5"].median() for key in bin_dict.keys()} for frame in best_distance]
-
-    # For each bin in energy active, I calculate the frequency and the median of data points for each of the mutations
+    distance_energy = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_distance]
+    # For each bin in best_energy, I calculate the frequency, the median energy and distance for each of the mutations
     energy_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in best_energy]
     energy_median = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
-
+    energy_distance = [{key: frame[frame["Type"] == key]["distance0.5"].median() for key in bin_dict.keys()} for frame in best_energy]
     # For the energy bins, distance changes so using distance labels
     energy_median = pd.DataFrame(energy_median, index=distancebin_labels)
     energy_len = pd.DataFrame(energy_len, index=distancebin_labels)
     energy_median.fillna(0, inplace=True)
+    energy_distance = pd.DataFrame(energy_distance, index=distancebin_labels)
+    energy_distance.fillna(0, inplace=True)
     # For the distance bins, energy changes so using energy labels
     distance_median = pd.DataFrame(distance_median, index=energybin_labels)
     distance_median.fillna(0, inplace=True)
     distance_len = pd.DataFrame(distance_len, index=energybin_labels)
+    distance_energy = pd.DataFrame(distance_energy, index=energybin_labels)
+    distance_energy.fillna(0, inplace=True)
 
     # plotting
-    bar_plot(res_dir, position_number, (distance_median, distance_len), distancebin_labels[0], dpi, "Distance")
-    bar_plot(res_dir, position_number, (energy_median, energy_len), energybin_labels[0], dpi, "Energy")
+    bar_plot(res_dir, position_number, (distance_median, distance_len), distancebin_labels[0], dpi, "distance")
+    bar_plot(res_dir, position_number, (energy_median, energy_len), energybin_labels[0], dpi, "energy")
 
     # concatenate everything
-    median = pd.concat([energy_median, distance_median])
+    all_energy_median = pd.concat([energy_median, distance_energy])
     len_ = pd.concat([energy_len, distance_len])
-    everything = pd.concat([len_, median])
+    all_distance_median = pd.concat(([energy_distance, distance_median]))
+
+    everything = pd.concat([len_, all_energy_median, all_distance_median])
     everything.to_csv("{}_results/binning_{}.csv".format(res_dir, position_number))
-    return tup(energy_median, energy_len, distance_median, distance_len)
+    return tup(energy_median, energy_len, energybin_labels, distance_median, distance_len, distancebin_labels)
 
 
 def generate_csv(data_dict, res_dir, position_num):
@@ -358,7 +364,7 @@ def analyse_all(folders, wild, traj=10, cata_dist=3.5, extract=None, energy_thre
         Dictionary of SimulationData objects
     """
     data_dict = {}
-
+    # run SimulationDAata for each of the mutant simulations
     original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, extract=extract, energy_thres=energy_thres)
     original.filtering()
     data_dict["original"] = original
@@ -621,8 +627,8 @@ def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, function=None):
     p.terminate()
 
 
-def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5, mode="results",
-                  profile_with="Binding Energy"):
+def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5,
+                  mode="results", profile_with="Binding Energy"):
     """
     Create pdf files with the plots of chosen mutations and the path to the
 
@@ -630,7 +636,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     ___________
     res_dir: str
        Name of the results folder
-    mutation: dict
+    mutation: list
        A dictionary of SimulationData objects {key: SimulationData}
     position_num: str
        part of the path to the plots, the position that was mutated
@@ -651,46 +657,68 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.set_left_margin(15.0)
     pdf.set_right_margin(15.0)
     pdf.add_page()
-
+    interval, results = mutation
     # Title
     pdf.set_font('Arial', 'B', 14)
     pdf.cell(0, 10, "Best mutations in terms of distance and/or binding energy", align='C', ln=1)
     pdf.set_font('Arial', '', size=10)
-    for key, val in mutation.items():
-        dis = round(val.dist_diff.median(), 4)
-        bind = round(val.bind_diff.median(), 4)
-        freq = val.residence
-        message = 'Mutation {}: median distance increment {}, median binding energy increment {}'.format(key, dis, bind)
-        message2 = "{} steps with a distance less than {} angstroms" .format(freq, cata_dist)
+    for ind in results.index:
+        message = 'Mutation {}: median distance {}, median binding energy {}'.format(ind, results["distance"].loc[ind], results["energy"].loc[ind])
+        message1 = 'Intervals: {} for distance, {} for energy, Steps {}'.format(interval[1], interval[0], results["freq"].loc[ind])
         pdf.ln(3)  # linebreaks
-        pdf.cell(0, 5, message, ln=1)
+        pdf.cell(0, 5, message1, ln=1)
         pdf.ln(3)
-        pdf.cell(0, 5, message2, ln=1)
-    pdf.ln(8)  # linebreaks
+        pdf.cell(0, 5, message, ln=1)
+        pdf.ln(8)  # linebreaks
+        # Top poses
+        pdf.set_font('Arial', 'B', size=12)
+        pdf.cell(0, 10, "Path to the top poses", align='C', ln=1)
+        pdf.set_font('Arial', size=10)
+        pdf.ln(5)
+        path = "{}_{}/distances_{}/{}_pdbs".format(res_dir, mode, position_num, ind)
+        pdf.cell(0, 10, "{}: {} ".format(ind, abspath(path)), ln=1)
+        pdf.ln(8)
+        # Scatter Plots
+        pdf.ln(1000000)  # page break
+        pdf.set_font('Arial', 'B', size=12)
+        pdf.cell(0, 10, "Scatter plots", align='C', ln=1)
+        pdf.set_font('Arial', '', size=10)
+        pdf.ln(3)
+        pdf.cell(0, 10, "Plots {}".format(ind), ln=1)
+        pdf.ln(3)
+        plot1 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "distance0.5", ind,
+                                                             "distance0.5")
+        plot2 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "sasaLig", ind, "sasaLig")
+        if profile_with == "Binding Energy":
+            plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "currentEnergy", ind,
+                                                                 "currentEnergy")
+        else:
+            plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "Binding Energy", ind,
+                                                                "Binding Energy")
+        pdf.image(plot1, w=180)
+        pdf.ln(3)
+        pdf.image(plot2, w=180)
+        pdf.ln(1000000)  # page break
+        pdf.ln(3)
+        pdf.image(plot3, w=180)
+        pdf.ln(1000000)  # page break
 
     # box plots
     pdf.set_font('Arial', 'B', size=12)
-    pdf.cell(0, 10, "Box plot of {}".format(analysis), align='C', ln=1)
+    pdf.cell(0, 10, "Bar plots of {} bins".format(analysis), align='C', ln=1)
     pdf.ln(8)
-    if analysis == "distance":
-        box1 = "{}_{}/Plots/box/{}_distance_dif.png".format(res_dir, mode, position_num)
-        box2 = "{}_{}/Plots/box/{}_distance.png".format(res_dir, mode, position_num)
+    if analysis != "both":
+        box1 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, analysis)
+        box2 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, analysis)
         pdf.image(box1, w=180)
         pdf.ln(5)
         pdf.image(box2, w=180)
         pdf.ln(1000000)
-    elif analysis == "energy":
-        box1 = "{}_{}/Plots/box/{}_binding_dif.png".format(res_dir, mode, position_num)
-        box2 = "{}_{}/Plots/box/{}_binding.png".format(res_dir, mode, position_num)
-        pdf.image(box1, w=180)
-        pdf.ln(5)
-        pdf.image(box2, w=180)
-        pdf.ln(1000000)
-    elif analysis == "both":
-        box1 = "{}_{}/Plots/box/{}_distance_dif.png".format(res_dir, mode, position_num)
-        box5 = "{}_{}/Plots/box/{}_distance.png".format(res_dir, mode, position_num)
-        box2 = "{}_{}/Plots/box/{}_binding_dif.png".format(res_dir, mode, position_num)
-        box4 = "{}_{}/Plots/box/{}_binding.png".format(res_dir, mode, position_num)
+    else:
+        box1 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, "distance")
+        box2 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, "distance")
+        box5 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, "energy")
+        box4 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, "energy")
         pdf.image(box1, w=180)
         pdf.ln(5)
         pdf.image(box2, w=180)
@@ -700,48 +728,13 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         pdf.image(box5, w=180)
         pdf.ln(1000000)
 
-    # Plots
-    pdf.set_font('Arial', 'B', size=12)
-    pdf.cell(0, 10, "Scatter plots", align='C', ln=1)
-    pdf.set_font('Arial', '', size=10)
-    for mut, key in mutation.items():
-        pdf.ln(3)
-        pdf.cell(0, 10, "Plots {}".format(mut), ln=1)
-        pdf.ln(3)
-        plot1 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "distance0.5", mut,
-                                                             "distance0.5")
-        plot2 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "sasaLig", mut, "sasaLig")
-        if profile_with == "Binding Energy":
-            plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "currentEnergy", mut,
-                                                                 "currentEnergy")
-        else:
-            plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "Binding Energy", mut,
-                                                                 "Binding Energy")
-        pdf.image(plot1, w=180)
-        pdf.ln(3)
-        pdf.image(plot2, w=180)
-        pdf.ln(1000000)  # page break
-        pdf.ln(3)
-        pdf.image(plot3, w=180)
-        pdf.ln(1000000)  # page break
-
-    # Top poses
-    pdf.set_font('Arial', 'B', size=12)
-    pdf.cell(0, 10, "Path to the top poses", align='C', ln=1)
-    pdf.set_font('Arial', size=10)
-    pdf.ln(5)
-    for mut, key in mutation.items():
-        path = "{}_{}/distances_{}/{}_pdbs".format(res_dir, mode, position_num, mut)
-        pdf.cell(0, 10, "{}: {} ".format(mut, abspath(path)), ln=1)
-        pdf.ln(5)
-
     # Output report
     name = "{}_{}/{}_{}.pdf".format(res_dir, mode, output, position_num)
     pdf.output(name, 'F')
     return name
 
 
-def find_top_mutations(res_dir, data_dict, position_num, output="summary", analysis="distance", thres=0.0,
+def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="distance", thres=0.0,
                        cata_dist=3.5, mode="results", energy_thres=None, profile_with="Binding Energy"):
     """
     Finds those mutations that decreases the binding distance and binding energy and creates a report
@@ -768,25 +761,58 @@ def find_top_mutations(res_dir, data_dict, position_num, output="summary", analy
     # Find top mutations
     log = Log("{}_{}/analysis".format(res_dir, mode))
     count = 0
-    mutation_dict = {}
-    for key, value in data_dict.items():
-        if "original" not in key:
-            if analysis == "distance" and value.dist_diff.median() <= thres:
-                mutation_dict[key] = value
-                count += 1
-            elif analysis == "energy" and value.bind_diff.median() <= thres:
-                mutation_dict[key] = value
-                count += 1
-            elif analysis == "both" and value.dist_diff.median() <= thres and value.bind_diff.median() <= thres:
-                mutation_dict[key] = value
-                count += 1
-
+    mutation_dict = []
+    # unzip the different dataframes
+    e_labels = bins.e_interval
+    e_median = bins.e_median
+    drop_em = e_median.drop(["original"], axis=1)
+    ori_em = e_median["original"]
+    d_labels = bins.d_interval
+    d_median = bins.d_median
+    drop_dm = d_median.drop(["original"], axis=1)
+    ori_dm = d_median["original"]
+    d_len = bins.d_len
+    # Analyse the bins
+    median1 = drop_dm.loc[e_labels[0]]
+    ene_med = drop_em.loc[d_labels[0]]
+    if analysis == "distance":
+        if ori_dm.loc[e_labels[0]] == 0:
+            median1 = median1[median1 > 0]
+        else:
+            median1 = median1[(median1 - ori_dm.loc[e_labels[0]]) < thres]
+        if not median1.empty:
+            cat = pd.concat([median1, d_len.loc[e_labels[0]].loc[median1.index], e_median.loc[d_labels[0]].loc[median1.index]], axis=1)
+            cat.columns = ["distance", "freq", "energy"]
+            mutation_dict = [(e_labels[0], d_labels[0]), cat.copy()]
+    elif analysis == "energy":
+        if ori_em.loc[d_labels[0]] == 0:
+            ene_med = ene_med[ene_med > 0]
+        else:
+            ene_med = ene_med[(ene_med - ori_em.loc[d_labels[0]]) < thres]
+        if not ene_med.empty:
+            cat = pd.concat([median1.loc[e_labels[0]].loc[ene_med.index], d_len.loc[e_labels[0]].loc[ene_med.index], ene_med], axis=1)
+            cat.columns = ["distance", "freq", "energy"]
+            mutation_dict = [(e_labels[0], d_labels[0]),  cat.copy()]
+    else:
+        if ori_em.loc[d_labels[0]] == 0:
+            ene_med = ene_med[ene_med > 0]
+        else:
+            ene_med = ene_med[(ene_med - ori_em.loc[d_labels[0]]) < thres]
+        if ori_dm.loc[e_labels[0]] == 0:
+            median1 = median1[median1 > 0]
+        else:
+            median1 = median1[(median1 - ori_dm.loc[e_labels[0]]) < thres]
+        if not median1.empty or ene_med.empty:
+            index = set(median1.index).intersection(ene_med.index)
+            cat = pd.concat([median1.loc[index], d_len.loc[e_labels[0]].loc[index], ene_med.loc[index]], axis=1)
+            cat.columns = ["distance", "freq", "energy"]
+            mutation_dict = [(e_labels[0], d_labels[0]), cat.copy()]
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
         log.info(
             "{} mutations at position {} decrease {} by {} or less "
             "when catalytic distance {} and binding energy {}".format(count, position_num,analysis, thres, cata_dist,
-                                                                   energy_thres))
+                                                                      energy_thres))
         create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, mode=mode,
                       profile_with=profile_with)
     else:
@@ -849,12 +875,12 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict, bins = analyse_all(folders, wild, traj, cata_dist, extract, energy_thres)
+        data_dict = analyse_all(folders, wild, traj, cata_dist, extract, energy_thres)
         generate_csv(data_dict, plot_dir, base)
         bins = binning(data_dict, plot_dir, base, dpi=800)
         all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
-        find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
+        find_top_mutations(plot_dir, bins, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
                            energy_thres=energy_thres, profile_with=profile_with)
 
 
