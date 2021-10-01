@@ -17,6 +17,7 @@ from functools import partial
 from helper import isiterable, Log, commonlist, find_log
 import mdtraj as md
 import numpy as np
+from collections import namedtuple
 plt.switch_backend('agg')
 
 
@@ -181,13 +182,16 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="Distance"
     ___________
     res_dir: str
         name of the results folder
-    data_dict: dict
-        A dictionary that contains SimulationData objects from the simulation folders
-    bins: tuple(pd.Dataframe, pd.Dataframe)
     position_num: str
         Position at the which the mutations occurred
+    bins: tuple(pd.Dataframe, pd.Dataframe)
+        A tuple of the dataframes from which the bar plots will be generated
+    interval: str
+        The interval used to generate the bins
     dpi: int, optional
         The quality of the plots produced
+    bin_type: str
+        2 possible types, distance bins and energy bins
     """
     if not os.path.exists("{}_results/Plots/bar".format(res_dir)):
         os.makedirs("{}_results/Plots/bar".format(res_dir))
@@ -229,7 +233,7 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="Distance"
     plt.close()
 
 
-def binning(bin_dict, res_dir, position_number, dpi=800):
+def binning(data_dict, res_dir, position_number, dpi=800):
     """
     Bins the values as to have a better analysis of the pele reports
 
@@ -237,8 +241,19 @@ def binning(bin_dict, res_dir, position_number, dpi=800):
     ___________
     bin_dict: dict
         A dictionary containing the mutations as keys and the SimulationData.all dataframe as values
+    res_dir: str
+        The directory for the results
+    position_num: str
+        The position at the which the mutations was produced
+    dpi: int
+        The quality of the plots produced
     """
+    bin_dict = {}
+    for key, value in data_dict.items():
+        bin_dict[key] = value.all[["Binding Energy", "distance0.5"]].copy()
     data = pd.concat(bin_dict.values())
+    tup = namedtuple("bins", ["e_median", "e_len", "d_median", "d_len"])
+    # creating the intervals or bins
     energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
     distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
     energybin_labels = ["({}, {}]".format(round(energy_bin[i], 2), round(energy_bin[i + 1]), 2) for i in range(len(energy_bin) - 1)]
@@ -275,11 +290,46 @@ def binning(bin_dict, res_dir, position_number, dpi=800):
     median = pd.concat([energy_median, distance_median])
     len_ = pd.concat([energy_len, distance_len])
     everything = pd.concat([len_, median])
+    everything.to_csv("{}_results/binning_{}.csv".format(res_dir, position_number))
+    return tup(energy_median, energy_len, distance_median, distance_len)
 
-    return everything
+
+def generate_csv(data_dict, res_dir, position_num):
+    """
+    A function that generates a csv using the different metrics provided by SimulationData
+
+    Parameters
+    ----------
+    data_dict: dict{mutants:SimulationData}
+        A dictionary of SimulationData objects
+    res_dir: str
+        The directory for the results
+    position_num: str
+        The position at the which the mutations was produced
+    """
+    len_dict = {}
+    weight_median = {}
+    residence = {}
+    len_ratio = {}
+    for key, value in data_dict.items():
+        len_dict[key] = value.len
+        weight_median[key] = value.weight_dist
+        residence[key] = value.residence
+        len_ratio[key] = value.len_ratio
+
+    # different metrics
+    if not os.path.exists("{}_results".format(res_dir)):
+        os.makedirs("{}_results".format(res_dir))
+    median = pd.DataFrame(pd.Series(weight_median), columns=["weighted median distance"])
+    median["dist mut-wt"] = median["weighted median distance"] - median["weighted median distance"].loc["original"]
+    # median["freq catalytic poses"] = pd.Series(len_dict)
+    median["ratio catalytic vs total poses"] = pd.Series(len_ratio)
+    median["frequency"] = pd.Series(len_dict)
+    median["residence time"] = pd.Series(residence)
+    median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
 
 
-def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, extract=None, energy_thres=None):
+def analyse_all(folders, wild, traj=10, cata_dist=3.5, extract=None, energy_thres=None):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -308,19 +358,10 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
         Dictionary of SimulationData objects
     """
     data_dict = {}
-    len_dict = {}
-    bin_dict = {}
-    weight_median = {}
-    residence = {}
-    len_ratio = {}
+
     original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, extract=extract, energy_thres=energy_thres)
     original.filtering()
     data_dict["original"] = original
-    len_dict["original"] = original.len
-    bin_dict["original"] = original.all[["Binding Energy", "distance0.5"]].copy()
-    weight_median["original"] = original.weight_dist
-    residence["original"] = original.residence
-    len_ratio["original"] = original.len_ratio
     for folder in folders:
         name = basename(folder)
         data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist, extract=extract, energy_thres=energy_thres)
@@ -328,23 +369,7 @@ def analyse_all(folders, wild, res_dir, position_num, traj=10, cata_dist=3.5, ex
         data.set_distance(original.weight_dist)
         data.set_binding(original.weight_bind)
         data_dict[name] = data
-        len_dict[name] = data.len
-        bin_dict[name] = data.all[["Binding Energy", "distance0.5"]].copy()
-        weight_median[name] = data.weight_dist
-        residence[name] = data.residence
-        len_ratio[name] = data.len_ratio
-    # different metrics
-    if not os.path.exists("{}_results".format(res_dir)):
-        os.makedirs("{}_results".format(res_dir))
-    everything = binning(bin_dict)
-    median = pd.DataFrame(pd.Series(weight_median), columns=["weighted median distance"])
-    median["dist mut-wt"] = median["weighted median distance"] - median["weighted median distance"].loc["original"]
-    # median["freq catalytic poses"] = pd.Series(len_dict)
-    median["ratio catalytic vs total poses"] = pd.Series(len_ratio)
-    median["frequency"] = pd.Series(len_dict)
-    median["residence time"] = pd.Series(residence)
-    median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
-    everything.to_csv("{}_results/binning_{}.csv".format(res_dir, position_num))
+
     return data_dict
 
 
@@ -824,9 +849,9 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_all(folders, wild, plot_dir, base, traj=traj, cata_dist=cata_dist, extract=extract,
-                                energy_thres=energy_thres)
-        box_plot(plot_dir, data_dict, base, dpi, cata_dist)
+        data_dict, bins = analyse_all(folders, wild, traj, cata_dist, extract, energy_thres)
+        generate_csv(data_dict, plot_dir, base)
+        bins = binning(data_dict, plot_dir, base, dpi=800)
         all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
         find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
