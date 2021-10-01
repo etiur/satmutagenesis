@@ -239,8 +239,8 @@ def binning(data_dict, res_dir, position_number, dpi=800):
 
     Parameters
     ___________
-    bin_dict: dict
-        A dictionary containing the mutations as keys and the SimulationData.all dataframe as values
+    data_dict: dict
+        A dictionary containing the mutations as keys and the SimulationData dataframe as values
     res_dir: str
         The directory for the results
     position_num: str
@@ -294,8 +294,11 @@ def binning(data_dict, res_dir, position_number, dpi=800):
     all_energy_median = pd.concat([energy_median, distance_energy])
     len_ = pd.concat([energy_len, distance_len])
     all_distance_median = pd.concat(([energy_distance, distance_median]))
-
     everything = pd.concat([len_, all_energy_median, all_distance_median])
+
+    # To csv
+    if not os.path.exists("{}_results".format(res_dir)):
+        os.makedirs("{}_results".format(res_dir))
     everything.to_csv("{}_results/binning_{}.csv".format(res_dir, position_number))
     return tup(energy_median, energy_len, energybin_labels, distance_median, distance_len, distancebin_labels)
 

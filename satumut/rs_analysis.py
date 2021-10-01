@@ -345,7 +345,7 @@ def match_dist(dihedral_atoms, input_pdb, wild):
     return atom
 
 
-def binning(bin_dict, enantiomer):
+def binning(data_dict, res_dir, position_num):
     """
     Bins the values as to have a better analysis of the pele reports
 
@@ -353,7 +353,14 @@ def binning(bin_dict, enantiomer):
     ___________
     bin_dict: dict
         A dictionary containing the mutations as keys and the SimulationData.all dataframe as values
+    res_dir: str
+        The directory for the results
+    position_num: str
+        The position at the which the mutations was produced
     """
+    bin_dict = {}
+    for key, value in data_dict.items():
+        bin_dict[key] = value.all[["Binding Energy", "distance0.5", "Type"]].copy()
     data = pd.concat(bin_dict.values())
     energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
     distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
@@ -365,28 +372,57 @@ def binning(bin_dict, enantiomer):
     # The best energies with different distances
     best_energy = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
                    (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
-    # For each bin in distance active, I calculate the frequency and the median of data points for each of the mutations
-    distance_len = [{key: len(frame[frame["Type"] == "{}_{}".format(enantiomer, key)]) for key in bin_dict.keys()} for frame in best_distance]
-    distance_median = [{key: frame[frame["Type"] == "{}_{}".format(enantiomer, key)]["distance0.5"].median() for key in bin_dict.keys()} for frame in best_distance]
-
-    # For each bin in energy active, I calculate the frequency and the median of data points for each of the mutations
-    energy_len = [{key: len(frame[frame["Type"] == "{}_{}".format(enantiomer, key)]) for key in bin_dict.keys()} for frame in best_energy]
-    energy_median = [{key: frame[frame["Type"] == "{}_{}".format(enantiomer, key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
-
+    # For bins in distance_active, I calculate the frequency and the median for each of the mutations and enantiomers
+    r_distance_len = [{key: len(frame[frame["Type"] == "R_{}".format(key)]) for key in bin_dict.keys()} for frame in best_distance]
+    r_distance_median = [{key: frame[frame["Type"] == "R_{}".format(key)]["distance0.5"].median() for key in bin_dict.keys()} for frame in best_distance]
+    r_distance_energy = [{key: frame[frame["Type"] == "R_{}".format(key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_distance]
+    s_distance_len = [{key: len(frame[frame["Type"] == "S_{}".format(key)]) for key in bin_dict.keys()} for frame in best_distance]
+    s_distance_median = [{key: frame[frame["Type"] == "S_{}".format(key)]["distance0.5"].median() for key in bin_dict.keys()} for frame in best_distance]
+    s_distance_energy = [
+        {key: frame[frame["Type"] == "S_{}".format(key)]["Binding Energy"].median() for key in bin_dict.keys()} for
+        frame in best_distance]
+    # For bins in energy active, I calculate the frequency, the median for each of the mutations and enantiomers
+    r_energy_len = [{key: len(frame[frame["Type"] == "R_{}".format(key)]) for key in bin_dict.keys()} for frame in best_energy]
+    r_energy_median = [{key: frame[frame["Type"] == "R_{}".format(key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
+    r_energy_distance = [
+        {key: frame[frame["Type"] == "R_{}".format(key)]["distance0.5"].median() for key in bin_dict.keys()} for
+        frame in best_energy]
+    s_energy_len = [{key: len(frame[frame["Type"] == "S_{}".format(key)]) for key in bin_dict.keys()} for frame in best_energy]
+    s_energy_median = [{key: frame[frame["Type"] == "S_{}".format(key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
+    s_energy_distance = [
+        {key: frame[frame["Type"] == "S_{}".format(key)]["distance0.5"].median() for key in bin_dict.keys()} for
+        frame in best_energy]
     # For the energy bins, distance changes so using distance labels
-    energy_median = pd.DataFrame(energy_median, index=distancebin_labels)
-    energy_len = pd.DataFrame(energy_len, index=distancebin_labels)
-    energy_median.fillna(0, inplace=True)
+    r_energy_median = pd.DataFrame(r_energy_median, index=["R_{}".format(x) for x in distancebin_labels])
+    s_energy_median = pd.DataFrame(s_energy_median, index=["S_{}".format(x) for x in distancebin_labels])
+    r_energy_len = pd.DataFrame(r_energy_len, index=["R_{}".format(x) for x in distancebin_labels])
+    s_energy_len = pd.DataFrame(s_energy_len, index=["S_{}".format(x) for x in distancebin_labels])
+    r_energy_median.fillna(0, inplace=True)
+    s_energy_median.fillna(0, inplace=True)
+    r_energy_distance = pd.DataFrame(r_energy_distance, index=["R_{}".format(x) for x in distancebin_labels])
+    s_energy_distance = pd.DataFrame(s_energy_distance, index=["S_{}".format(x) for x in distancebin_labels])
+    r_energy_distance.fillna(0, inplace=True)
+    s_energy_distance.fillna(0, inplace=True)
     # For the distance bins, energy changes so using energy labels
-    distance_median = pd.DataFrame(distance_median, index=energybin_labels)
-    distance_median.fillna(0, inplace=True)
-    distance_len = pd.DataFrame(distance_len, index=energybin_labels)
-
+    r_distance_median = pd.DataFrame(r_distance_median, index=["R_{}".format(x) for x in energybin_labels])
+    s_distance_median = pd.DataFrame(s_distance_median, index=["S_{}".format(x) for x in energybin_labels])
+    r_distance_median.fillna(0, inplace=True)
+    s_distance_median.fillna(0, inplace=True)
+    r_distance_len = pd.DataFrame(r_distance_len, index=["R_{}".format(x) for x in energybin_labels])
+    s_distance_len = pd.DataFrame(s_distance_len, index=["S_{}".format(x) for x in energybin_labels])
+    r_distance_energy = pd.DataFrame(r_distance_energy, index=["R_{}".format(x) for x in energybin_labels])
+    s_distance_energy = pd.DataFrame(s_distance_energy, index=["S_{}".format(x) for x in energybin_labels])
+    r_distance_energy.fillna(0, inplace=True)
+    s_distance_energy.fillna(0, inplace=True)
     # concatenate everything
-    median = pd.concat([energy_median, distance_median])
-    len_ = pd.concat([energy_len, distance_len])
-    everything = pd.concat([len_, median])
-
+    distance_median = pd.concat([r_distance_median, s_distance_median, r_energy_distance, s_energy_distance])
+    len_ = pd.concat([r_energy_len, s_energy_len, r_distance_len, s_distance_len])
+    energy_median = pd.concat([r_distance_energy, s_distance_energy, r_energy_median, s_energy_median])
+    everything = pd.concat([len_, distance_median, energy_median])
+    # To csv
+    if not os.path.exists("{}_RS".format(res_dir)):
+        os.makedirs("{}_RS".format(res_dir))
+    everything.to_csv("{}_RS/binning_{}.csv".format(res_dir, position_num))
     return everything
 
 
@@ -924,10 +960,11 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
                                energy, cpus)
         generate_csv(data_dict, plot_dir, base, improve=improve)
         box_plot_rs(plot_dir, data_dict, base, dpi, cata_dist)
+        binning(data_dict, plot_dir, base)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS", profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, function=extract_10_pdb_single_rs)
-        find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
-                           improve=improve, energy=energy, profile_with=profile_with)
+        # find_top_mutations(plot_dir, data_dict, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
+        #                   improve=improve, energy=energy, profile_with=profile_with)
 
 
 def main():
