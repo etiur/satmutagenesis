@@ -390,8 +390,43 @@ def binning(bin_dict, enantiomer):
     return everything
 
 
-def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num, traj=10, cata_dist=3.5,
-               improve="R", extract=None, energy=None, cpus=10):
+def generate_csv(data_dict, res_dir, position_num, improve="R"):
+    """
+    A function that generates a CSV with the metrics provided by data_dict
+
+    Parameters
+    ----------
+    data_dict: dict{mutants:SimulationData}
+        A dictionary of SimulationData objects
+    res_dir: str
+        The folder where the results of the analysis will be kept
+    position_num: str
+        Position at the which the mutations occurred
+    improve: str, optional
+        The enantiomer that improves
+    """
+    len_list = []
+    median_list = []
+    choice = ["R", "S"]
+    choice.remove(improve)
+    for value in data_dict.values():
+        len_list.append(value.len)
+        median_list.append(value.median)
+    # frequency of catalytic distances
+    if not os.path.exists("{}_RS".format(res_dir)):
+        os.makedirs("{}_RS".format(res_dir))
+    len_list = pd.concat(len_list)
+    len_list["enantio excess"] = (len_list[improve] - len_list[choice[0]])/ (len_list["S"] + len_list["R"]) * 100
+    # median catalytic distances
+    median_list = pd.concat(median_list)
+    median_list["diff_R"] = median_list["R dist"] - median_list["R dist"].loc["original"]
+    median_list["diff_S"] = median_list["S dist"] - median_list["S dist"].loc["original"]
+    everything = pd.concat([median_list, len_list], axis=1)
+    everything.to_csv("{}_RS/dist_{}.csv".format(res_dir, position_num))
+
+
+def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, traj=10, cata_dist=3.5, extract=None, energy=None,
+               cpus=10):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -407,14 +442,10 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num
         Path to the initial pdb
     res_dir: str
         The folder where the results of the analysis will be kept
-    position_num: str
-        Position at the which the mutations occurred
     traj: int, optional
         How many snapshots to extract from the trajectories
     cata_dist: float, optional
         The catalytic distance
-    improve: str, optional
-        The enantiomer that improves
     extract: int, optional
         The number of steps to analyse
     energy: int, optional
@@ -427,18 +458,12 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num
     data_dict: dict
         Dictionary of SimulationData objects
     """
-    choice = ["R", "S"]
-    choice.remove(improve)
     data_dict = {}
-    len_list = []
-    median_list = []
     atoms = match_dist(dihedral_atoms, initial_pdb, wild)
     original = SimulationRS(wild, atoms, initial_pdb, res_dir,
                             pdb=traj, catalytic_dist=cata_dist, extract=extract, energy=energy, cpus=cpus)
     original.filtering()
     data_dict["original"] = original
-    len_list.append(original.len)
-    median_list.append(original.median)
     for folder in folders:
         name = basename(folder)
         data = SimulationRS(folder, atoms, initial_pdb, res_dir,
@@ -447,19 +472,6 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, position_num
         data.set_distance(original.dist_r, original.dist_s)
         data.set_binding(original.bind_r, original.bind_s)
         data_dict[name] = data
-        len_list.append(data.len)
-        median_list.append(data.median)
-    # frequency of catalytic distances
-    if not os.path.exists("{}_RS".format(res_dir)):
-        os.makedirs("{}_RS".format(res_dir))
-    len_list = pd.concat(len_list)
-    len_list["enantio excess"] = (len_list[improve] - len_list[choice[0]])/ (len_list["S"] + len_list["R"]) * 100
-    # median catalytic distances
-    median_list = pd.concat(median_list)
-    median_list["diff_R"] = median_list["R dist"] - median_list["R dist"].loc["original"]
-    median_list["diff_S"] = median_list["S dist"] - median_list["S dist"].loc["original"]
-    everything = pd.concat([median_list, len_list], axis=1)
-    everything.to_csv("{}_RS/dist_{}.csv".format(res_dir, position_num))
 
     return data_dict
 
@@ -908,8 +920,9 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
         plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_rs(folders, wild, dihedral_atoms, initial_pdb, plot_dir, base, traj=traj,
-                               cata_dist=cata_dist, improve=improve, extract=extract, energy=energy, cpus=cpus)
+        data_dict = analyse_rs(folders, wild, dihedral_atoms, initial_pdb, plot_dir, traj, cata_dist, extract,
+                               energy, cpus)
+        generate_csv(data_dict, plot_dir, base, improve=improve)
         box_plot_rs(plot_dir, data_dict, base, dpi, cata_dist)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS", profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, function=extract_10_pdb_single_rs)
