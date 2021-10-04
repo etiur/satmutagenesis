@@ -6,12 +6,11 @@ from pmx import Model
 from pmx.rotamer import load_bbdep
 import argparse
 import os
-from helper import map_atom_string
+from .helper import map_atom_string, Log
 from pmx.library import _aacids_ext_amber
 from pmx.rotamer import get_rotamers, select_best_rotamer
 from os.path import basename
 from multiprocessing import Process
-from helper import Log
 from Bio.SubsMat import MatrixInfo as mat
 
 

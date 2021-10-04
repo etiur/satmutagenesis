@@ -4,15 +4,15 @@ This script is used to create and control the simulations
 import argparse
 import shutil
 
-from mutate_pdb import generate_mutations
-from pele_files import create_20sbatch
+from .mutate_pdb import generate_mutations
+from .pele_files import create_20sbatch
 from subprocess import call
 from os.path import abspath
 import os
 import time
-from analysis import consecutive_analysis
-from helper import neighbourresidues, Log, find_log
-from rs_analysis import consecutive_analysis_rs
+from .analysis import consecutive_analysis
+from .helper import neighbourresidues, Log, find_log
+from .rs_analysis import consecutive_analysis_rs
 
 
 def parse_args():

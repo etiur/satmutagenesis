@@ -11,8 +11,8 @@ import os
 import sys
 import re
 import matplotlib.pyplot as plt
-from helper import isiterable, commonlist, find_log, Log, map_atom_string
-from analysis import extract_all, all_profiles
+from .helper import isiterable, commonlist, find_log, Log, map_atom_string
+from .analysis import extract_all, all_profiles
 import mdtraj as md
 from fpdf import FPDF
 import Bio.PDB
