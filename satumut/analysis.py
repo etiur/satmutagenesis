@@ -14,7 +14,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from helper import isiterable, Log, commonlist, find_log
+from .helper import isiterable, Log, commonlist, find_log
 import mdtraj as md
 import numpy as np
 from collections import namedtuple

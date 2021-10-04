@@ -10,7 +10,7 @@ __email__ = "ruite.xiang@bsc.es"
 import argparse
 from subprocess import call
 from os.path import basename
-from helper import neighbourresidues
+from .helper import neighbourresidues
 from Bio import PDB
 
 
