@@ -343,7 +343,7 @@ class CreateSlurmFiles:
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
             if self.cpt:
-                lines.append("#SBATCH --cpus_per_task={}\n".format(self.cpt))
+                lines.append("#SBATCH --cpus-per-task={}\n".format(self.cpt))
             if self.total_cpus:
                 real_cpus = self.total_cpus
             else:
