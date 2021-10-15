@@ -14,7 +14,7 @@ source:
     path: ..
 
 build:
-    script: python -m pip install git+https://github.com/cescgina/pmx.git@develop; python -m pip install . --no-deps -vv
+    script: python -m pip install . --no-deps -vv
     number: 0
 
 requirements:
@@ -25,7 +25,7 @@ requirements:
     run:
       - python
       - numpy
-      # - pmx
+      - pmx
       - fpdf
       - matplotlib
       - pandas
