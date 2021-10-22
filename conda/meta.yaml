@@ -1,0 +1,40 @@
+{% set data = load_setup_py_data() %}
+
+package:
+    name: satumut
+    version: {{ data.get('version')  }}
+
+about:
+    home: https://github.com/etiur/satumut
+    license: MIT
+    license_file: LICENSE
+    summary: Study the effects of mutations on Protein-Ligand interactions
+
+source:
+    path: ..
+
+build:
+    script: python -m pip install . --no-deps -vv
+    number: 0
+
+requirements:
+    host:
+      - python {{ python  }}
+      - setuptools
+      - pip
+    run:
+      - python
+      - numpy
+      - pmx
+      - fpdf
+      - matplotlib
+      - pandas
+      - seaborn
+      - biopython==1.75
+      - mdtraj
+
+test:
+    imports:
+      - satumut
+    commands:
+      - python -m satumut -h
