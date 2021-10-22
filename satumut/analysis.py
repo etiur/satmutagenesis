@@ -640,15 +640,16 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         pdf.ln(3)
         pdf.cell(0, 10, "Plots {}".format(ind), ln=1)
         pdf.ln(3)
-        plot1 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, "distance0.5", ind,
-                                                             "distance0.5")
-        plot2 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, "sasaLig", ind, "sasaLig")
+        plot1 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, follow, ind,
+                                                                follow)
+        plot2 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, "sasaLig", ind,
+                                                                "sasaLig")
         if profile_with == "Binding Energy":
-            plot3 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, "currentEnergy", ind,
-                                                                 "currentEnergy")
+            plot3 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num,
+                                                                    "currentEnergy", ind, "currentEnergy")
         else:
-            plot3 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, "Binding Energy", ind,
-                                                                "Binding Energy")
+            plot3 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num,
+                                                                    "Binding Energy", ind, "Binding Energy")
         pdf.image(plot1, w=180)
         pdf.ln(3)
         pdf.image(plot2, w=180)
