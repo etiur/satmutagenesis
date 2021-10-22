@@ -768,13 +768,16 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
     # unzip the different dataframes
     e_labels = bins.e_interval
     e_median = bins.e_median
+    e_median.set_index("index", inplace=True)
     drop_em = e_median.drop(["original"], axis=1)
     ori_em = e_median["original"]
     d_labels = bins.d_interval
     d_median = bins.d_median
+    d_median.set_index("index", inplace=True)
     drop_dm = d_median.drop(["original"], axis=1)
     ori_dm = d_median["original"]
     d_len = bins.d_len
+    d_len.set_index("index", inplace=True)
     # Analyse the bins
     median1 = drop_dm.loc[e_labels[0]]
     ene_med = drop_em.loc[d_labels[0]]
