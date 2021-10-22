@@ -98,9 +98,9 @@ class SimulationData:
         self.all = None
         self.followed_distance="distance0.5"
 
-    def read_data(self):
+    def filtering(self, followed_distance=None):
         """
-        Reads the data in the reports
+        Generates the different
         """
         pd.options.mode.chained_assignment = None
         reports = []
@@ -114,7 +114,6 @@ class SimulationData:
                 residence_time.append(data["Step"].iloc[x] - data["Step"].iloc[x-1])
             data["residence time"] = residence_time
             reports.append(data)
-
         self.dataframe = pd.concat(reports)
         if self.extract:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
@@ -124,12 +123,6 @@ class SimulationData:
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
         self.dataframe = self.dataframe.iloc[:len(self.dataframe) - int(len(self.dataframe)*0.2)] # eliminating the 20% with the highest biding energies
-
-    def filtering(self, followed_distance=None):
-        """
-        Generates the different
-        """
-        self.read_data()
         if followed_distance:
             self.followed_distance = followed_distance
         # extracting trajectories
@@ -140,7 +133,7 @@ class SimulationData:
             frequency = trajectory.loc[trajectory[self.followed_distance] <= self.catalytic]  # frequency of catalytic poses
         else:
             frequency = trajectory.loc[(trajectory[self.followed_distance] <= self.catalytic) &
-                                       (trajectory[self.followed_distance] <= self.energy)]
+                                       (trajectory["Binding Energy"] <= self.energy)]
         # for the PELE profiles
         self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
@@ -254,19 +247,21 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     # For the energy bins, distance changes so using distance labels
     energy_median = pd.DataFrame(energy_median, index=distancebin_labels)
     energy_len = pd.DataFrame(energy_len, index=distancebin_labels)
-    energy_median.fillna(0, inplace=True)
+    energy_median = energy_median.fillna(0)
+    print "energy median"
+    print energy_median
     energy_distance = pd.DataFrame(energy_distance, index=distancebin_labels)
-    energy_distance.fillna(0, inplace=True)
+    energy_distance = energy_distance.fillna(0)
     # For the distance bins, energy changes so using energy labels
     distance_median = pd.DataFrame(distance_median, index=energybin_labels)
-    distance_median.fillna(0, inplace=True)
+    distance_median = distance_median.fillna(0)
     distance_len = pd.DataFrame(distance_len, index=energybin_labels)
     distance_energy = pd.DataFrame(distance_energy, index=energybin_labels)
-    distance_energy.fillna(0, inplace=True)
+    distance_energy = distance_energy.fillna(0)
 
     # plotting
-    bar_plot(res_dir, position_number, (distance_median, distance_len), distancebin_labels[0], dpi, follow)
-    bar_plot(res_dir, position_number, (energy_median, energy_len), energybin_labels[0], dpi, "energy")
+    bar_plot(res_dir, position_number, (distance_median.copy(), distance_len.copy()), distancebin_labels[0], dpi, follow)
+    bar_plot(res_dir, position_number, (energy_median.copy(), energy_len.copy()), energybin_labels[0], dpi, "energy")
 
     # concatenate everything
     all_energy_median = pd.concat([energy_median, distance_energy])
@@ -727,16 +722,13 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
     # unzip the different dataframes
     e_labels = bins.e_interval
     e_median = bins.e_median
-    e_median.set_index("index", inplace=True)
     drop_em = e_median.drop(["original"], axis=1)
     ori_em = e_median["original"]
     d_labels = bins.d_interval
     d_median = bins.d_median
-    d_median.set_index("index", inplace=True)
     drop_dm = d_median.drop(["original"], axis=1)
     ori_dm = d_median["original"]
     d_len = bins.d_len
-    d_len.set_index("index", inplace=True)
     # Analyse the bins
     median1 = drop_dm.loc[e_labels[0]]
     ene_med = drop_em.loc[d_labels[0]]
@@ -786,11 +778,12 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
                                                                               energy_thres))
 
 
-def analysis(folders, wild, base, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
+def complete_analysis(folders, wild, base, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
              cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
              profile_with="Binding Energy", atoms=None):
 
     col = ["distance{}.5".format(x) for x in range(len(atoms)/2)]
+    print(col)
     for follow in col:
         data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, follow=follow)
         bins = binning(data_dict, plot_dir, base, dpi=800)
@@ -857,7 +850,7 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        analysis(folders, wild, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
+        complete_analysis(folders, wild, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
                  energy_thres, profile_with, atoms)
 
 
