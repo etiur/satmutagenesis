@@ -248,8 +248,6 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     energy_median = pd.DataFrame(energy_median, index=distancebin_labels)
     energy_len = pd.DataFrame(energy_len, index=distancebin_labels)
     energy_median = energy_median.fillna(0)
-    print "energy median"
-    print energy_median
     energy_distance = pd.DataFrame(energy_distance, index=distancebin_labels)
     energy_distance = energy_distance.fillna(0)
     # For the distance bins, energy changes so using energy labels
@@ -317,7 +315,7 @@ def analyse_all(folders, wild, traj=10, cata_dist=3.5, energy_thres=None, extrac
 
 
 def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=800, mode="results",
-                         profile_with="Binding Energy", follow="distance0.5"):
+                        profile_with="Binding Energy", follow="distance0.5"):
     """
     Creates a plot for a single mutation
 
@@ -413,9 +411,9 @@ def all_profiles(res_dir, data_dict, position_num, dpi=800, mode="results", prof
         The column name of the different followed distances during PELE simulation
     """
     if profile_with == "Binding Energy":
-        types = ["distance0.5", "sasaLig", "currentEnergy"]
+        types = [follow, "sasaLig", "currentEnergy"]
     else:
-        types = ["distance0.5", "sasaLig", "Binding Energy"]
+        types = [follow, "sasaLig", "Binding Energy"]
     for type_ in types:
         pele_profiles(type_, res_dir, data_dict, position_num, dpi, mode=mode, profile_with=profile_with, follow=follow)
 
