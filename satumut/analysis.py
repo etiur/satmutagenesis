@@ -146,7 +146,7 @@ class SimulationData:
         self.binding = self.all[["Binding Energy", "residence time"]].copy()
         self.binding.sort_values("Binding Energy", inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
-        self.binding = pd.DataFrame(np.repeat(self.binding.values, self.binding["residence time"].values, axis=0),
+        self.binding = pd.DataFrame(np.repeat(self.binding.values, self.binding["residence time"].values.astype(np.int64), axis=0),
                                     columns=["Binding Energy", "residence time"])
         self.weight_dist = self.frequency["distance0.5"].median()
         self.weight_bind = self.binding["Binding Energy"].median()
