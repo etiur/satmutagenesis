@@ -148,40 +148,6 @@ class SimulationData:
         self.all = pd.DataFrame(np.repeat(self.profile[[self.followed_distance, "Binding Energy", "residence time", "Type"]].values,
                                           self.profile["residence time"].values, axis=0),
                                 columns=[self.followed_distance, "Binding Energy", "residence time", "Type"])
-        # for the csv
-        self.residence = frequency["residence time"].sum()
-        self.len = len(frequency)
-        self.len_ratio = float(len(frequency)) / len(trajectory)
-        self.frequency = self.all[[self.followed_distance, "residence time"]].copy()
-        self.binding = self.all[["Binding Energy", "residence time"]].copy()
-        self.binding.sort_values("Binding Energy", inplace=True)
-        self.binding.reset_index(drop=True, inplace=True)
-        self.binding = pd.DataFrame(np.repeat(self.binding.values, self.binding["residence time"].values.astype(np.int64), axis=0),
-                                    columns=["Binding Energy", "residence time"])
-        self.weight_dist = self.frequency[self.followed_distance].median()
-        self.weight_bind = self.binding["Binding Energy"].median()
-
-    def set_distance(self, ori_distance):
-        """
-        Set the distance difference with the mean
-
-        Parameters
-        __________
-        original_distance: int
-            The distance for the wild type
-        """
-        self.dist_diff = self.frequency[self.followed_distance] - ori_distance #improvement over the wild type catalytic distance
-
-    def set_binding(self, ori_binding):
-        """
-        Set the binding energy difference
-
-        Parameters
-        __________
-        original_binding: int
-            The binding energy for the wild type
-        """
-        self.bind_diff = self.binding["Binding Energy"] - ori_binding
 
 
 def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance0.5"):
@@ -315,43 +281,6 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     return tup(energy_median, energy_len, energybin_labels, distance_median, distance_len, distancebin_labels)
 
 
-def generate_csv(data_dict, res_dir, position_num, follow="distance0.5"):
-    """
-    A function that generates a csv using the different metrics provided by SimulationData
-
-    Parameters
-    ----------
-    data_dict: dict{mutants:SimulationData}
-        A dictionary of SimulationData objects
-    res_dir: str
-        The directory for the results
-    position_num: str
-        The position at the which the mutations was produced
-    follow: str, optional
-        The column name of the different followed distances during PELE simulation
-    """
-    len_dict = {}
-    weight_median = {}
-    residence = {}
-    len_ratio = {}
-    for key, value in data_dict.items():
-        len_dict[key] = value.len
-        weight_median[key] = value.weight_dist
-        residence[key] = value.residence
-        len_ratio[key] = value.len_ratio
-
-    # different metrics
-    if not os.path.exists("{}_results/csv".format(res_dir)):
-        os.makedirs("{}_results/csv".format(res_dir))
-    median = pd.DataFrame(pd.Series(weight_median), columns=["weighted median distance"])
-    median["dist mut-wt"] = median["weighted median distance"] - median["weighted median distance"].loc["original"]
-    # median["freq catalytic poses"] = pd.Series(len_dict)
-    median["ratio catalytic vs total poses"] = pd.Series(len_ratio)
-    median["frequency"] = pd.Series(len_dict)
-    median["residence time"] = pd.Series(residence)
-    median.to_csv("{}_results/csv/{}_{}.csv".format(res_dir, follow, position_num))
-
-
 def analyse_all(folders, wild, traj=10, cata_dist=3.5, energy_thres=None, extract=None, follow="distance0.5"):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
@@ -387,8 +316,6 @@ def analyse_all(folders, wild, traj=10, cata_dist=3.5, energy_thres=None, extrac
         name = basename(folder)
         data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist, energy_thres=energy_thres, extract=extract)
         data.filtering(follow)
-        data.set_distance(original.weight_dist)
-        data.set_binding(original.weight_bind)
         data_dict[name] = data
 
     return data_dict
@@ -866,7 +793,6 @@ def analysis(folders, wild, base, dpi=800, traj=10, output="summary", plot_dir=N
     col = ["distance{}.5".format(x) for x in range(len(atoms)/2)]
     for follow in col:
         data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, follow=follow)
-        generate_csv(data_dict, plot_dir, base, follow)
         bins = binning(data_dict, plot_dir, base, dpi=800)
         all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with, follow=follow)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, follow=follow)
