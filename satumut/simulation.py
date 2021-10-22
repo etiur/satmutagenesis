@@ -316,7 +316,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     if dir_ and not plot_dir:
         plot_dir = dir_
     consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc,
-                         energy_thres=energy_threshold, profile_with=profile_with)
+                         energy_thres=energy_threshold, profile_with=profile_with, atoms=atoms)
     if dihedral:
         consecutive_analysis_rs(dirname, dihedral, input_, original, dpi, traj, output, plot_dir, opt, cpus,
                                 thres, cata_dist, xtc, improve, energy=energy_threshold, profile_with=profile_with)

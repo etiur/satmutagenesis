@@ -238,7 +238,7 @@ class CreateSlurmFiles:
         self.ligchain = ligchain
         self.ligname = ligname
         if atoms:
-            assert len(atoms) % 2 == 0, "Introduce pairs of atoms to follow"
+            assert len(atoms) % 2 == 0, "The number of atoms to follow should be multiple of 2"
             self.atoms = " ".join(atoms)
         else:
             self.atoms = None
