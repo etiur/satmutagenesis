@@ -46,18 +46,19 @@ def parse_args():
     parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
                         default="Binding Energy", help="The metric to generate the pele profiles with")
-
+    parser.add_argument("-at", "--atoms", required=False, nargs="+",
+                        help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse,  args.cpus, args.thres,
-            args.catalytic_distance, args.xtc, args.extract, args.energy_threshold, args.profile_with]
+            args.catalytic_distance, args.xtc, args.extract, args.energy_threshold, args.profile_with, args.atoms]
 
 
 class SimulationData:
     """
-    A class to store data from the simulations
+    A class to store data from the simulations in dictionaries
     """
-    def __init__(self, folder, pdb=10, catalytic_dist=3.5, extract=None, energy_thres=None):
+    def __init__(self, folder, pdb=10, catalytic_dist=3.5, energy_thres=None, extract=None):
         """
         Initialize the SimulationData Object
 
@@ -66,16 +67,18 @@ class SimulationData:
         folder: str
             path to the simulation folder
         points: int, optional
-            Number of points to consider for the boxplots
+            Number of points to consider for the barplots
         pdb: int, optional
             how many pdbs to extract from the trajectories
-        extract: int, optional
-            The number of steps to analyse
         energy_thres: int, optional
             The binding energy to consider for catalytic poses
-
+        data: pd.Dataframe
+            A dataframe object containing the information from the reports
+        extract: int, optional
+            The number of steps to analyse
         """
         self.folder = folder
+        self.extract = extract
         self.dataframe = None
         self.dist_diff = None
         self.profile = None
@@ -87,17 +90,17 @@ class SimulationData:
         self.frequency = None
         self.len_ratio = None
         self.len = None
-        self.name = basename(self.folder)
-        self.extract = extract
+        self.name = basename(folder)
         self.energy = energy_thres
         self.residence = None
         self.weight_dist = None
         self.weight_bind = None
         self.all = None
+        self.followed_distance="distance0.5"
 
-    def filtering(self):
+    def read_data(self):
         """
-        Constructs a dataframe from all the reports in a PELE simulation folder
+        Reads the data in the reports
         """
         pd.options.mode.chained_assignment = None
         reports = []
@@ -117,38 +120,45 @@ class SimulationData:
             self.dataframe = self.dataframe[self.dataframe["Step"] <= self.extract]
         self.dataframe.sort_values(by="currentEnergy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - 25]
+        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - min(int(len(self.dataframe)*0.1), 20)]
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
         self.dataframe = self.dataframe.iloc[:len(self.dataframe) - int(len(self.dataframe)*0.2)] # eliminating the 20% with the highest biding energies
 
+    def filtering(self, followed_distance=None):
+        """
+        Generates the different
+        """
+        self.read_data()
+        if followed_distance:
+            self.followed_distance = followed_distance
         # extracting trajectories
-        trajectory = self.dataframe.sort_values(by="distance0.5")
+        trajectory = self.dataframe.sort_values(by=self.followed_distance)
         trajectory.reset_index(drop=True, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
         if not self.energy:
-            frequency = trajectory.loc[trajectory["distance0.5"] <= self.catalytic]  # frequency of catalytic poses
+            frequency = trajectory.loc[trajectory[self.followed_distance] <= self.catalytic]  # frequency of catalytic poses
         else:
-            frequency = trajectory.loc[(trajectory["distance0.5"] <= self.catalytic) &
-                                       (trajectory["Binding Energy"] <= self.energy)]
+            frequency = trajectory.loc[(trajectory[self.followed_distance] <= self.catalytic) &
+                                       (trajectory[self.followed_distance] <= self.energy)]
         # for the PELE profiles
         self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
         # binning
-        self.all = pd.DataFrame(np.repeat(self.profile[["distance0.5", "Binding Energy", "residence time", "Type"]].values,
+        self.all = pd.DataFrame(np.repeat(self.profile[[self.followed_distance, "Binding Energy", "residence time", "Type"]].values,
                                           self.profile["residence time"].values, axis=0),
-                                columns=["distance0.5", "Binding Energy", "residence time", "Type"])
+                                columns=[self.followed_distance, "Binding Energy", "residence time", "Type"])
         # for the csv
         self.residence = frequency["residence time"].sum()
         self.len = len(frequency)
         self.len_ratio = float(len(frequency)) / len(trajectory)
-        self.frequency = self.all[["distance0.5", "residence time"]].copy()
+        self.frequency = self.all[[self.followed_distance, "residence time"]].copy()
         self.binding = self.all[["Binding Energy", "residence time"]].copy()
         self.binding.sort_values("Binding Energy", inplace=True)
         self.binding.reset_index(drop=True, inplace=True)
         self.binding = pd.DataFrame(np.repeat(self.binding.values, self.binding["residence time"].values.astype(np.int64), axis=0),
                                     columns=["Binding Energy", "residence time"])
-        self.weight_dist = self.frequency["distance0.5"].median()
+        self.weight_dist = self.frequency[self.followed_distance].median()
         self.weight_bind = self.binding["Binding Energy"].median()
 
     def set_distance(self, ori_distance):
@@ -160,7 +170,7 @@ class SimulationData:
         original_distance: int
             The distance for the wild type
         """
-        self.dist_diff = self.frequency["distance0.5"] - ori_distance #improvement over the wild type catalytic distance
+        self.dist_diff = self.frequency[self.followed_distance] - ori_distance #improvement over the wild type catalytic distance
 
     def set_binding(self, ori_binding):
         """
@@ -174,7 +184,7 @@ class SimulationData:
         self.bind_diff = self.binding["Binding Energy"] - ori_binding
 
 
-def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance"):
+def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance0.5"):
     """
     Creates a box plot of the 19 mutations from the same position
 
@@ -233,7 +243,7 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance"
     plt.close()
 
 
-def binning(data_dict, res_dir, position_number, dpi=800):
+def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     """
     Bins the values as to have a better analysis of the pele reports
 
@@ -247,32 +257,34 @@ def binning(data_dict, res_dir, position_number, dpi=800):
         The position at the which the mutations was produced
     dpi: int
         The quality of the plots produced
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
     bin_dict = {}
     for key, value in data_dict.items():
-        bin_dict[key] = value.all[["Binding Energy", "distance0.5", "Type"]].copy()
+        bin_dict[key] = value.all[["Binding Energy", follow, "Type"]].copy()
     data = pd.concat(bin_dict.values())
     tup = namedtuple("bins", ["e_median", "e_len", "e_interval", "d_median", "d_len", "d_interval"])
     # creating the intervals or bins
     energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
-    distance_bin = np.linspace(min(data["distance0.5"]), max(data["distance0.5"]), num=5)
+    distance_bin = np.linspace(min(data[follow]), max(data[follow]), num=5)
     energybin_labels = ["({}, {}]".format(round(energy_bin[i], 2), round(energy_bin[i + 1]), 2) for i in range(len(energy_bin) - 1)]
     distancebin_labels = ["({}, {}]".format(round(distance_bin[i], 2), round(distance_bin[i + 1]), 2) for i in range(len(distance_bin) - 1)]
 
     # The best distance with different energies
     best_distance = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
-                     (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
+                     (data[follow].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
     # The best energies with different distances
     best_energy = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
-                   (data["distance0.5"].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
+                   (data[follow].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
     # For each bin in best_distance, I calculate the frequency, the median distance and energy for each of the mutations
     distance_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in best_distance]
-    distance_median = [{key: frame[frame["Type"] == key]["distance0.5"].median() for key in bin_dict.keys()} for frame in best_distance]
+    distance_median = [{key: frame[frame["Type"] == key][follow].median() for key in bin_dict.keys()} for frame in best_distance]
     distance_energy = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_distance]
     # For each bin in best_energy, I calculate the frequency, the median energy and distance for each of the mutations
     energy_len = [{key: len(frame[frame["Type"] == key]) for key in bin_dict.keys()} for frame in best_energy]
     energy_median = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
-    energy_distance = [{key: frame[frame["Type"] == key]["distance0.5"].median() for key in bin_dict.keys()} for frame in best_energy]
+    energy_distance = [{key: frame[frame["Type"] == key][follow].median() for key in bin_dict.keys()} for frame in best_energy]
     # For the energy bins, distance changes so using distance labels
     energy_median = pd.DataFrame(energy_median, index=distancebin_labels)
     energy_len = pd.DataFrame(energy_len, index=distancebin_labels)
@@ -287,7 +299,7 @@ def binning(data_dict, res_dir, position_number, dpi=800):
     distance_energy.fillna(0, inplace=True)
 
     # plotting
-    bar_plot(res_dir, position_number, (distance_median, distance_len), distancebin_labels[0], dpi, "distance")
+    bar_plot(res_dir, position_number, (distance_median, distance_len), distancebin_labels[0], dpi, follow)
     bar_plot(res_dir, position_number, (energy_median, energy_len), energybin_labels[0], dpi, "energy")
 
     # concatenate everything
@@ -297,13 +309,13 @@ def binning(data_dict, res_dir, position_number, dpi=800):
     everything = pd.concat([len_, all_energy_median, all_distance_median])
 
     # To csv
-    if not os.path.exists("{}_results".format(res_dir)):
-        os.makedirs("{}_results".format(res_dir))
-    everything.to_csv("{}_results/binning_{}.csv".format(res_dir, position_number))
+    if not os.path.exists("{}_results/csv".format(res_dir)):
+        os.makedirs("{}_results/csv".format(res_dir))
+    everything.to_csv("{}_results/csv/binning_{}_{}.csv".format(res_dir, position_number, follow))
     return tup(energy_median, energy_len, energybin_labels, distance_median, distance_len, distancebin_labels)
 
 
-def generate_csv(data_dict, res_dir, position_num):
+def generate_csv(data_dict, res_dir, position_num, follow="distance0.5"):
     """
     A function that generates a csv using the different metrics provided by SimulationData
 
@@ -315,6 +327,8 @@ def generate_csv(data_dict, res_dir, position_num):
         The directory for the results
     position_num: str
         The position at the which the mutations was produced
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
     len_dict = {}
     weight_median = {}
@@ -327,18 +341,18 @@ def generate_csv(data_dict, res_dir, position_num):
         len_ratio[key] = value.len_ratio
 
     # different metrics
-    if not os.path.exists("{}_results".format(res_dir)):
-        os.makedirs("{}_results".format(res_dir))
+    if not os.path.exists("{}_results/csv".format(res_dir)):
+        os.makedirs("{}_results/csv".format(res_dir))
     median = pd.DataFrame(pd.Series(weight_median), columns=["weighted median distance"])
     median["dist mut-wt"] = median["weighted median distance"] - median["weighted median distance"].loc["original"]
     # median["freq catalytic poses"] = pd.Series(len_dict)
     median["ratio catalytic vs total poses"] = pd.Series(len_ratio)
     median["frequency"] = pd.Series(len_dict)
     median["residence time"] = pd.Series(residence)
-    median.to_csv("{}_results/distance_{}.csv".format(res_dir, position_num))
+    median.to_csv("{}_results/csv/{}_{}.csv".format(res_dir, follow, position_num))
 
 
-def analyse_all(folders, wild, traj=10, cata_dist=3.5, extract=None, energy_thres=None):
+def analyse_all(folders, wild, traj=10, cata_dist=3.5, energy_thres=None, extract=None, follow="distance0.5"):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -348,8 +362,6 @@ def analyse_all(folders, wild, traj=10, cata_dist=3.5, extract=None, energy_thre
         List of paths to the different reports to be analyzed
     wild: str
         Path to the simulations of the wild type
-    res_dir: str, optional
-        The directory where the results will be kept
     position_num: str
         Position at the which the mutations occurred
     traj: int, optional
@@ -368,13 +380,13 @@ def analyse_all(folders, wild, traj=10, cata_dist=3.5, extract=None, energy_thre
     """
     data_dict = {}
     # run SimulationDAata for each of the mutant simulations
-    original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, extract=extract, energy_thres=energy_thres)
-    original.filtering()
+    original = SimulationData(wild, pdb=traj, catalytic_dist=cata_dist, energy_thres=energy_thres, extract=extract)
+    original.filtering(follow)
     data_dict["original"] = original
     for folder in folders:
         name = basename(folder)
-        data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist, extract=extract, energy_thres=energy_thres)
-        data.filtering()
+        data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist, energy_thres=energy_thres, extract=extract)
+        data.filtering(follow)
         data.set_distance(original.weight_dist)
         data.set_binding(original.weight_bind)
         data_dict[name] = data
@@ -383,7 +395,7 @@ def analyse_all(folders, wild, traj=10, cata_dist=3.5, extract=None, energy_thre
 
 
 def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=800, mode="results",
-                        profile_with="Binding Energy"):
+                         profile_with="Binding Energy", follow="distance0.5"):
     """
     Creates a plot for a single mutation
 
@@ -414,18 +426,19 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     distance = mutation.profile
     cat = pd.concat([original, distance], axis=0)
     # Creating the scatter plots
-    if not os.path.exists("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_)):
-        os.makedirs("{}_{}/Plots/scatter_{}_{}".format(res_dir, mode, position_num, type_))
+    if not os.path.exists("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_)):
+        os.makedirs("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_))
     ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
                      palette="muted", data=cat, height=3.5, aspect=1.5, linewidth=0)
 
     ax.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
-    ax.savefig("{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, type_,
+    ax.savefig("{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow,position_num, type_,
                                                                  key, type_), dpi=dpi)
     plt.close(ax.fig)
 
 
-def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800, mode="results", profile_with="Binding Energy"):
+def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800, mode="results", profile_with="Binding Energy",
+                  follow="distance0.5"):
     """
     Creates a scatter plot for each of the 19 mutations from the same position by comparing it to the wild type
 
@@ -445,14 +458,18 @@ def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800, mode="result
         The name of the results folder, if results then activity mode if RS then rs mode
     profile_with: str, optional
         The metric to generate the pele profiles with
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
     for key, value in data_dict.items():
         if "original" not in key:
             pele_profile_single(key, value, res_dir=res_dir, wild=data_dict["original"],
-                                type_=type_, position_num=position_num, dpi=dpi, mode=mode, profile_with=profile_with)
+                                type_=type_, position_num=position_num, dpi=dpi, mode=mode, profile_with=profile_with,
+                                follow=follow)
 
 
-def all_profiles(res_dir, data_dict, position_num, dpi=800, mode="results", profile_with="Binding Energy"):
+def all_profiles(res_dir, data_dict, position_num, dpi=800, mode="results", profile_with="Binding Energy",
+                 follow="distance0.5"):
     """
     Creates all the possible scatter plots for the same mutated position
 
@@ -470,16 +487,19 @@ def all_profiles(res_dir, data_dict, position_num, dpi=800, mode="results", prof
         The name of the results folder, if results then activity mode if RS then rs mode
     profile_with: str, optional
         The metric to generate the pele profiles with
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
     if profile_with == "Binding Energy":
         types = ["distance0.5", "sasaLig", "currentEnergy"]
     else:
         types = ["distance0.5", "sasaLig", "Binding Energy"]
     for type_ in types:
-        pele_profiles(type_, res_dir, data_dict, position_num, dpi, mode=mode, profile_with=profile_with)
+        pele_profiles(type_, res_dir, data_dict, position_num, dpi, mode=mode, profile_with=profile_with, follow=follow)
 
 
-def extract_snapshot_xtc(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind):
+def extract_snapshot_xtc(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind,
+                         follow="distance0.5"):
     """
     A function that extracts pdbs from xtc files
 
@@ -501,10 +521,12 @@ def extract_snapshot_xtc(res_dir, simulation_folder, f_id, position_num, mutatio
         The distance between ligand and protein (used as name for the result file - not essential)
     bind: float
         The binding energy between ligand and protein (used as name for the result file - not essential)
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
 
-    if not os.path.exists("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
-        os.makedirs("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
+    if not os.path.exists("{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)):
+        os.makedirs("{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation))
 
     trajectories = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
     topology = "{}/input/{}_processed.pdb".format(dirname(dirname(simulation_folder)), mutation)
@@ -514,11 +536,12 @@ def extract_snapshot_xtc(res_dir, simulation_folder, f_id, position_num, mutatio
     # load the trajectory and write it to pdb
     traj = md.load_xtc(trajectories[0], topology)
     name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
-    path_ = "{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
+    path_ = "{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)
     traj[int(step)].save_pdb(os.path.join(path_, name))
 
 
-def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind):
+def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind,
+                              follow="distance0.5"):
     """
     Extracts PDB files from trajectories
 
@@ -540,9 +563,11 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
         The distance between ligand and protein (used as name for the result file - not essential)
     bind: float
         The binding energy between ligand and protein (used as name for the result file - not essential)
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
-    if not os.path.exists("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)):
-        os.makedirs("{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation))
+    if not os.path.exists("{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)):
+        os.makedirs("{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation))
 
     f_in = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
     if len(f_in) == 0:
@@ -555,7 +580,7 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
 
     # Output Snapshot
     traj = []
-    path_ = "{}_results/distances_{}/{}_pdbs".format(res_dir, position_num, mutation)
+    path_ = "{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)
     name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
     with open(os.path.join(path_, name), 'w') as f:
         traj.append("MODEL     {}".format(int(step) + 1))
@@ -567,7 +592,7 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
         f.write("\n".join(traj))
 
 
-def extract_10_pdb_single(info, res_dir, data_dict, xtc=False):
+def extract_10_pdb_single(info, res_dir, data_dict, xtc=False, follow="distance0.5"):
     """
     Extracts the top 10 distances for one mutation
 
@@ -581,6 +606,8 @@ def extract_10_pdb_single(info, res_dir, data_dict, xtc=False):
        A dictionary that contains SimulationData objects from the simulation folders
     xtc: bool, optional
         Set to true if the pdb is in xtc format
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
     simulation_folder, position_num, mutation = info
     data = data_dict[mutation]
@@ -590,12 +617,12 @@ def extract_10_pdb_single(info, res_dir, data_dict, xtc=False):
         dist = data.trajectory["distance0.5"][ind]
         bind = data.trajectory["Binding Energy"][ind]
         if not xtc:
-            extract_snapshot_from_pdb(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind)
+            extract_snapshot_from_pdb(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind, follow)
         else:
-            extract_snapshot_xtc(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind)
+            extract_snapshot_xtc(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind, follow)
 
 
-def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, function=None):
+def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, function=None, follow="distance0.5"):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
 
@@ -613,6 +640,8 @@ def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, function=None):
         Set to true if the pdb is in xtc format
     function: function
         a extract pdb function
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
     args = []
     for pele in folders:
@@ -624,14 +653,14 @@ def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, function=None):
     if not function:
         function = extract_10_pdb_single
     p = mp.Pool(cpus)
-    func = partial(function, res_dir=res_dir, data_dict=data_dict, xtc=xtc)
+    func = partial(function, res_dir=res_dir, data_dict=data_dict, xtc=xtc, follow=follow)
     p.map(func, args, 1)
     p.close()
     p.terminate()
 
 
 def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5,
-                  mode="results", profile_with="Binding Energy"):
+                  mode="results", profile_with="Binding Energy", follow="distance0.5"):
     """
     Create pdf files with the plots of chosen mutations and the path to the
 
@@ -649,6 +678,8 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
        Type of the analysis (distance, binding or all)
     cata_dist: float, optional
         The catalytic distance
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
 
     Returns
     _______
@@ -678,7 +709,7 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         pdf.cell(0, 10, "Path to the top poses", align='C', ln=1)
         pdf.set_font('Arial', size=10)
         pdf.ln(5)
-        path = "{}_{}/distances_{}/{}_pdbs".format(res_dir, mode, position_num, ind)
+        path = "{}_{}/{}_{}/{}_pdbs".format(res_dir, mode, follow, position_num, ind)
         pdf.cell(0, 10, "{}: {} ".format(ind, abspath(path)), ln=1)
         pdf.ln(8)
         # Scatter Plots
@@ -689,14 +720,14 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         pdf.ln(3)
         pdf.cell(0, 10, "Plots {}".format(ind), ln=1)
         pdf.ln(3)
-        plot1 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "distance0.5", ind,
+        plot1 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, "distance0.5", ind,
                                                              "distance0.5")
-        plot2 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "sasaLig", ind, "sasaLig")
+        plot2 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, "sasaLig", ind, "sasaLig")
         if profile_with == "Binding Energy":
-            plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "currentEnergy", ind,
+            plot3 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, "currentEnergy", ind,
                                                                  "currentEnergy")
         else:
-            plot3 = "{}_{}/Plots/scatter_{}_{}/{}_{}.png".format(res_dir, mode, position_num, "Binding Energy", ind,
+            plot3 = "{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, "Binding Energy", ind,
                                                                 "Binding Energy")
         pdf.image(plot1, w=180)
         pdf.ln(3)
@@ -711,15 +742,15 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.cell(0, 10, "Bar plots of {} bins".format(analysis), align='C', ln=1)
     pdf.ln(8)
     if analysis != "both":
-        box1 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, analysis)
-        box2 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, analysis)
+        box1 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, follow)
+        box2 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, follow)
         pdf.image(box1, w=180)
         pdf.ln(5)
         pdf.image(box2, w=180)
         pdf.ln(1000000)
     else:
-        box1 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, "distance")
-        box2 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, "distance")
+        box1 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, follow)
+        box2 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, follow)
         box5 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, "energy")
         box4 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, "energy")
         pdf.image(box1, w=180)
@@ -732,13 +763,14 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
         pdf.ln(1000000)
 
     # Output report
-    name = "{}_{}/{}_{}.pdf".format(res_dir, mode, output, position_num)
+    name = "{}_{}/{}_{}_{}.pdf".format(res_dir, mode, output, position_num, follow)
     pdf.output(name, 'F')
     return name
 
 
 def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="distance", thres=0.0,
-                       cata_dist=3.5, mode="results", energy_thres=None, profile_with="Binding Energy"):
+                       cata_dist=3.5, mode="results", energy_thres=None, profile_with="Binding Energy",
+                       follow="distance0.5"):
     """
     Finds those mutations that decreases the binding distance and binding energy and creates a report
 
@@ -820,16 +852,31 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
             "when catalytic distance {} and binding energy {}".format(count, position_num,analysis, thres, cata_dist,
                                                                       energy_thres))
         create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, mode=mode,
-                      profile_with=profile_with)
+                      profile_with=profile_with, follow=follow)
     else:
         log.warning("No mutations at position {} decrease {} by {} or less "
                     "when catalytic distance {} and binding energy {}".format(position_num, analysis, thres, cata_dist,
                                                                               energy_thres))
 
 
+def analysis(folders, wild, base, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
+             cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
+             profile_with="Binding Energy", atoms=None):
+
+    col = ["distance{}.5".format(x) for x in range(len(atoms)/2)]
+    for follow in col:
+        data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, follow=follow)
+        generate_csv(data_dict, plot_dir, base, follow)
+        bins = binning(data_dict, plot_dir, base, dpi=800)
+        all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with, follow=follow)
+        extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, follow=follow)
+        find_top_mutations(plot_dir, bins, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
+                           energy_thres=energy_thres, profile_with=profile_with, follow=follow)
+
+
 def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
                          cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
-                         profile_with="Binding Energy"):
+                         profile_with="Binding Energy", atoms=None):
     """
     Creates all the plots for the different mutated positions
 
@@ -866,7 +913,10 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         The binding energy to consider for catalytic poses
     profile_with: str, optional
         The metric to generate the pele profiles with
+    atoms: list[str]
+        Series of atoms of the residues to follow in this format -> chain ID:position:atom name, multiple of 2
     """
+    assert len(atoms) % 2 == 0, "The number of atoms to follow should be multiple of 2"
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
     elif os.path.exists("{}".format(file_name)):
@@ -881,20 +931,16 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
         plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_all(folders, wild, traj, cata_dist, extract, energy_thres)
-        generate_csv(data_dict, plot_dir, base)
-        bins = binning(data_dict, plot_dir, base, dpi=800)
-        all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with)
-        extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc)
-        find_top_mutations(plot_dir, bins, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
-                           energy_thres=energy_thres, profile_with=profile_with)
+        analysis(folders, wild, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
+                 energy_thres, profile_with, atoms)
 
 
 def main():
-    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, extract, energy_thres, profile_with = parse_args()
+    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, extract, energy_thres, profile_with, atoms \
+        = parse_args()
     consecutive_analysis(inp, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis, cpus=cpus, thres=thres,
                          cata_dist=cata_dist, xtc=xtc, extract=extract, energy_thres=energy_thres,
-                         profile_with=profile_with)
+                         profile_with=profile_with, atoms=atoms)
 
 
 if __name__ == "__main__":
