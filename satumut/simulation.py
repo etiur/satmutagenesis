@@ -105,7 +105,7 @@ def parse_args():
                                  'GLN', 'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR'),
                         help="The aminoacid in 3 letter code")
     parser.add_argument("-cst", "--conservative", required=False, choices=(1, 2), default=None, type=int,
-                        help="How conservative should the mutations be, choises are 1 and 2")
+                        help="How conservative should the mutations be, choices are 1 (the most conservative) and 2")
     parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
                         default="Binding Energy", help="The metric to generate the pele profiles with")
     args = parser.parse_args()

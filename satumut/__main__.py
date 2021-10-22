@@ -108,9 +108,9 @@ def parse_args():
     parser.add_argument("-mut", "--mutation", required=False, nargs="+",
                         choices=('ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN',
                                  'GLN', 'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR'),
-                        help="The aminoacid in 3 letter code")
+                        help="The aminoacids to mutate to in 3 letter code")
     parser.add_argument("-cst", "--conservative", required=False, choices=(1, 2), default=None, type=int,
-                        help="How conservative should the mutations be, choises are 1 and 2")
+                        help="How conservative should the mutations be, choices are 1 (most conservative) and 2")
     parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
                         default="Binding Energy", help="The metric to generate the pele profiles with")
     args = parser.parse_args()
@@ -308,10 +308,7 @@ class CreateSlurmFiles:
             self.mut = " ".join(mut)
         else:
             self.mut = None
-        if conservative:
-            self.conservative = conservative
-        else:
-            self.conservative = None
+        self.conservative = conservative
         self.profile_with = profile_with
 
     def _size(self):
@@ -343,7 +340,7 @@ class CreateSlurmFiles:
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
             if self.cpt:
-                lines.append("#SBATCH --cpus-per-task={}\n".format(self.cpt))
+                lines.append("#SBATCH --cpus_per_task={}\n".format(self.cpt))
             if self.total_cpus:
                 real_cpus = self.total_cpus
             else:
