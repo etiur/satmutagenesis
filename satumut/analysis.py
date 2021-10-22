@@ -779,14 +779,52 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
 
 
 def complete_analysis(folders, wild, base, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
-             cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
-             profile_with="Binding Energy", atoms=None):
+                      cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
+                      profile_with="Binding Energy", atoms=None):
+    """
+    A function that does a complete analysis of the simulation results
 
+    Parameters
+    ____________
+    folders: list[str]
+        List of the paths to the different simulations results of the mutants in the same position
+    wild: str, optional
+        The path to the wild type simulation
+    base: str, optional
+        The position mutated
+    dpi : int, optional
+       The quality of the plots
+    box : int, optional
+       how many points are used for the box plots
+    traj : int, optional
+       how many top pdbs are extracted from the trajectories
+    output : str, optional
+       name of the output file for the pdfs
+    plot_dir : str
+       Name for the results folder
+    opt : str, optional
+       choose if to analyse distance, energy or both
+    cpus : int, optional
+       How many cpus to use to extract the top pdbs
+    thres : float, optional
+       The threshold for the mutations to be included in the pdf
+    cata_dist: float, optional
+        The catalytic distance
+    xtc: bool, optional
+        Set to true if the pdb is in xtc format
+    extract: int, optional
+        The number of steps to analyse
+    energy_thres: int, optional
+        The binding energy to consider for catalytic poses
+    profile_with: str, optional
+        The metric to generate the pele profiles with
+    atoms: list[str]
+        Series of atoms of the residues to follow in this format -> chain ID:position:atom name, multiple of 2
+    """
     col = ["distance{}.5".format(x) for x in range(len(atoms)/2)]
-    print(col)
     for follow in col:
         data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, follow=follow)
-        bins = binning(data_dict, plot_dir, base, dpi=800)
+        bins = binning(data_dict, plot_dir, base, dpi=800, follow=follow)
         all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with, follow=follow)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, follow=follow)
         find_top_mutations(plot_dir, bins, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
@@ -797,7 +835,7 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
                          cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
                          profile_with="Binding Energy", atoms=None):
     """
-    Creates all the plots for the different mutated positions
+    Analysis for the different positions
 
     Parameters
     ___________
@@ -851,7 +889,7 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
         complete_analysis(folders, wild, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
-                 energy_thres, profile_with, atoms)
+                          energy_thres, profile_with, atoms)
 
 
 def main():
