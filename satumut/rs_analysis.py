@@ -4,17 +4,15 @@ This script is used to analyse the results of the simulations for substrate with
 from glob import glob
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import argparse
-from os.path import basename, dirname, commonprefix, abspath
+from os.path import basename, dirname, commonprefix
 import os
 import sys
 import re
 import matplotlib.pyplot as plt
-from .helper import isiterable, commonlist, find_log, Log, map_atom_string
+from .helper import isiterable, commonlist, find_log, map_atom_string
 from .analysis import extract_all, all_profiles
 import mdtraj as md
-from fpdf import FPDF
 import Bio.PDB
 from multiprocessing import Pool
 plt.switch_backend('agg')
@@ -383,6 +381,8 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, traj=10, cat
         The energy_threshold to be considered catalytic
     cpus: int, optional
         The number of processors for the md trajectories
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
 
     Returns
     --------
@@ -430,7 +430,8 @@ def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, muta
         The binding energy between ligand and protein (used as name for the result file - not essential)
     angle: float
         The dihedral angle
-
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
     if not os.path.exists("{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)):
         os.makedirs("{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation))
@@ -473,6 +474,8 @@ def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutatio
         The binding energy between ligand and protein (used as name for the result file - not essential)
     angle: float
         The dihedral angle of the trajectory
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
     if not os.path.exists("{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)):
         os.makedirs("{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation))
@@ -515,6 +518,8 @@ def extract_10_pdb_single_rs(info, res_dir, data_dict, xtc=False, follow="distan
        A dictionary that contains SimulationData objects from the simulation folders
     xtc: bool, optional
         Set to true if the pdb is in xtc format
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
     """
     simulation_folder, position_num, mutation = info
     data = data_dict[mutation]
