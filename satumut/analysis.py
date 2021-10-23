@@ -231,12 +231,8 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     # creating the intervals or bins
     energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
     distance_bin = np.linspace(min(data[follow]), max(data[follow]), num=5)
-    energybin_labels = ["({}, {}]".format(round(energy_bin[i], 2), round(energy_bin[i + 1]), 2) for i in range(len(energy_bin) - 1)]
-    distancebin_labels = ["({}, {}]".format(round(distance_bin[i], 2), round(distance_bin[i + 1]), 2) for i in range(len(distance_bin) - 1)]
-    print "energybin labels"
-    print energybin_labels
-    print "distancebin labels"
-    print distancebin_labels
+    energybin_labels = ["({}, {}]".format(round(energy_bin[i], 2), round(energy_bin[i + 1], 2)) for i in range(len(energy_bin) - 1)]
+    distancebin_labels = ["({}, {}]".format(round(distance_bin[i], 2), round(distance_bin[i + 1], 2)) for i in range(len(distance_bin) - 1)]
     # The best distance with different energies
     best_distance = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
                      (data[follow].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
@@ -733,40 +729,43 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
     ori_dm = d_median["original"]
     d_len = bins.d_len
     # Analyse the bins
-    median1 = drop_dm.loc[e_labels[0]]
-    ene_med = drop_em.loc[d_labels[0]]
+    median1 = drop_dm.loc["{} distance median".format(e_labels[0])]
+    ene_med = drop_em.loc["{} energy median".format(d_labels[0])]
     if analysis == "distance":
-        if ori_dm.loc[e_labels[0]] == 0:
+        if ori_dm.loc["{} distance median".format(e_labels[0])] == 0:
             median1 = median1[median1 > 0]
         else:
-            median1 = median1[(median1 - ori_dm.loc[e_labels[0]]) < thres]
+            median1 = median1[(median1 - ori_dm.loc["{} distance median".format(e_labels[0])]) < thres]
         if not median1.empty:
-            cat = pd.concat([median1, d_len.loc[e_labels[0]].loc[median1.index], e_median.loc[d_labels[0]].loc[median1.index]], axis=1)
+            cat = pd.concat([median1, d_len.loc["{} distance median".format(e_labels[0])].loc[median1.index],
+                             e_median.loc["{} energy median".format(d_labels[0])].loc[median1.index]], axis=1)
             cat.columns = ["distance", "freq", "energy"]
-            mutation_dict = [(e_labels[0], d_labels[0]), cat.copy()]
+            mutation_dict = [("{} distance median".format(e_labels[0]), "{} energy median".format(d_labels[0])), cat.copy()]
     elif analysis == "energy":
-        if ori_em.loc[d_labels[0]] == 0:
+        if ori_em.loc["{} energy median".format(d_labels[0])] == 0:
             ene_med = ene_med[ene_med > 0]
         else:
-            ene_med = ene_med[(ene_med - ori_em.loc[d_labels[0]]) < thres]
+            ene_med = ene_med[(ene_med - ori_em.loc["{} energy median".format(d_labels[0])]) < thres]
         if not ene_med.empty:
-            cat = pd.concat([median1.loc[e_labels[0]].loc[ene_med.index], d_len.loc[e_labels[0]].loc[ene_med.index], ene_med], axis=1)
+            cat = pd.concat([median1.loc["{} distance median".format(e_labels[0])].loc[ene_med.index],
+                             d_len.loc["{} distance median".format(e_labels[0])].loc[ene_med.index], ene_med], axis=1)
             cat.columns = ["distance", "freq", "energy"]
-            mutation_dict = [(e_labels[0], d_labels[0]),  cat.copy()]
+            mutation_dict = [("{} distance median".format(e_labels[0]), "{} energy median".format(d_labels[0])), cat.copy()]
     else:
-        if ori_em.loc[d_labels[0]] == 0:
+        if ori_em.loc["{} energy median".format(d_labels[0])] == 0:
             ene_med = ene_med[ene_med > 0]
         else:
-            ene_med = ene_med[(ene_med - ori_em.loc[d_labels[0]]) < thres]
-        if ori_dm.loc[e_labels[0]] == 0:
+            ene_med = ene_med[(ene_med - ori_em.loc["{} energy median".format(d_labels[0])]) < thres]
+        if ori_dm.loc["{} distance median".format(e_labels[0])] == 0:
             median1 = median1[median1 > 0]
         else:
-            median1 = median1[(median1 - ori_dm.loc[e_labels[0]]) < thres]
+            median1 = median1[(median1 - ori_dm.loc["{} distance median".format(e_labels[0])]) < thres]
         if not median1.empty or ene_med.empty:
             index = set(median1.index).intersection(ene_med.index)
-            cat = pd.concat([median1.loc[index], d_len.loc[e_labels[0]].loc[index], ene_med.loc[index]], axis=1)
+            cat = pd.concat([median1.loc[index], d_len.loc["{} distance median".format(e_labels[0])].loc[index],
+                             ene_med.loc[index]], axis=1)
             cat.columns = ["distance", "freq", "energy"]
-            mutation_dict = [(e_labels[0], d_labels[0]), cat.copy()]
+            mutation_dict = [("{} distance median".format(e_labels[0]), "{} energy median".format(d_labels[0])), cat.copy()]
     # Create a summary report with the top mutations
     if len(mutation_dict) != 0:
         log.info(
