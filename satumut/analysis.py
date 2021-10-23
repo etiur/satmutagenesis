@@ -233,7 +233,10 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     distance_bin = np.linspace(min(data[follow]), max(data[follow]), num=5)
     energybin_labels = ["({}, {}]".format(round(energy_bin[i], 2), round(energy_bin[i + 1]), 2) for i in range(len(energy_bin) - 1)]
     distancebin_labels = ["({}, {}]".format(round(distance_bin[i], 2), round(distance_bin[i + 1]), 2) for i in range(len(distance_bin) - 1)]
-
+    print "energybin labels"
+    print energybin_labels
+    print "distancebin labels"
+    print distancebin_labels
     # The best distance with different energies
     best_distance = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
                      (data[follow].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
@@ -249,16 +252,16 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     energy_median = [{key: frame[frame["Type"] == key]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
     energy_distance = [{key: frame[frame["Type"] == key][follow].median() for key in bin_dict.keys()} for frame in best_energy]
     # For the energy bins, distance changes so using distance labels
-    energy_median = pd.DataFrame(energy_median, index=distancebin_labels)
-    energy_len = pd.DataFrame(energy_len, index=distancebin_labels)
+    energy_median = pd.DataFrame(energy_median, index=["{} energy median".format(x) for x in distancebin_labels])
+    energy_len = pd.DataFrame(energy_len, index=["{} energy freq".format(x) for x in distancebin_labels])
     energy_median = energy_median.fillna(0)
-    energy_distance = pd.DataFrame(energy_distance, index=distancebin_labels)
+    energy_distance = pd.DataFrame(energy_distance, index=["{} energy distance median".format(x) for x in distancebin_labels])
     energy_distance = energy_distance.fillna(0)
     # For the distance bins, energy changes so using energy labels
-    distance_median = pd.DataFrame(distance_median, index=energybin_labels)
+    distance_median = pd.DataFrame(distance_median, index=["{} distance median".format(x) for x in energybin_labels])
     distance_median = distance_median.fillna(0)
-    distance_len = pd.DataFrame(distance_len, index=energybin_labels)
-    distance_energy = pd.DataFrame(distance_energy, index=energybin_labels)
+    distance_len = pd.DataFrame(distance_len, index=["{} distance freq".format(x) for x in energybin_labels])
+    distance_energy = pd.DataFrame(distance_energy, index=["{} distance energy median".format(x) for x in energybin_labels])
     distance_energy = distance_energy.fillna(0)
 
     # plotting
