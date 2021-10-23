@@ -3,11 +3,10 @@ This script is used to create and control the simulations
 """
 import argparse
 import shutil
-
 from .mutate_pdb import generate_mutations
 from .pele_files import create_20sbatch
 from subprocess import call
-from os.path import abspath
+from os.path import abspath, basename
 import os
 import time
 from .analysis import consecutive_analysis
@@ -311,7 +310,10 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                                box_radius=box_radius)
     else:
         yaml = "yaml_files/simulation.yaml"
-
+        if consec:
+            files = os.listdir("yaml_files")
+            files.sort(key=lambda x: int(basename(x).split("_")[1].replace(".yaml", "")))
+            yaml = "yaml_files/{}".format(files[-1])
     simulation.submit(yaml)
     dirname, original = simulation.pele_folders()
     if dir_ and not plot_dir:
