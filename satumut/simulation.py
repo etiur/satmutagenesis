@@ -97,7 +97,8 @@ def parse_args():
                         help="The enantiomer that should improve")
     parser.add_argument("-tu", "--turn", required=False, type=int,
                         help="the round of plurizyme generation, not needed for the 1st round")
-    parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
+    parser.add_argument("-en", "--energy_threshold", required=False, type=int,
+                        help="An energy threshold that limits the points of scatter plots")
     parser.add_argument("--QM", required=False, help="The path to the QM charges")
     parser.add_argument("-br","--box_radius", required=False, type=int, help="Radius of the exploration box")
     parser.add_argument("-mut", "--mutation", required=False, nargs="+",
