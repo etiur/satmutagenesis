@@ -51,13 +51,11 @@ def parse_args():
     parser.add_argument("-co", "--consec", required=False, action="store_true",
                         help="Consecutively mutate the PDB file for several rounds")
     parser.add_argument("-sb", "--sbatch", required=False, action="store_false",
-                        help="True if you want to lanch the simulation right after creating the slurm file")
+                        help="True if you want to launch the simulation right after creating the slurm file")
     parser.add_argument("-st", "--steps", required=False, type=int, default=1000,
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--box", required=False, default=30, type=int,
-                        help="Set how many data points are used for the boxplot")
     parser.add_argument("-tr", "--trajectory", required=False, default=10, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
@@ -117,7 +115,7 @@ def parse_args():
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
-            args.consec, args.sbatch, args.steps, args.dpi, args.box, args.trajectory, args.out, args.plot,
+            args.consec, args.sbatch, args.steps, args.dpi, args.trajectory, args.out, args.plot,
             args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
             args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
             args.template, args.skip, args.rotamers, args.equilibration, args.log, args.cpus_per_task, args.improve,
@@ -132,7 +130,7 @@ class CreateSlurmFiles:
 
     def __init__(self, input_, ligchain, ligname, atoms, position=(), cpus_mutant=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
-                 steps=1000, dpi=800, box=30, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
+                 steps=1000, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance", thres=-0.1,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
                  equilibration=True, log=False, cpt=None, improve="R", turn=None, energy_thres=None, QM=None,
@@ -176,8 +174,6 @@ class CreateSlurmFiles:
             The number of PELE steps
         dpi : int, optional
             The quality of the plots
-        box : int, optional
-            how many points are used for the box plots
         traj : int, optional
             how many top pdbs are extracted from the trajectories
         output : str, optional
@@ -266,7 +262,6 @@ class CreateSlurmFiles:
         self.pdb_dir = pdb_dir
         self.steps = steps
         self.dpi = dpi
-        self.box = box
         self.traj = traj
         self.output = output
         self.plot_dir = plot_dir
@@ -397,8 +392,6 @@ class CreateSlurmFiles:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))
-            if self.box != 30:
-                argument_list.append("--box {} ".format(self.box))
             if self.traj != 10:
                 argument_list.append("-tr {} ".format(self.traj))
             if self.output != "summary":
@@ -522,8 +515,6 @@ class CreateSlurmFiles:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))
-            if self.box != 30:
-                argument_list.append("--box {} ".format(self.box))
             if self.traj != 10:
                 argument_list.append("-tr {} ".format(self.traj))
             if self.output != "summary":
@@ -572,7 +563,7 @@ class CreateSlurmFiles:
 
 def main():
     input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, sbatch, steps, dpi, box, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
+    hydrogen, consec, sbatch, steps, dpi, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
     rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut, conservative, \
     profile_with = parse_args()
@@ -581,7 +572,7 @@ def main():
         dir_ = None
     for inp in input_:
         run = CreateSlurmFiles(inp, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
-                               multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, box, traj,
+                               multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, traj,
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
                                fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
                                equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut,
