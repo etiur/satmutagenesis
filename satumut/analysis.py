@@ -173,11 +173,13 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance0
     sns.set_context("paper")
     median_bin.reset_index(inplace=True)
     median_bin.plot(x="index", kind="bar", stacked=False)
-    if bin_type == "Distance":
+    if "distance" in bin_type:
         plt.xlabel('Energy intervals')
+        plt.title("Median bar plot of {} bin {}, with varying energy".format(bin_type, interval))
     else:
         plt.xlabel('Distance intervals')
-    plt.title("Median bar plot of {} bins - {}".format(bin_type, interval))
+        plt.title("Median bar plot of {} bin {}, with varying distance".format(bin_type, interval))
+
     plt.legend(loc='best')
     plt.xticks(rotation=40, fontsize=8)
     plt.tight_layout()
@@ -190,11 +192,13 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance0
     sns.set_context("paper")
     len_bin.reset_index(inplace=True)
     len_bin.plot(x="index", kind="bar", stacked=False)
-    if bin_type == "Distance":
+    if "distance" in bin_type:
         plt.xlabel('Energy intervals')
+        plt.title("Frequency bar plot of {} bin {}, with varying energy".format(bin_type, interval))
     else:
         plt.xlabel('Distance intervals')
-    plt.title("Frequency bar plot of {} bins - {}".format(bin_type, interval))
+        plt.title("Frequency bar plot of {} bin {}, with varying distance".format(bin_type, interval))
+
     plt.legend(loc='best')
     plt.xticks(rotation=40, fontsize=8)
     plt.tight_layout()
