@@ -321,32 +321,31 @@ def binning(data_dict, res_dir, position_num, follow="distance0.5"):
         {key: frame[frame["Type"] == "S_{}".format(key)][follow].median() for key in bin_dict.keys()} for
         frame in best_energy]
     # For the energy bins, distance changes so using distance labels
-    r_energy_median = pd.DataFrame(r_energy_median, index=["R_{}".format(x) for x in distancebin_labels])
-    s_energy_median = pd.DataFrame(s_energy_median, index=["S_{}".format(x) for x in distancebin_labels])
-    r_energy_len = pd.DataFrame(r_energy_len, index=["R_{}".format(x) for x in distancebin_labels])
-    s_energy_len = pd.DataFrame(s_energy_len, index=["S_{}".format(x) for x in distancebin_labels])
+    r_energy_median = pd.DataFrame(r_energy_median, index=["R_{} energy median".format(x) for x in distancebin_labels])
+    s_energy_median = pd.DataFrame(s_energy_median, index=["S_{} energy median".format(x) for x in distancebin_labels])
+    r_energy_len = pd.DataFrame(r_energy_len, index=["R_{} energy freq".format(x) for x in distancebin_labels])
+    s_energy_len = pd.DataFrame(s_energy_len, index=["S_{} energy freq".format(x) for x in distancebin_labels])
     r_energy_median.fillna(0, inplace=True)
     s_energy_median.fillna(0, inplace=True)
-    r_energy_distance = pd.DataFrame(r_energy_distance, index=["R_{}".format(x) for x in distancebin_labels])
-    s_energy_distance = pd.DataFrame(s_energy_distance, index=["S_{}".format(x) for x in distancebin_labels])
+    r_energy_distance = pd.DataFrame(r_energy_distance, index=["R_{} energy distance median".format(x) for x in distancebin_labels])
+    s_energy_distance = pd.DataFrame(s_energy_distance, index=["S_{} energy distance median".format(x) for x in distancebin_labels])
     r_energy_distance.fillna(0, inplace=True)
     s_energy_distance.fillna(0, inplace=True)
     # For the distance bins, energy changes so using energy labels
-    r_distance_median = pd.DataFrame(r_distance_median, index=["R_{}".format(x) for x in energybin_labels])
-    s_distance_median = pd.DataFrame(s_distance_median, index=["S_{}".format(x) for x in energybin_labels])
+    r_distance_median = pd.DataFrame(r_distance_median, index=["R_{} distance median".format(x) for x in energybin_labels])
+    s_distance_median = pd.DataFrame(s_distance_median, index=["S_{} distance median".format(x) for x in energybin_labels])
     r_distance_median.fillna(0, inplace=True)
     s_distance_median.fillna(0, inplace=True)
-    r_distance_len = pd.DataFrame(r_distance_len, index=["R_{}".format(x) for x in energybin_labels])
-    s_distance_len = pd.DataFrame(s_distance_len, index=["S_{}".format(x) for x in energybin_labels])
-    r_distance_energy = pd.DataFrame(r_distance_energy, index=["R_{}".format(x) for x in energybin_labels])
-    s_distance_energy = pd.DataFrame(s_distance_energy, index=["S_{}".format(x) for x in energybin_labels])
+    r_distance_len = pd.DataFrame(r_distance_len, index=["R_{} distance freq".format(x) for x in energybin_labels])
+    s_distance_len = pd.DataFrame(s_distance_len, index=["S_{} distance freq".format(x) for x in energybin_labels])
+    r_distance_energy = pd.DataFrame(r_distance_energy, index=["R_{} distance energy median".format(x) for x in energybin_labels])
+    s_distance_energy = pd.DataFrame(s_distance_energy, index=["S_{} distance energy median".format(x) for x in energybin_labels])
     r_distance_energy.fillna(0, inplace=True)
     s_distance_energy.fillna(0, inplace=True)
     # concatenate everything
-    distance_median = pd.concat([r_distance_median, s_distance_median, r_energy_distance, s_energy_distance])
-    len_ = pd.concat([r_energy_len, s_energy_len, r_distance_len, s_distance_len])
-    energy_median = pd.concat([r_distance_energy, s_distance_energy, r_energy_median, s_energy_median])
-    everything = pd.concat([len_, distance_median, energy_median])
+    everything = pd.concat([r_energy_median, s_energy_median, r_energy_distance, s_energy_distance, r_energy_len,
+                            s_energy_len, r_distance_median, s_distance_median, r_distance_energy, s_distance_energy,
+                            r_distance_len, s_distance_len])
     # To csv
     if not os.path.exists("{}_RS/csv".format(res_dir)):
         os.makedirs("{}_RS/csv".format(res_dir))

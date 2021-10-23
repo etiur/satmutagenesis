@@ -269,10 +269,7 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     bar_plot(res_dir, position_number, (energy_median.copy(), energy_len.copy()), energybin_labels[0], dpi, "energy")
 
     # concatenate everything
-    all_energy_median = pd.concat([energy_median, distance_energy])
-    len_ = pd.concat([energy_len, distance_len])
-    all_distance_median = pd.concat(([energy_distance, distance_median]))
-    everything = pd.concat([len_, all_energy_median, all_distance_median])
+    everything = pd.concat([energy_median, energy_distance, energy_len, distance_median, distance_energy, distance_len])
 
     # To csv
     if not os.path.exists("{}_results/csv".format(res_dir)):
