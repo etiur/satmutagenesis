@@ -824,7 +824,7 @@ def complete_analysis(folders, wild, base, dpi=800, traj=10, output="summary", p
     atoms: list[str]
         Series of atoms of the residues to follow in this format -> chain ID:position:atom name, multiple of 2
     """
-    col = ["distance{}.5".format(x) for x in range(len(atoms)/2)]
+    col = ["distance{}.5".format(x) for x in range(len(atoms)//2)]
     for follow in col:
         data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, follow=follow)
         bins = binning(data_dict, plot_dir, base, dpi=800, follow=follow)
