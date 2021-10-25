@@ -355,7 +355,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
             for files in final_pdbs:
                 name = basename(files).replace(".pdb", "")
                 if name != "original":
-                    run_ = Mutagenesis(files, position[1], pdb_dir, True)
+                    run_ = Mutagenesis(files, position[1], pdb_dir, True, conservative=conservative, mut=mut)
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
