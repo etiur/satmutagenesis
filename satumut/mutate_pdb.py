@@ -51,7 +51,7 @@ class Mutagenesis:
     To perform mutations on PDB files
     """
     def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None, mut=None,
-                 conservative=None):
+                 conservative=None, multiple=False):
         """
         Initialize the Mutagenesis object
 
@@ -71,6 +71,8 @@ class Mutagenesis:
             A list of specific mutations
         conservative: int, optional
             How conservative should be the mutations according to Blossum62
+        multiple: bool, optional
+            Same round but double mutations
         """
         self.model = Model(model)
         self.input = model
@@ -95,6 +97,7 @@ class Mutagenesis:
             self.residues = mut
         elif conservative and not mut:
             self.residues = self.mutation_library(conservative)
+        self.multiple = multiple
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
@@ -151,16 +154,19 @@ class Mutagenesis:
                 self.folder = "{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))
             else:
                 count = 1
-                while os.path.exists("{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))):
-                    count += 1
-                    self.folder = "{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))
+                if os.path.exists("{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))):
+                    files = list(filter(lambda x: "{}".format(self.folder) in x, os.listdir(".")))
+                    files.sort(key=lambda x: int(x.replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), "")))
+                    num = int(files[-1].replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), ""))
+                    self.folder = "{}_{}_{}".format(self.folder, num+1, "round_{}".format(self.turn))
 
         if self.consec:
-            count = 1
-            self.folder = "next_round"
-            while os.path.exists("{}".format(self.folder)):
-                count += 1
-                self.folder = "{}_{}".format(self.folder, count)
+            self.folder = "next_round_1"
+            if os.path.exists("{}".format(self.folder)):
+                files = list(filter(lambda x: "next_round" in x, os.listdir(".")))
+                files.sort(key=lambda x: int(x.split("_")[-1]))
+                num = int(files[-1].split("_")[-1])
+                self.folder = "next_round_{}".format(num+1)
 
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
@@ -194,7 +200,7 @@ class Mutagenesis:
                     self.log.error("position {}:{} has no rotamer in the library so it was skipped".format(self.chain_id,
                                    self.position+1), exc_info=True)
                 # writing into a pdb
-                if self.consec:
+                if self.consec or self.multiple:
                     name = basename(self.input).replace(".pdb", "")
                     output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, self._invert_aa[new_aa])
                 else:
@@ -355,7 +361,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
             for files in final_pdbs:
                 name = basename(files).replace(".pdb", "")
                 if name != "original":
-                    run_ = Mutagenesis(files, position[1], pdb_dir, True, conservative=conservative, mut=mut)
+                    run_ = Mutagenesis(files, position[1], pdb_dir, consec, conservative=conservative, mut=mut,
+                                       multiple=multiple)
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
