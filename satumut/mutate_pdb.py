@@ -93,7 +93,7 @@ class Mutagenesis:
         self.aa_init_resname = self.model.residues[self.position].resname
         if not mut and not conservative:
             self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
-                         'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
+                             'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
         elif mut and not conservative:
             self.residues = mut
         elif conservative and not mut:
