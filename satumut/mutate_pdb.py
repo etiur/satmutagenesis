@@ -85,6 +85,7 @@ class Mutagenesis:
         self.chain_id = None
         self.folder = folder
         self.consec = consec
+        self.multiple = multiple
         self.log = Log("mutate_errors")
         self.single = single
         self.turn = turn
@@ -97,7 +98,6 @@ class Mutagenesis:
             self.residues = mut
         elif conservative and not mut:
             self.residues = self.mutation_library(conservative)
-        self.multiple = multiple
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
@@ -160,13 +160,17 @@ class Mutagenesis:
                     num = int(files[-1].replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), ""))
                     self.folder = "{}_{}_{}".format(self.folder, num+1, "round_{}".format(self.turn))
 
-        if self.consec:
+        if self.consec and not self.multiple:
             self.folder = "next_round_1"
             if os.path.exists("{}".format(self.folder)):
                 files = list(filter(lambda x: "next_round" in x, os.listdir(".")))
                 files.sort(key=lambda x: int(x.split("_")[-1]))
                 num = int(files[-1].split("_")[-1])
                 self.folder = "next_round_{}".format(num+1)
+        elif self.consec and self.multiple:
+            files = list(filter(lambda x: "next_round" in x, os.listdir(".")))
+            files.sort(key=lambda x: int(x.split("_")[-1]))
+            self.folder = files[-1]
 
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
@@ -345,6 +349,8 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     count = 0
     for mutation in position:
         run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative)
+        if multiple and count == 1:
+            run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative, multiple)
         if single:
             # If the single_mutagenesis flag is used, execute this
             single = single.upper()
