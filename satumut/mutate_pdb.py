@@ -73,15 +73,15 @@ class Mutagenesis:
             How conservative should be the mutations according to Blossum62
         multiple: bool, optional
             Same round but double mutations
-        initial, str, optional
-            The initial pdb input file, used if multiple true to check the coordinates
+        initial: str, optional
+            The initial input pdb, used if multiple true to check the coordinates
         """
         self.model = Model(model)
         self.input = model
-        if initial:
-            self.initial = initial
-        else:
+        if not initial:
             self.initial = model
+        else:
+            self.initial = initial
         self.coords = position
         self.rotamers = load_bbdep()
         self.final_pdbs = []
@@ -352,7 +352,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     # Perform single saturated mutations
     count = 0
     for mutation in position:
-        if consec and multiple and count == 1:
+        if multiple and count == 1:
             run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative, multiple)
         else:
             run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative)
