@@ -35,7 +35,7 @@ def parse_args():
                         help="The number to divide the charges")
     parser.add_argument("-n", "--nord", required=False, action="store_true",
                         help="used if LSF is the utility managing the jobs")
-    parser.add_argument("-mu", "--multiple", required=False, action="store_true",
+    parser.add_argument("-m", "--multiple", required=False, action="store_true",
                         help="if you want to mutate 2 residue in the same pdb")
     parser.add_argument("-s", "--seed", required=False, default=12345, type=int,
                         help="Include the seed number to make the simulation reproducible")
