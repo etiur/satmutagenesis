@@ -3,11 +3,10 @@ This script is used to create and control the simulations
 """
 import argparse
 import shutil
-
 from .mutate_pdb import generate_mutations
 from .pele_files import create_20sbatch
 from subprocess import call
-from os.path import abspath
+from os.path import abspath, basename
 import os
 import time
 from .analysis import consecutive_analysis
@@ -97,7 +96,8 @@ def parse_args():
                         help="The enantiomer that should improve")
     parser.add_argument("-tu", "--turn", required=False, type=int,
                         help="the round of plurizyme generation, not needed for the 1st round")
-    parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
+    parser.add_argument("-en", "--energy_threshold", required=False, type=int,
+                        help="An energy threshold that limits the points of scatter plots")
     parser.add_argument("--QM", required=False, help="The path to the QM charges")
     parser.add_argument("-br","--box_radius", required=False, type=int, help="Radius of the exploration box")
     parser.add_argument("-mut", "--mutation", required=False, nargs="+",
@@ -310,7 +310,10 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                                box_radius=box_radius)
     else:
         yaml = "yaml_files/simulation.yaml"
-
+        if consec:
+            files = os.listdir("yaml_files")
+            files.sort(key=lambda x: int(basename(x).split("_")[1].replace(".yaml", "")))
+            yaml = "yaml_files/{}".format(files[-1])
     simulation.submit(yaml)
     dirname, original = simulation.pele_folders()
     if dir_ and not plot_dir:
