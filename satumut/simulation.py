@@ -58,7 +58,7 @@ def parse_args():
                         help="Path of the plots folder")
     parser.add_argument("-an", "--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
                         help="The metric to measure the improvement of the system")
-    parser.add_argument("--thres", required=False, default=-0.1, type=float,
+    parser.add_argument("--thres", required=False, default=0.0, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-sm", "--single_mutagenesis", required=False,
                         help="Specifiy the name of the residue that you want the "
@@ -200,7 +200,7 @@ class SimulationRunner:
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, cu=False, seed=12345,
                          nord=False, steps=1000, dpi=800, traj=10, output="summary",
-                         plot_dir=None, opt="distance", thres=-0.1, factor=None, plurizyme_at_and_res=None,
+                         plot_dir=None, opt="distance", thres=0.0, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, improve="R",
                          energy_threshold=None, QM=None, dihedral=None, box_radius=None,

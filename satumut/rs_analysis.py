@@ -37,11 +37,11 @@ def parse_args():
                         help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--thres", required=False, default=-0.1, type=float,
+    parser.add_argument("--thres", required=False, default=0.0, type=float,
                         help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-da", "--dihedral_atoms", required=True, nargs="+",
                         help="The 4 atom necessary to calculate the dihedrals in format chain id:res number:atom name")
-    parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.8, type=float,
+    parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
