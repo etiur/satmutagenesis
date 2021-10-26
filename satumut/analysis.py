@@ -97,7 +97,7 @@ class SimulationData:
         self.weight_dist = None
         self.weight_bind = None
         self.all = None
-        self.followed_distance="distance0.5"
+        self.followed_distance = "distance0.5"
 
     def filtering(self, followed_distance=None):
         """
@@ -826,7 +826,7 @@ def complete_analysis(folders, wild, base, dpi=800, traj=10, output="summary", p
     """
     col = ["distance{}.5".format(x) for x in range(len(atoms)//2)]
     for follow in col:
-        data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, follow=follow)
+        data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, extract=extract, follow=follow)
         bins = binning(data_dict, plot_dir, base, dpi=800, follow=follow)
         all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with, follow=follow)
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, follow=follow)
