@@ -352,7 +352,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     # Perform single saturated mutations
     count = 0
     for mutation in position:
-        if multiple and count == 1:
+        if consec and multiple and count == 1:
             run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative, multiple)
         else:
             run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative)
