@@ -51,7 +51,7 @@ class Mutagenesis:
     To perform mutations on PDB files
     """
     def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None, mut=None,
-                 conservative=None, multiple=False):
+                 conservative=None, multiple=False, initial=None):
         """
         Initialize the Mutagenesis object
 
@@ -73,9 +73,15 @@ class Mutagenesis:
             How conservative should be the mutations according to Blossum62
         multiple: bool, optional
             Same round but double mutations
+        initial, str, optional
+            The initial pdb input file, used if multiple true to check the coordinates
         """
         self.model = Model(model)
         self.input = model
+        if initial:
+            self.initial = initial
+        else:
+            self.initial = model
         self.coords = position
         self.rotamers = load_bbdep()
         self.final_pdbs = []
@@ -149,12 +155,10 @@ class Mutagenesis:
         map the user coordinates with pmx coordinates
         """
         if self.turn and self.single:
-            count = 1
-            if not os.path.exists("{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))):
-                self.folder = "{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))
+            if not os.path.exists("{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))):
+                self.folder = "{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))
             else:
-                count = 1
-                if os.path.exists("{}_{}_{}".format(self.folder, count, "round_{}".format(self.turn))):
+                if os.path.exists("{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))):
                     files = list(filter(lambda x: "{}".format(self.folder) in x, os.listdir(".")))
                     files.sort(key=lambda x: int(x.replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), "")))
                     num = int(files[-1].replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), ""))
@@ -177,7 +181,7 @@ class Mutagenesis:
         if not os.path.exists("{}/original.pdb".format(self.folder)):
             self.model.write("{}/original.pdb".format(self.folder))
             self.final_pdbs.append("{}/original.pdb".format(self.folder))
-        after = map_atom_string(self.coords, self.input, "{}/original.pdb".format(self.folder))
+        after = map_atom_string(self.coords, self.initial, "{}/original.pdb".format(self.folder))
         self.chain_id = after.split(":")[0]
         self.position = int(after.split(":")[1]) - 1
 
@@ -348,9 +352,10 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     # Perform single saturated mutations
     count = 0
     for mutation in position:
-        run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative)
         if multiple and count == 1:
             run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative, multiple)
+        else:
+            run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative)
         if single:
             # If the single_mutagenesis flag is used, execute this
             single = single.upper()
@@ -368,7 +373,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
                 name = basename(files).replace(".pdb", "")
                 if name != "original":
                     run_ = Mutagenesis(files, position[1], pdb_dir, consec, conservative=conservative, mut=mut,
-                                       multiple=multiple)
+                                       multiple=multiple, initial=input_)
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
