@@ -737,7 +737,7 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
             median1 = median1[median1 > 0]
         else:
             median1 = median1[(median1 - ori_dm.loc["{} distance median".format(e_labels[0])]) < thres]
-        if not median1.empty:
+        if not median1.empty:  # if the any of the mutations has a distance median < thres, then I concat the median distance, the frequency and the energy median
             cat = pd.concat([median1, d_len.loc["{} distance freq".format(e_labels[0])].loc[median1.index],
                              e_median.loc["{} energy median".format(d_labels[0])].loc[median1.index]], axis=1)
             cat.columns = ["distance", "freq", "energy"]
@@ -747,8 +747,8 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
             ene_med = ene_med[ene_med > 0]
         else:
             ene_med = ene_med[(ene_med - ori_em.loc["{} energy median".format(d_labels[0])]) < thres]
-        if not ene_med.empty:
-            cat = pd.concat([ene_med.loc["{} energy median".format(d_labels[0])].loc[ene_med.index],
+        if not ene_med.empty:  # if the any of the mutations has an energy median < thres, then I concat the median distance, the frequency and the energy median
+            cat = pd.concat([median1.loc["{} distance median".format(e_labels[0])].loc[ene_med.index],
                              d_len.loc["{} distance freq".format(e_labels[0])].loc[ene_med.index], ene_med], axis=1)
             cat.columns = ["distance", "freq", "energy"]
             mutation_dict = [("{} distance median".format(e_labels[0]), "{} energy median".format(d_labels[0])), cat.copy()]
@@ -761,7 +761,7 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
             median1 = median1[median1 > 0]
         else:
             median1 = median1[(median1 - ori_dm.loc["{} distance median".format(e_labels[0])]) < thres]
-        if not median1.empty or ene_med.empty:
+        if not median1.empty and ene_med.empty:  # if the any of the mutations has an energy and distance median < thres, then I concat the median distance, the frequency and the energy median
             index = set(median1.index).intersection(ene_med.index)
             cat = pd.concat([median1.loc[index], d_len.loc["{} distance freq".format(e_labels[0])].loc[index],
                              ene_med.loc[index]], axis=1)
