@@ -144,7 +144,7 @@ class SimulationData:
                                 columns=[self.followed_distance, "Binding Energy", "residence time", "Type"])
 
 
-def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance0.5"):
+def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance", follow="distance0.5"):
     """
     Creates a box plot of the 19 mutations from the same position
 
@@ -176,15 +176,15 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance0
     median_bin.plot(x="index", kind="bar", stacked=False)
     if "distance" in bin_type:
         plt.xlabel('Energy intervals')
-        plt.title("Median bar plot of {} bin -interval {}- with varying energy".format(bin_type, interval))
+        plt.title("Median bar plot of {} bin -interval {}- with varying energy".format(follow, interval))
     else:
         plt.xlabel('Distance intervals')
-        plt.title("Median bar plot of {} bin -interval {}- with varying distance".format(bin_type, interval))
+        plt.title("Median bar plot of {} bin -interval {}- with varying {}".format(bin_type, interval, follow))
 
     plt.legend(loc='best')
     plt.xticks(rotation=40, fontsize=8)
     plt.tight_layout()
-    plt.savefig("{}_results/Plots/bar/{}_median_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
+    plt.savefig("{}_results/Plots/bar/{}_median_{}_{}.png".format(res_dir, position_num, bin_type, follow), dpi=dpi)
     plt.close()
 
     # len bar plot
@@ -198,12 +198,12 @@ def bar_plot(res_dir, position_num, bins, interval, dpi=800, bin_type="distance0
         plt.title("Frequency bar plot of {} -interval {}- with varying energy".format(bin_type, interval))
     else:
         plt.xlabel('Distance intervals')
-        plt.title("Frequency bar plot of {} -interval {}- with varying distance".format(bin_type, interval))
+        plt.title("Frequency bar plot of {} -interval {}- with varying {}".format(bin_type, interval, follow))
 
     plt.legend(loc='best')
     plt.xticks(rotation=40, fontsize=8)
     plt.tight_layout()
-    plt.savefig("{}_results/Plots/bar/{}_frequency_{}.png".format(res_dir, position_num, bin_type), dpi=dpi)
+    plt.savefig("{}_results/Plots/bar/{}_frequency_{}_{}.png".format(res_dir, position_num, bin_type, follow), dpi=dpi)
     plt.close()
 
 
@@ -262,8 +262,8 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     distance_energy = distance_energy.fillna(0)
 
     # plotting
-    bar_plot(res_dir, position_number, (distance_median.copy(), distance_len.copy()), distancebin_labels[0], dpi, follow)
-    bar_plot(res_dir, position_number, (energy_median.copy(), energy_len.copy()), energybin_labels[0], dpi, "energy")
+    bar_plot(res_dir, position_number, (distance_median.copy(), distance_len.copy()), distancebin_labels[0], dpi, "distance", follow)
+    bar_plot(res_dir, position_number, (energy_median.copy(), energy_len.copy()), energybin_labels[0], dpi, "energy", follow)
 
     # concatenate everything
     everything = pd.concat([energy_median, energy_distance, energy_len, distance_median, distance_energy, distance_len])
