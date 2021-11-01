@@ -663,18 +663,26 @@ def create_report(res_dir, mutation, position_num, output="summary", analysis="d
     pdf.set_font('Arial', 'B', size=12)
     pdf.cell(0, 10, "Bar plots of {} bins".format(analysis), align='C', ln=1)
     pdf.ln(8)
-    if analysis != "both":
-        box1 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, follow)
-        box2 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, follow)
+    if analysis == "distance":
+        box1 = "{}_{}/Plots/bar/{}_frequency_{}_{}.png".format(res_dir, mode, position_num, "distance", follow)
+        box2 = "{}_{}/Plots/bar/{}_median_{}_{}.png".format(res_dir, mode, position_num, "distance", follow)
         pdf.image(box1, w=180)
         pdf.ln(5)
         pdf.image(box2, w=180)
         pdf.ln(1000000)
+    elif analysis == "":
+        if analysis == "distance":
+            box1 = "{}_{}/Plots/bar/{}_frequency_{}_{}.png".format(res_dir, mode, position_num, "energy", follow)
+            box2 = "{}_{}/Plots/bar/{}_median_{}_{}.png".format(res_dir, mode, position_num, "energy", follow)
+            pdf.image(box1, w=180)
+            pdf.ln(5)
+            pdf.image(box2, w=180)
+            pdf.ln(1000000)
     else:
-        box1 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, follow)
-        box2 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, follow)
-        box5 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, "energy")
-        box4 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, "energy")
+        box1 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, "distance", follow)
+        box2 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, "distance", follow)
+        box5 = "{}_{}/Plots/bar/{}_median_{}.png".format(res_dir, mode, position_num, "energy", follow)
+        box4 = "{}_{}/Plots/bar/{}_frequency_{}.png".format(res_dir, mode, position_num, "energy", follow)
         pdf.image(box1, w=180)
         pdf.ln(5)
         pdf.image(box2, w=180)
