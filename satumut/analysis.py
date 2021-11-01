@@ -725,7 +725,6 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
     """
     # Find top mutations
     log = Log("{}_{}/analysis".format(res_dir, mode))
-    count = 0
     mutation_dict = []
     # unzip the different dataframes
     e_labels = bins.e_interval
@@ -779,8 +778,8 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
     if len(mutation_dict) != 0:
         log.info(
             "{} mutations at position {} decrease {} by {} or less "
-            "when catalytic distance {} and binding energy {}".format(count, position_num,analysis, thres, cata_dist,
-                                                                      energy_thres))
+            "when catalytic distance {} and binding energy {}".format(len(mutation_dict), position_num,analysis, thres,
+                                                                      cata_dist, energy_thres))
         create_report(res_dir, mutation_dict, position_num, output, analysis, cata_dist, mode=mode,
                       profile_with=profile_with, follow=follow)
     else:
