@@ -347,12 +347,13 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     sns.set_context("paper")
     original = wild.profile
     distance = mutation.profile
-    cat = pd.concat([original, distance], axis=0)
+    cat = pd.concat([distance, original], axis=0)
     # Creating the scatter plots
     if not os.path.exists("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_)):
         os.makedirs("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_))
     ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
-                     palette="muted", data=cat, height=3.5, aspect=1.5, linewidth=0)
+                     palette="Set2", data=cat, height=3.5, aspect=1.5, linewidth=0, col="Type",
+                     col_wrap=2)
 
     ax.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
     ax.savefig("{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, type_,
