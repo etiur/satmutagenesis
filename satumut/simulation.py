@@ -320,7 +320,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc,
                          energy_thres=energy_threshold, profile_with=profile_with, atoms=atoms)
     if dihedral:
-        consecutive_analysis_rs(dirname, dihedral, input_, original_, dpi, traj,  plot_dir,  cpus,
+        consecutive_analysis_rs(dirname, dihedral, input_, original, dpi, traj,  plot_dir,  cpus,
                                 thres, cata_dist, xtc, energy=energy_threshold, profile_with=profile_with)
 
 
