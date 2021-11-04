@@ -28,33 +28,25 @@ def parse_args():
                         help="Include the path of input pdb of the simulation")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--traj", required=False, default=10, type=int,
+    parser.add_argument("--traj", required=False, default=5, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
-    parser.add_argument("--out", required=False, default="summary",
-                        help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--plot", required=False, help="Path of the plots folder")
-    parser.add_argument("--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
-                        help="The metric to measure the improvement of the system")
     parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
-    parser.add_argument("--thres", required=False, default=0.0, type=float,
-                        help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-da", "--dihedral_atoms", required=True, nargs="+",
                         help="The 4 atom necessary to calculate the dihedrals in format chain id:res number:atom name")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
     parser.add_argument("-x", "--xtc", required=False, action="store_true",
                         help="Change the pdb format to xtc")
-    parser.add_argument("-im", "--improve", required=False, choices=("R", "S"), default="R",
-                        help="The enantiomer that should improve")
     parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
                         default="Binding Energy", help="The metric to generate the pele profiles with")
     args = parser.parse_args()
 
-    return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse, args.cpus, args.thres,
-            args.catalytic_distance, args.xtc, args.improve, args.extract, args.dihedral_atoms, args.energy_threshold,
+    return [args.inp, args.dpi, args.traj, args.plot, args.analyse, args.cpus,
+            args.catalytic_distance, args.xtc, args.extract, args.dihedral_atoms, args.energy_threshold,
             args.initial_pdb, args.profile_with]
 
 
@@ -99,7 +91,7 @@ class SimulationRS:
     """
     A class to analyse the simulation data from the enantiomer analysis
     """
-    def __init__(self, folder, dihedral_atoms, input_pdb, res_dir, pdb=10, catalytic_dist=3.5, extract=None,
+    def __init__(self, folder, dihedral_atoms, input_pdb, res_dir, pdb=5, catalytic_dist=3.5, extract=None,
                  energy=None, cpus=10):
         """
         Initialize the SimulationRS class
@@ -222,8 +214,11 @@ class SimulationRS:
         # the frequency of steps with pro-S or pro-R configurations
         if not self.energy:
             frequency = self.dataframe.loc[self.dataframe[self.followed] <= self.catalytic]  # frequency of catalytic poses
+            self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         else:
             frequency = self.dataframe.loc[(self.dataframe[self.followed] <= self.catalytic) & (self.dataframe["Binding Energy"] <= self.energy)]
+            self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
+
         freq_r = frequency.loc[(frequency["dihedral"] <= -40) & (frequency["dihedral"] >= -140)]
         freq_r["Type"] = ["R" for _ in range(len(freq_r))]
         freq_s = frequency.loc[(frequency["dihedral"] >= 40) & (frequency["dihedral"] <= 140)]
@@ -232,7 +227,6 @@ class SimulationRS:
                                            "S": len(np.repeat(freq_s.values, freq_s["residence time"].values, axis=0))})).transpose()
         self.len.index = [self.name]
         # for the PELE profiles
-        self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         type_ = []
         for x in self.profile["dihedral"].values:
             if -40 >= x >= -140:
@@ -242,9 +236,19 @@ class SimulationRS:
             else:
                 type_.append("noise")
         self.profile["Type"] = type_
+
         # for the binning
-        self.all = pd.DataFrame(np.repeat(self.profile[[self.followed, "Binding Energy", "residence time", "Type"]].values,
-                                          self.profile["residence time"].values, axis=0),
+        type_2 = []
+        for x in frequency["dihedral"].values:
+            if -40 >= x >= -140:
+                type_2.append("R_{}".format(self.name))
+            elif 40 <= x <= 140:
+                type_2.append("S_{}".format(self.name))
+            else:
+                type_2.append("noise")
+        frequency["Type"] = type_2
+        self.all = pd.DataFrame(np.repeat(frequency[[self.followed, "Binding Energy", "residence time", "Type"]].values,
+                                          frequency["residence time"].values, axis=0),
                                 columns=[self.followed, "Binding Energy", "residence time", "Type"])
         # To extract the best distances
         trajectory = frequency.sort_values(by=self.followed)
@@ -290,8 +294,8 @@ def binning(data_dict, res_dir, position_num, follow="distance0.5"):
     for key, value in data_dict.items():
         bin_dict[key] = value.all[["Binding Energy", follow, "Type"]].copy()
     data = pd.concat(bin_dict.values())
-    energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
-    distance_bin = np.linspace(min(data[follow]), max(data[follow]), num=5)
+    energy_bin = np.linspace(min(data["Binding Energy"]), min(max(data["Binding Energy"]), min(data["Binding Energy"])+3), num=5)
+    distance_bin = np.linspace(min(data[follow]), min(max(data[follow]), min(data[follow])+3), num=5)
     energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i + 1]) for i in range(len(energy_bin) - 1)]
     distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i + 1]) for i in range(len(distance_bin) - 1)]
     # The best distance with different energies
@@ -537,9 +541,9 @@ def extract_10_pdb_single_rs(info, res_dir, data_dict, xtc=False, follow="distan
                                     orientation, angle, follow)
 
 
-def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, dpi=800, traj=10, output="summary",
-                            plot_dir=None, opt="distance", cpus=10, thres=0.0, cata_dist=3.5, xtc=False, improve="R",
-                            extract=None, energy=None, profile_with="Binding Energy"):
+def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, dpi=800, traj=5,
+                            plot_dir=None, cpus=10, cata_dist=3.5, xtc=False, extract=None, energy=None,
+                            profile_with="Binding Energy"):
     """
     Creates all the plots for the different mutated positions
 
@@ -559,22 +563,16 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
        how many points are used for the box plots
     traj : int, optional
        how many top pdbs are extracted from the trajectories
-    output : str, optional
-       name of the output file for the pdfs
     plot_dir : str
        Name for the results folder
     opt : str, optional
        choose if to analyse distance, energy or both
     cpus : int, optional
        How many cpus to use to extract the top pdbs
-    thres : float, optional
-       The threshold for the mutations to be included in the pdf
     cata_dist: float, optional
         The catalytic distance
     xtc: bool, optional
         Set to true if the pdb is in xtc format
-    imporve: str
-        The enantiomer that should improve
     extract: int, optional
         The number of steps to analyse
     energy: int, optional
@@ -604,10 +602,10 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
 
 
 def main():
-    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, improve, extract, dihedral_atoms, energy,\
+    inp, dpi, traj, folder, analysis, cpus, cata_dist, xtc,  extract, dihedral_atoms, energy,\
         initial_pdb, profile_with = parse_args()
-    consecutive_analysis_rs(inp, dihedral_atoms, initial_pdb, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis,
-                            cpus=cpus, thres=thres, cata_dist=cata_dist, xtc=xtc, improve=improve, extract=extract,
+    consecutive_analysis_rs(inp, dihedral_atoms, initial_pdb, dpi=dpi, traj=traj, plot_dir=folder,
+                            cpus=cpus, cata_dist=cata_dist, xtc=xtc, extract=extract,
                             energy=energy, profile_with=profile_with)
 
 

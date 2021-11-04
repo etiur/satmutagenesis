@@ -56,7 +56,7 @@ def parse_args():
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("-tr", "--trajectory", required=False, default=10, type=int,
+    parser.add_argument("-tr", "--trajectory", required=False, default=5, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
@@ -131,7 +131,7 @@ class CreateSlurmFiles:
 
     def __init__(self, input_, ligchain, ligname, atoms, position=(), cpus_mutant=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
-                 steps=1000, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance", thres=0.0,
+                 steps=1000, dpi=800, traj=5, output="summary", plot_dir=None, opt="distance", thres=0.0,
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
                  equilibration=True, log=False, cpt=None, improve="R", turn=None, energy_thres=None, QM=None,
@@ -393,7 +393,7 @@ class CreateSlurmFiles:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))
-            if self.traj != 10:
+            if self.traj != 5:
                 argument_list.append("-tr {} ".format(self.traj))
             if self.output != "summary":
                 argument_list.append("--out {} ".format(self.output))
@@ -516,7 +516,7 @@ class CreateSlurmFiles:
                 argument_list.append("--steps {} ".format(self.steps))
             if self.dpi != 800:
                 argument_list.append("--dpi {} ".format(self.dpi))
-            if self.traj != 10:
+            if self.traj != 5:
                 argument_list.append("-tr {} ".format(self.traj))
             if self.output != "summary":
                 argument_list.append("--out {} ".format(self.output))

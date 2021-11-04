@@ -28,7 +28,7 @@ def parse_args():
                         help="Include a file or list with the path to the folders with PELE simulations inside")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--traj", required=False, default=10, type=int,
+    parser.add_argument("--traj", required=False, default=5, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
@@ -132,15 +132,17 @@ class SimulationData:
         self.trajectory = trajectory.iloc[:self.pdb]
         if not self.energy:
             frequency = trajectory.loc[trajectory[self.followed_distance] <= self.catalytic]  # frequency of catalytic poses
+            self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         else:
             frequency = trajectory.loc[(trajectory[self.followed_distance] <= self.catalytic) &
                                        (trajectory["Binding Energy"] <= self.energy)]
+            self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         # for the PELE profiles
-        self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
+        frequency["Type"] = [self.name for _ in range(len(frequency.index))]
         # binning
-        self.all = pd.DataFrame(np.repeat(self.profile[[self.followed_distance, "Binding Energy", "residence time", "Type"]].values,
-                                          self.profile["residence time"].values, axis=0),
+        self.all = pd.DataFrame(np.repeat(frequency[[self.followed_distance, "Binding Energy", "residence time", "Type"]].values,
+                                          frequency["residence time"].values, axis=0),
                                 columns=[self.followed_distance, "Binding Energy", "residence time", "Type"])
 
 
@@ -230,8 +232,8 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     data = pd.concat(bin_dict.values())
     tup = namedtuple("bins", ["e_median", "e_len", "e_interval", "d_median", "d_len", "d_interval"])
     # creating the intervals or bins
-    energy_bin = np.linspace(min(data["Binding Energy"]), max(data["Binding Energy"]), num=5)
-    distance_bin = np.linspace(min(data[follow]), max(data[follow]), num=5)
+    energy_bin = np.linspace(min(data["Binding Energy"]), min(max(data["Binding Energy"]), min(data["Binding Energy"])+3), num=5)
+    distance_bin = np.linspace(min(data[follow]), min(max(data[follow]), min(data[follow])+3), num=5)
     energybin_labels = ["({}, {}]".format(round(energy_bin[i], 2), round(energy_bin[i + 1], 2)) for i in range(len(energy_bin) - 1)]
     distancebin_labels = ["({}, {}]".format(round(distance_bin[i], 2), round(distance_bin[i + 1], 2)) for i in range(len(distance_bin) - 1)]
     # The best distance with different energies
@@ -275,7 +277,7 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     return tup(energy_median, energy_len, energybin_labels, distance_median, distance_len, distancebin_labels)
 
 
-def analyse_all(folders, wild, traj=10, cata_dist=3.5, energy_thres=None, extract=None, follow="distance0.5"):
+def analyse_all(folders, wild, traj=5, cata_dist=3.5, energy_thres=None, extract=None, follow="distance0.5"):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -345,16 +347,17 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     sns.set_context("paper")
     original = wild.profile
     distance = mutation.profile
-    cat = pd.concat([original, distance], axis=0)
+    cat = pd.concat([distance, original], axis=0)
     # Creating the scatter plots
     if not os.path.exists("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_)):
         os.makedirs("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_))
     ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
-                     palette="muted", data=cat, height=3.5, aspect=1.5, linewidth=0)
+                     palette="Set2", data=cat, height=3.5, aspect=1.5, linewidth=0, col="Type",
+                     col_wrap=2)
 
     ax.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
-    ax.savefig("{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow,position_num, type_,
-                                                                 key, type_), dpi=dpi)
+    ax.savefig("{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, type_,
+                                                               key, type_), dpi=dpi)
     plt.close(ax.fig)
 
 
@@ -788,7 +791,7 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
                                                                               energy_thres))
 
 
-def complete_analysis(folders, wild, base, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
+def complete_analysis(folders, wild, base, dpi=800, traj=5, output="summary", plot_dir=None, opt="distance",
                       cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
                       profile_with="Binding Energy", atoms=None):
     """
@@ -841,7 +844,7 @@ def complete_analysis(folders, wild, base, dpi=800, traj=10, output="summary", p
                            energy_thres=energy_thres, profile_with=profile_with, follow=follow)
 
 
-def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary", plot_dir=None, opt="distance",
+def consecutive_analysis(file_name, wild=None, dpi=800, traj=5, output="summary", plot_dir=None, opt="distance",
                          cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
                          profile_with="Binding Energy", atoms=None):
     """

@@ -50,7 +50,7 @@ def parse_args():
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("-tr", "--trajectory", required=False, default=10, type=int,
+    parser.add_argument("-tr", "--trajectory", required=False, default=5, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--out", required=False, default="summary",
                         help="Name of the summary file created at the end of the analysis")
@@ -199,7 +199,7 @@ class SimulationRunner:
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, cu=False, seed=12345,
-                         nord=False, steps=1000, dpi=800, traj=10, output="summary",
+                         nord=False, steps=1000, dpi=800, traj=5, output="summary",
                          plot_dir=None, opt="distance", thres=0.0, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, improve="R",
@@ -321,8 +321,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc,
                          energy_thres=energy_threshold, profile_with=profile_with, atoms=atoms)
     if dihedral:
-        consecutive_analysis_rs(dirname, dihedral, input_, original, dpi, traj, output, plot_dir, opt, cpus,
-                                thres, cata_dist, xtc, improve, energy=energy_threshold, profile_with=profile_with)
+        consecutive_analysis_rs(dirname, dihedral, input_, original, dpi, traj,  plot_dir,  cpus,
+                                thres, cata_dist, xtc, energy=energy_threshold, profile_with=profile_with)
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
