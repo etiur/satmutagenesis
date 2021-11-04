@@ -145,7 +145,10 @@ class CreateYamlFiles:
         if total_cpus:
             self.total_cpu = total_cpus
         else:
-            self.total_cpu = len(self.mutant_list) * self.cpus + 1
+            if self.single:
+                self.total_cpu = len(self.mutant_list) * self.cpus + 1
+            else:
+                self.total_cpu = 4 * self.cpus + 1
         self.template = template
         self.skip = skip
         self.rotamers = rotamers
