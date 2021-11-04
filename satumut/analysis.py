@@ -360,10 +360,10 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
 
     ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
                      palette="Set2", data=cat, linewidth=0, style_order=cat["Type"].unique(),
-                     hue_order=cat["Type"].unique(), height=3.5, aspect=1.5, )
+                     hue_order=cat["Type"].unique(), height=4.5, aspect=2)
     ex = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
                      palette="Set2", data=cat_1, linewidth=0, style_order=cat["Type"].unique(),
-                     hue_order=cat["Type"].unique(), height=3.5, aspect=1.5, )
+                     hue_order=cat["Type"].unique(), height=4.5, aspect=2)
     ax.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
     ex.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
     ax.savefig(
