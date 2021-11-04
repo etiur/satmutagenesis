@@ -327,7 +327,6 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
                         profile_with="Binding Energy", follow="distance0.5"):
     """
     Creates a plot for a single mutation
-
     Parameters
     ___________
     key: str
@@ -354,17 +353,26 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     original = wild.profile
     distance = mutation.profile
     cat = pd.concat([distance, original], axis=0)
+    cat_1 = pd.concat([original, distance], axis=0)
     # Creating the scatter plots
     if not os.path.exists("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_)):
         os.makedirs("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_))
-    ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
-                     palette="Set2", data=cat, height=3.5, aspect=1.5, linewidth=0, col="Type",
-                     col_wrap=2)
 
+    ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
+                     palette="Set2", data=cat, linewidth=0, style_order=cat["Type"].unique(),
+                     hue_order=cat["Type"].unique(), height=3.5, aspect=1.5, )
+    ex = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
+                     palette="Set2", data=cat_1, linewidth=0, style_order=cat["Type"].unique(),
+                     hue_order=cat["Type"].unique(), height=3.5, aspect=1.5, )
     ax.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
-    ax.savefig("{}_{}/Plots/{}/scatter_{}_{}/{}_{}.png".format(res_dir, mode, follow, position_num, type_,
-                                                               key, type_), dpi=dpi)
-    plt.close(ax.fig)
+    ex.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
+    ax.savefig(
+        "{}_{}/Plots/{}/scatter_{}_{}/{}_{}_1.png".format(res_dir, mode, follow, position_num, type_, key, type_),
+        dpi=dpi)
+    ex.savefig(
+        "{}_{}/Plots/{}/scatter_{}_{}/{}_{}_2.png".format(res_dir, mode, follow, position_num, type_, key, type_),
+        dpi=dpi)
+    plt.close()
 
 
 def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800, mode="results", profile_with="Binding Energy",
