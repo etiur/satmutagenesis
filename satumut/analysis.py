@@ -277,9 +277,6 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     if not os.path.exists("{}_results/csv".format(res_dir)):
         os.makedirs("{}_results/csv".format(res_dir))
     everything.to_csv("{}_results/csv/binning_{}_{}.csv".format(res_dir, position_number, follow))
-    # save the dataframe with the reports in csvs
-    for key, value in data_dict.items():
-        value.dataframe.to_csv("{}_results/csv/{}.csv".format(res_dir, key), header=True)
     return tup(energy_median, energy_len, energybin_labels, distance_median, distance_len, distancebin_labels)
 
 
@@ -856,6 +853,9 @@ def complete_analysis(folders, wild, base, dpi=800, traj=5, output="summary", pl
         extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, follow=follow)
         find_top_mutations(plot_dir, bins, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
                            energy_thres=energy_thres, profile_with=profile_with, follow=follow)
+    # save the dataframe with the reports in csvs
+    for key, value in data_dict.items():
+        value.dataframe.to_csv("{}_results/csv/{}.csv".format(plot_dir, key), header=True)
 
 
 def consecutive_analysis(file_name, wild=None, dpi=800, traj=5, output="summary", plot_dir=None, opt="distance",
