@@ -245,13 +245,11 @@ class CreateSlurmFiles:
         self.cu = cu
         self.seed = seed
         self.nord = nord
-        if multiple and len(position) == 2:
-            self.len = 400
-        elif single_mutagenesis and plurizyme_at_and_res:
+        if single_mutagenesis and plurizyme_at_and_res:
             _ = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
             self.len = len(_)
         else:
-            self.len = len(position) * 19 + 1
+            self.len = 4
         if position:
             self.position = " ".join(position)
         else:
