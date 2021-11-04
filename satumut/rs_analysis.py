@@ -356,6 +356,9 @@ def binning(data_dict, res_dir, position_num, follow="distance0.5"):
     if not os.path.exists("{}_RS/csv".format(res_dir)):
         os.makedirs("{}_RS/csv".format(res_dir))
     everything.to_csv("{}_RS/csv/binning_{}_{}.csv".format(res_dir, position_num, follow))
+    # save the dataframe with the reports in csvs
+    for key, value in data_dict.items():
+        value.dataframe.to_csv("{}_RS/csv/{}.csv".format(res_dir, key), header=True)
     return everything
 
 

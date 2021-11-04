@@ -62,7 +62,7 @@ class SimulationData:
     """
     A class to store data from the simulations in dictionaries
     """
-    def __init__(self, folder, pdb=10, catalytic_dist=3.5, energy_thres=None, extract=None):
+    def __init__(self, folder, pdb=5, catalytic_dist=3.5, energy_thres=None, extract=None):
         """
         Initialize the SimulationData Object
 
@@ -277,6 +277,9 @@ def binning(data_dict, res_dir, position_number, dpi=800, follow="distance0.5"):
     if not os.path.exists("{}_results/csv".format(res_dir)):
         os.makedirs("{}_results/csv".format(res_dir))
     everything.to_csv("{}_results/csv/binning_{}_{}.csv".format(res_dir, position_number, follow))
+    # save the dataframe with the reports in csvs
+    for key, value in data_dict.items():
+        value.dataframe.to_csv("{}_results/csv/{}.csv".format(res_dir, key), header=True)
     return tup(energy_median, energy_len, energybin_labels, distance_median, distance_len, distancebin_labels)
 
 
@@ -541,7 +544,7 @@ def extract_10_pdb_single(info, res_dir, data_dict, xtc=False, follow="distance0
     for ind in data.trajectory.index:
         ids = data.trajectory["ID"][ind]
         step = data.trajectory["numberOfAcceptedPeleSteps"][ind]
-        dist = data.trajectory["distance0.5"][ind]
+        dist = data.trajectory[follow][ind]
         bind = data.trajectory["Binding Energy"][ind]
         if not xtc:
             extract_snapshot_from_pdb(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind, follow)
