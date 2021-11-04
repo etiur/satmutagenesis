@@ -140,7 +140,7 @@ class Mutagenesis:
         aa = self._invert_aa[self.aa_init_resname]
         matrix = mat.blosum62
         matrix = {k:v for k,v in matrix.items() if "X" not in k and "B" not in k and "Z" not in k}
-        blosum = [key for key in matrix.keys() if aa in key and key.count(aa) < 2]
+        blosum = [key for key in matrix.keys() if aa in key and key.count(aa) < 2 and "P" not in key]
         value = [matrix[x] for x in blosum]
         new_dict = dict(zip([_aacids_ext_amber[x[1]] if x[0] == aa else _aacids_ext_amber[x[0]] for x in blosum], value))
         if library == 1:
