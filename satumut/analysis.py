@@ -883,6 +883,8 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=10, output="summary
     atoms: list[str]
         Series of atoms of the residues to follow in this format -> chain ID:position:atom name, multiple of 2
     """
+    if atoms is None:
+        atoms = []
     assert len(atoms) % 2 == 0, "The number of atoms to follow should be multiple of 2"
     if isiterable(file_name):
         pele_folders = commonlist(file_name)
