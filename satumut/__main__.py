@@ -112,6 +112,8 @@ def parse_args():
                         help="How conservative should the mutations be, choices are 1 (most conservative) and 2")
     parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
                         default="Binding Energy", help="The metric to generate the pele profiles with")
+    parser.add_argument("-w", "--wild", required=False, default=None,
+                        help="The path to the folder where the reports from wild type simulation are")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -121,7 +123,7 @@ def parse_args():
             args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
             args.template, args.skip, args.rotamers, args.equilibration, args.log, args.cpus_per_task, args.improve,
             args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius, args.mutation,
-            args.conservative, args.profile_with]
+            args.conservative, args.profile_with, args.wild]
 
 
 class CreateSlurmFiles:
@@ -135,7 +137,7 @@ class CreateSlurmFiles:
                  single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
                  equilibration=True, log=False, cpt=None, improve="R", turn=None, energy_thres=None, QM=None,
-                 dihedral=None, box_radius=None, mut=None, conservative=None, profile_with="Binding Energy"):
+                 dihedral=None, box_radius=None, mut=None, conservative=None, profile_with="Binding Energy", wild=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -304,6 +306,7 @@ class CreateSlurmFiles:
             self.mut = None
         self.conservative = conservative
         self.profile_with = profile_with
+        self.wild = wild
 
     def _size(self):
         """
@@ -385,6 +388,8 @@ class CreateSlurmFiles:
                 argument_list.append("-pw {} ".format(self.profile_with))
             if self.log:
                 argument_list.append("-l ")
+            if self.wild:
+                argument_list.append("-w {}".format(self.wild))
             if self.xtc:
                 argument_list.append("-x ")
             if self.steps != 1000:
@@ -500,6 +505,8 @@ class CreateSlurmFiles:
                 argument_list.append("-pw {} ".format(self.profile_with))
             if self.log:
                 argument_list.append("-l ")
+            if self.wild:
+                argument_list.append("-w {}".format(self.wild))
             if self.box_radius:
                 argument_list.append("-br {} ".format(self.box_radius))
             if self.qm:
@@ -565,7 +572,7 @@ def main():
     hydrogen, consec, sbatch, steps, dpi, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
     rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut, conservative, \
-    profile_with = parse_args()
+    profile_with, wild = parse_args()
 
     if dir_ and len(input_) > 1:
         dir_ = None
@@ -575,7 +582,7 @@ def main():
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
                                fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
                                equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut,
-                               conservative, profile_with)
+                               conservative, profile_with, wild)
         if not nord:
             slurm = run.slurm_creation()
         else:

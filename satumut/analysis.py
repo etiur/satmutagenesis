@@ -14,7 +14,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from .helper import isiterable, Log, commonlist, find_log
+from .helper import Log, commonlist, find_log
 import mdtraj as md
 import numpy as np
 from collections import namedtuple
@@ -25,7 +25,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
     parser.add_argument("--inp", required=True,
-                        help="Include a file or list with the path to the folders with PELE simulations inside")
+                        help="Include the path of the completed_simulations.log created after satumut")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
     parser.add_argument("--traj", required=False, default=5, type=int,
@@ -49,10 +49,13 @@ def parse_args():
                         default="Binding Energy", help="The metric to generate the pele profiles with")
     parser.add_argument("-at", "--atoms", required=False, nargs="+",
                         help="Series of atoms of the residues to follow in this format -> chain ID:position:atom name")
+    parser.add_argument("-w", "--wild", required=False, default=None,
+                        help="The path to the folder where the reports from wild type simulation are")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.out, args.plot, args.analyse,  args.cpus, args.thres,
-            args.catalytic_distance, args.xtc, args.extract, args.energy_threshold, args.profile_with, args.atoms]
+            args.catalytic_distance, args.xtc, args.extract, args.energy_threshold, args.profile_with, args.atoms,
+            args.wild]
 
 
 class SimulationData:
@@ -887,28 +890,27 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=5, output="summary"
         Series of atoms of the residues to follow in this format -> chain ID:position:atom name, multiple of 2
     """
     assert len(atoms) % 2 == 0, "The number of atoms to follow should be multiple of 2"
-    if isiterable(file_name):
-        pele_folders = commonlist(file_name)
-    elif os.path.exists("{}".format(file_name)):
-        folder, wild = find_log(file_name)
+    if os.path.exists("{}".format(file_name)):
+        folder, wild_ = find_log(file_name)
         pele_folders = commonlist(folder)
     else:
         raise Exception("Pass a list of the path to the different folders")
-
+    if wild:
+        wild_ = wild
     if not plot_dir:
         plot_dir = commonprefix(pele_folders[0])
         plot_dir = list(filter(lambda x: "_mut" in x, plot_dir.split("/")))
         plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        complete_analysis(folders, wild, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
+        complete_analysis(folders, wild_, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
                           energy_thres, profile_with, atoms)
 
 
 def main():
-    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, extract, energy_thres, profile_with, atoms \
+    inp, dpi, traj, out, folder, analysis, cpus, thres, cata_dist, xtc, extract, energy_thres, profile_with, atoms, wild \
         = parse_args()
-    consecutive_analysis(inp, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis, cpus=cpus, thres=thres,
+    consecutive_analysis(inp, wild, dpi=dpi, traj=traj, output=out, plot_dir=folder, opt=analysis, cpus=cpus, thres=thres,
                          cata_dist=cata_dist, xtc=xtc, extract=extract, energy_thres=energy_thres,
                          profile_with=profile_with, atoms=atoms)
 

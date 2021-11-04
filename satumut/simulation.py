@@ -92,8 +92,6 @@ def parse_args():
                         help="write logs")
     parser.add_argument("-da", "--dihedral_atoms", required=False, nargs="+",
                         help="The 4 atom necessary to calculate the dihedrals in format chain id:res number:atom name")
-    parser.add_argument("-im", "--improve", required=False, choices=("R", "S"), default="R",
-                        help="The enantiomer that should improve")
     parser.add_argument("-tu", "--turn", required=False, type=int,
                         help="the round of plurizyme generation, not needed for the 1st round")
     parser.add_argument("-en", "--energy_threshold", required=False, type=int,
@@ -108,6 +106,8 @@ def parse_args():
                         help="How conservative should the mutations be, choices are 1 (the most conservative) and 2")
     parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
                         default="Binding Energy", help="The metric to generate the pele profiles with")
+    parser.add_argument("-w", "--wild", required=False, default=None,
+                        help="The path to the folder where the reports from wild type simulation are")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
@@ -115,9 +115,8 @@ def parse_args():
             args.consec, args.steps, args.dpi, args.trajectory, args.out, args.plot, args.analyse, args.thres,
             args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
-            args.skip, args.rotamers, args.equilibration, args.log, args.improve,
-            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius,
-            args.mutation, args.conservative, args.profile_with]
+            args.skip, args.rotamers, args.equilibration, args.log, args.turn, args.energy_threshold, args.QM,
+            args.dihedral_atoms, args.box_radius, args.mutation, args.conservative, args.profile_with, args.wild]
 
 
 class SimulationRunner:
@@ -202,9 +201,9 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          nord=False, steps=1000, dpi=800, traj=5, output="summary",
                          plot_dir=None, opt="distance", thres=0.0, factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
-                         template=None, skip=None, rotamers=None, equilibration=True, log=False, improve="R",
+                         template=None, skip=None, rotamers=None, equilibration=True, log=False,
                          energy_threshold=None, QM=None, dihedral=None, box_radius=None,
-                         mut=None, conservative=None, profile_with="Binding Energy"):
+                         mut=None, conservative=None, profile_with="Binding Energy", wild=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -278,8 +277,6 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         True to set equilibration before PELE
     log: bool, optional
         True to recover pele running logs
-    improve: str
-        The enantiomer to improve
     energy_thres: int, optional
         The binding energy to consider for catalytic poses
     QM: str, optional
@@ -303,7 +300,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     if not restart:
         pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
-                                       consec=consec, mut=mut, conservative=conservative)
+                                       consec=consec, mut=mut, conservative=conservative, wild=wild)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
                                skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, QM=QM,
@@ -318,10 +315,12 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     dirname, original = simulation.pele_folders()
     if dir_ and not plot_dir:
         plot_dir = dir_
+    if wild:
+        original = wild
     consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc,
                          energy_thres=energy_threshold, profile_with=profile_with, atoms=atoms)
     if dihedral:
-        consecutive_analysis_rs(dirname, dihedral, input_, original, dpi, traj,  plot_dir,  cpus,
+        consecutive_analysis_rs(dirname, dihedral, input_, original_, dpi, traj,  plot_dir,  cpus,
                                 thres, cata_dist, xtc, energy=energy_threshold, profile_with=profile_with)
 
 
@@ -405,8 +404,8 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, cu, multiple, seed, dir_, nord, pdb_dir, \
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
-    skip, rotamers, equilibration, log, improve, turn, energy_thres, QM, dihedral, box_radius, mut, \
-    conservative, profile_with = parse_args()
+    skip, rotamers, equilibration, log, turn, energy_thres, QM, dihedral, box_radius, mut, \
+    conservative, profile_with, wild = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
@@ -419,8 +418,8 @@ def main():
                              multiple, pdb_dir, consec, cu, seed, nord, steps, dpi, traj, out,
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
                              total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
-                             improve, energy_thres, QM, dihedral, box_radius, mut, conservative,
-                             profile_with)
+                             energy_thres, QM, dihedral, box_radius, mut, conservative,
+                             profile_with, wild)
 
 
 if __name__ == "__main__":

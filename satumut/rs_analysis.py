@@ -23,7 +23,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
     parser.add_argument("--inp", required=True,
-                        help="Include a file or list with the path to the folders with PELE simulations inside")
+                        help="Include the path of the completed_simulations.log created after satumut")
     parser.add_argument("-ip","--initial_pdb", required=True,
                         help="Include the path of input pdb of the simulation")
     parser.add_argument("--dpi", required=False, default=800, type=int,
@@ -43,11 +43,13 @@ def parse_args():
     parser.add_argument("-en", "--energy_threshold", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("-pw", "--profile_with", required=False, choices=("Binding Energy", "currentEnergy"),
                         default="Binding Energy", help="The metric to generate the pele profiles with")
+    parser.add_argument("-w", "--wild", required=False, default=None,
+                        help="The path to the folder where the reports from wild type simulation are")
     args = parser.parse_args()
 
     return [args.inp, args.dpi, args.traj, args.plot, args.analyse, args.cpus,
             args.catalytic_distance, args.xtc, args.extract, args.dihedral_atoms, args.energy_threshold,
-            args.initial_pdb, args.profile_with]
+            args.initial_pdb, args.profile_with, args.wild]
 
 
 def dihedral(trajectory, select, topology=None):
@@ -580,21 +582,20 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
     profile_with: str, optional
         The metric to generate the pele profiles with
     """
-    if isiterable(file_name):
-        pele_folders = commonlist(file_name)
-    elif os.path.exists("{}".format(file_name)):
-        folder, wild = find_log(file_name)
+    if os.path.exists("{}".format(file_name)):
+        folder, wild_ = find_log(file_name)
         pele_folders = commonlist(folder)
     else:
         raise Exception("Pass a list of the path to the different folders")
-
+    if wild:
+        wild_ = wild
     if not plot_dir:
         plot_dir = commonprefix(pele_folders[0])
         plot_dir = list(filter(lambda x: "_mut" in x, plot_dir.split("/")))
         plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_rs(folders, wild, dihedral_atoms, initial_pdb, plot_dir, traj, cata_dist, extract,
+        data_dict = analyse_rs(folders, wild_, dihedral_atoms, initial_pdb, plot_dir, traj, cata_dist, extract,
                                energy, cpus)
         binning(data_dict, plot_dir, base)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS", profile_with=profile_with)
@@ -603,8 +604,8 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
 
 def main():
     inp, dpi, traj, folder, analysis, cpus, cata_dist, xtc,  extract, dihedral_atoms, energy,\
-        initial_pdb, profile_with = parse_args()
-    consecutive_analysis_rs(inp, dihedral_atoms, initial_pdb, dpi=dpi, traj=traj, plot_dir=folder,
+        initial_pdb, profile_with, wild = parse_args()
+    consecutive_analysis_rs(inp, dihedral_atoms, initial_pdb, wild, dpi=dpi, traj=traj, plot_dir=folder,
                             cpus=cpus, cata_dist=cata_dist, xtc=xtc, extract=extract,
                             energy=energy, profile_with=profile_with)
 
