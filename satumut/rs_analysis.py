@@ -10,13 +10,14 @@ import os
 import sys
 import re
 import matplotlib.pyplot as plt
-from .helper import isiterable, commonlist, find_log, map_atom_string
-from .analysis import extract_all, all_profiles
+from .helper import commonlist, find_log, map_atom_string
+from .analysis import all_profiles
 import mdtraj as md
 import Bio.PDB
 from multiprocessing import Pool
-plt.switch_backend('agg')
 from functools import partial
+plt.switch_backend('agg')
+
 
 
 def parse_args():
@@ -47,7 +48,7 @@ def parse_args():
                         help="The path to the folder where the reports from wild type simulation are")
     args = parser.parse_args()
 
-    return [args.inp, args.dpi, args.traj, args.plot, args.analyse, args.cpus,
+    return [args.inp, args.dpi, args.traj, args.plot, args.cpus,
             args.catalytic_distance, args.xtc, args.extract, args.dihedral_atoms, args.energy_threshold,
             args.initial_pdb, args.profile_with, args.wild]
 
@@ -362,7 +363,7 @@ def binning(data_dict, res_dir, position_num, follow="distance0.5"):
     return everything
 
 
-def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, traj=10, cata_dist=3.5, extract=None, energy=None,
+def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, traj=5, cata_dist=3.5, extract=None, energy=None,
                cpus=10, follow="distance0.5"):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
@@ -546,6 +547,41 @@ def extract_10_pdb_single_rs(info, res_dir, data_dict, xtc=False, follow="distan
                                     orientation, angle, follow)
 
 
+def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, follow="distance0.5"):
+    """
+    Extracts the top 10 distances for the 19 mutations at the same position
+
+    Parameters
+    ___________
+    res_dir: str
+       name of the results folder
+    data_dict: dict
+       A dictionary that contains SimulationData objects from the 19 simulation folders
+    folders: str
+       Path to the folder that has all the simulations at the same position
+    cpus: int, optional
+       How many cpus to paralelize the function
+    xtc: bool, optional
+        Set to true if the pdb is in xtc format
+    function: function
+        a extract pdb function
+    follow: str, optional
+        The column name of the different followed distances during PELE simulation
+    """
+    args = []
+    for pele in folders:
+        name = basename(pele)
+        output = name[:-1]
+        args.append((pele, output, name))
+
+    # paralelizing the function
+    p = Pool(cpus)
+    func = partial(extract_10_pdb_single_rs, res_dir=res_dir, data_dict=data_dict, xtc=xtc, follow=follow)
+    p.map(func, args, 1)
+    p.close()
+    p.join()
+
+
 def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, dpi=800, traj=5,
                             plot_dir=None, cpus=10, cata_dist=3.5, xtc=False, extract=None, energy=None,
                             profile_with="Binding Energy"):
@@ -602,12 +638,12 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
                                energy, cpus)
         binning(data_dict, plot_dir, base)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS", profile_with=profile_with)
-        extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, function=extract_10_pdb_single_rs)
+        extract_all(plot_dir, data_dict, folders, cpus, xtc=xtc)
 
 
 def main():
-    inp, dpi, traj, folder, analysis, cpus, cata_dist, xtc,  extract, dihedral_atoms, energy,\
-        initial_pdb, profile_with, wild = parse_args()
+    inp, dpi, traj, folder, cpus, cata_dist, xtc,  extract, dihedral_atoms, energy, initial_pdb, profile_with, \
+    wild = parse_args()
     consecutive_analysis_rs(inp, dihedral_atoms, initial_pdb, wild, dpi=dpi, traj=traj, plot_dir=folder,
                             cpus=cpus, cata_dist=cata_dist, xtc=xtc, extract=extract,
                             energy=energy, profile_with=profile_with)

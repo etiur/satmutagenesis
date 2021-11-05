@@ -369,7 +369,8 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     ex.savefig(
         "{}_{}/Plots/{}/scatter_{}_{}/{}_{}_2.png".format(res_dir, mode, follow, position_num, type_, key, type_),
         dpi=dpi)
-    plt.close()
+    plt.close(ax.fig)
+    plt.close(ex.fig)
 
 
 def pele_profiles(type_, res_dir, data_dict, position_num, dpi=800, mode="results", profile_with="Binding Energy",
@@ -557,7 +558,7 @@ def extract_10_pdb_single(info, res_dir, data_dict, xtc=False, follow="distance0
             extract_snapshot_xtc(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind, follow)
 
 
-def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, function=None, follow="distance0.5"):
+def extract_all(res_dir, data_dict, folders, xtc=False, follow="distance0.5"):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
 
@@ -585,13 +586,8 @@ def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, function=None, 
         args.append((pele, output, name))
 
     # paralelizing the function
-    if not function:
-        function = extract_10_pdb_single
-    p = mp.Pool(cpus)
-    func = partial(function, res_dir=res_dir, data_dict=data_dict, xtc=xtc, follow=follow)
-    p.map(func, args, 1)
-    p.close()
-    p.terminate()
+    for arg in args:
+        extract_10_pdb_single(arg, res_dir, data_dict, xtc=xtc, follow=follow)
 
 
 def create_report(res_dir, mutation, position_num, output="summary", analysis="distance", cata_dist=3.5,
@@ -802,9 +798,9 @@ def find_top_mutations(res_dir, bins, position_num, output="summary", analysis="
                                                                               energy_thres))
 
 
-def complete_analysis(folders, wild, base, dpi=800, traj=5, output="summary", plot_dir=None, opt="distance",
-                      cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
-                      profile_with="Binding Energy", atoms=None):
+def complete_analysis(follow, folders, wild, base, dpi=800, traj=5, output="summary", plot_dir=None,
+                      opt="distance", thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
+                      profile_with="Binding Energy"):
     """
     A function that does a complete analysis of the simulation results
 
@@ -845,17 +841,36 @@ def complete_analysis(folders, wild, base, dpi=800, traj=5, output="summary", pl
     atoms: list[str]
         Series of atoms of the residues to follow in this format -> chain ID:position:atom name, multiple of 2
     """
-    col = ["distance{}.5".format(x) for x in range(len(atoms)//2)]
-    for follow in col:
-        data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, extract=extract, follow=follow)
-        bins = binning(data_dict, plot_dir, base, dpi=800, follow=follow)
-        all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with, follow=follow)
-        extract_all(plot_dir, data_dict, folders, cpus=cpus, xtc=xtc, follow=follow)
-        find_top_mutations(plot_dir, bins, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
-                           energy_thres=energy_thres, profile_with=profile_with, follow=follow)
+    data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, extract=extract, follow=follow)
+    bins = binning(data_dict, plot_dir, base, dpi=800, follow=follow)
+    all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with, follow=follow)
+    extract_all(plot_dir, data_dict, folders, xtc=xtc, follow=follow)
+    find_top_mutations(plot_dir, bins, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
+                       energy_thres=energy_thres, profile_with=profile_with, follow=follow)
+    return data_dict
+
+
+def pooled_analysis(folders, wild, base, dpi=800, traj=5, output="summary", plot_dir=None, opt="distance",
+                    cpus=10, thres=0.0, cata_dist=3.5, xtc=False, extract=None, energy_thres=None,
+                    profile_with="Binding Energy", atoms=None):
+    if atoms:
+        col = ["distance{}.5".format(x) for x in range(len(atoms) // 2)]
+    else:
+        col = ["distance0.5"]
+
+    p = mp.Pool(cpus)
+    func = partial(complete_analysis, folders=folders, wild=wild, base=base, dpi=dpi, traj=traj, output=output,
+                   plot_dir=plot_dir, opt=opt, thres=thres, cata_dist=cata_dist, xtc=xtc, extract=extract,
+                   energy_thres=energy_thres, profile_with=profile_with)
+    data_dicts = p.map(func, col, 1)
+    p.close()
+    p.join()
+
     # save the dataframe with the reports in csvs
-    for key, value in data_dict.items():
-        value.dataframe.to_csv("{}_results/csv/{}.csv".format(plot_dir, key), header=True)
+    if not os.path.exists("{}_results/csv/{}".format(plot_dir, base)):
+        os.makedirs("{}_results/csv/{}".format(plot_dir, base))
+    for key, value in data_dicts[0].items():
+        value.dataframe.to_csv("{}_results/csv/{}/{}.csv".format(plot_dir, base, key), header=True)
 
 
 def consecutive_analysis(file_name, wild=None, dpi=800, traj=5, output="summary", plot_dir=None, opt="distance",
@@ -916,8 +931,8 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=5, output="summary"
         plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        complete_analysis(folders, wild_, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
-                          energy_thres, profile_with, atoms)
+        pooled_analysis(folders, wild_, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
+                        energy_thres, profile_with, atoms)
 
 
 def main():
