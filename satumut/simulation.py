@@ -97,7 +97,7 @@ def parse_args():
     parser.add_argument("-en", "--energy_threshold", required=False, type=int,
                         help="An energy threshold that limits the points of scatter plots")
     parser.add_argument("--QM", required=False, help="The path to the QM charges")
-    parser.add_argument("-br","--box_radius", required=False, type=int, help="Radius of the exploration box")
+    parser.add_argument("-br", "--box_radius", required=False, type=int, help="Radius of the exploration box")
     parser.add_argument("-mut", "--mutation", required=False, nargs="+",
                         choices=('ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN',
                                  'GLN', 'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR'),
