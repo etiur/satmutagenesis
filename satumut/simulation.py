@@ -110,6 +110,8 @@ def parse_args():
                         help="The path to the folder where the reports from wild type simulation are")
     parser.add_argument("-scr", "--side_chain_resolution", required=False, type=int, default=10,
                         help="Affects the side chain sampling, the smaller the more accurate")
+    parser.add_argument("-ep", "--epochs", required=False, type=int, default=1,
+                        help="the number of adaptive epochs to run")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
@@ -119,7 +121,7 @@ def parse_args():
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
             args.skip, args.rotamers, args.equilibration, args.log, args.turn, args.energy_threshold, args.QM,
             args.dihedral_atoms, args.box_radius, args.mutation, args.conservative, args.profile_with, args.wild,
-            args.side_chain_resolution]
+            args.side_chain_resolution, args.epoch]
 
 
 class SimulationRunner:
@@ -207,7 +209,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          template=None, skip=None, rotamers=None, equilibration=True, log=False,
                          energy_threshold=None, QM=None, dihedral=None, box_radius=None,
                          mut=None, conservative=None, profile_with="Binding Energy", wild=None,
-                         side_chain_resolution=10):
+                         side_chain_resolution=10, epochs=1):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -299,6 +301,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         The metric to generate the pele profiles with
     side_chain_resolution: int, optional
         The resolution of the side chain sampling, the smaller the better
+    epochs: int, optional
+        The number of adaptive epochs to run
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -310,7 +314,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
                                skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, QM=QM,
-                               box_radius=box_radius, side_chain_resolution=side_chain_resolution)
+                               box_radius=box_radius, side_chain_resolution=side_chain_resolution, epochs=epochs)
     else:
         yaml = "yaml_files/simulation.yaml"
         if consec:
@@ -334,7 +338,7 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", cu=False, seed=12345, nord=False, steps=300, factor=None,
                          total_cpus=None, xtc=False, template=None, skip=None, rotamers=None, equilibration=True,
-                         log=False, turn=None, box_radius=None, side_chain_resolution=10):
+                         log=False, turn=None, box_radius=None, side_chain_resolution=10, epochs=1):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -394,6 +398,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
         The radius of the exploration box
     side_chain_resolution: int, optional
         The resolution of the side chain sampling, the smaller the better
+    epochs: int, optional
+        The number of adaptive epochs to run
     """
     simulation = SimulationRunner(input_, dir_)
     input_ = simulation.side_function()
@@ -404,7 +410,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
     yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed, nord=nord,
                            steps=steps, single=single_mutagenesis, factor=factor, total_cpus=total_cpus, xtc=xtc,
                            template=template, skip=skip, rotamers=rotamers, equilibration=equilibration, log=log,
-                           input_pdb=input_, box_radius=box_radius, side_chain_resolution=side_chain_resolution)
+                           input_pdb=input_, box_radius=box_radius, side_chain_resolution=side_chain_resolution,
+                           epochs=epochs)
     simulation.submit(yaml)
 
 
@@ -413,14 +420,14 @@ def main():
     hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
     skip, rotamers, equilibration, log, turn, energy_thres, QM, dihedral, box_radius, mut, \
-    conservative, profile_with, wild, side_chain_resolution = parse_args()
+    conservative, profile_with, wild, side_chain_resolution, epochs = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                              radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, cu, seed, nord, steps,
                              factor, total_cpus, xtc, template, skip, rotamers, equilibration, log, turn, box_radius,
-                             side_chain_resolution)
+                             side_chain_resolution, epochs)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
@@ -428,7 +435,7 @@ def main():
                              plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
                              total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
                              energy_thres, QM, dihedral, box_radius, mut, conservative,
-                             profile_with, wild, side_chain_resolution)
+                             profile_with, wild, side_chain_resolution, epochs)
 
 
 if __name__ == "__main__":

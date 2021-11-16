@@ -116,6 +116,8 @@ def parse_args():
                         help="The path to the folder where the reports from wild type simulation are")
     parser.add_argument("-scr", "--side_chain_resolution", required=False, type=int, default=10,
                         help="Affects the side chain sampling, the smaller the more accurate")
+    parser.add_argument("-ep", "--epochs", required=False, type=int, default=1,
+                        help="the number of adaptive epochs to run")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -125,7 +127,7 @@ def parse_args():
             args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
             args.template, args.skip, args.rotamers, args.equilibration, args.log, args.cpus_per_task, args.improve,
             args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius, args.mutation,
-            args.conservative, args.profile_with, args.wild, args.side_chain_resolution]
+            args.conservative, args.profile_with, args.wild, args.side_chain_resolution, args.epochs]
 
 
 class CreateSlurmFiles:
@@ -140,7 +142,7 @@ class CreateSlurmFiles:
                  factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
                  equilibration=True, log=False, cpt=None, improve="R", turn=None, energy_thres=None, QM=None,
                  dihedral=None, box_radius=None, mut=None, conservative=None, profile_with="Binding Energy", wild=None,
-                 side_chain_resolution=10):
+                 side_chain_resolution=10, epochs=1):
         """
         Initialize the CreateLaunchFiles object
 
@@ -236,6 +238,8 @@ class CreateSlurmFiles:
             The metric to generate the pele profiles with
         side_chain_resolution: int, optional
             The resolution of the side chain sampling, the smaller the better
+        epochs: int, optional
+            The number of adaptive epochs to run
         """
 
         self.input = input_
@@ -313,6 +317,7 @@ class CreateSlurmFiles:
         self.profile_with = profile_with
         self.wild = wild
         self.resolution = side_chain_resolution
+        self.epochs = epochs
 
     def _size(self):
         """
@@ -386,6 +391,8 @@ class CreateSlurmFiles:
                 argument_list.append("--nord ")
             if self.pdb_dir != "pdb_files":
                 argument_list.append("-pd {} ".format(self.pdb_dir))
+            if self.epochs != 1:
+                argument_list.append("-ep {} ".format(self.epochs))
             if self.dir:
                 argument_list.append("--dir {} ".format(self.dir))
             if self.equilibration:
@@ -543,6 +550,8 @@ class CreateSlurmFiles:
                 argument_list.append("--thres {} ".format(self.thres))
             if self.cata_dist != 3.5:
                 argument_list.append("-cd {} ".format(self.cata_dist))
+            if self.epochs != 1:
+                argument_list.append("-ep {} ".format(self.epochs))
             if self.single and self.pluri:
                 argument_list.append("-sm {} ".format(self.single))
                 argument_list.append("-PR {} ".format(self.pluri))
@@ -582,7 +591,7 @@ def main():
     hydrogen, consec, sbatch, steps, dpi, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
     plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
     rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut, conservative, \
-    profile_with, wild, side_chain_resolution = parse_args()
+    profile_with, wild, side_chain_resolution, epochs = parse_args()
 
     if dir_ and len(input_) > 1:
         dir_ = None
@@ -592,7 +601,7 @@ def main():
                                out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
                                fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
                                equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut,
-                               conservative, profile_with, wild, side_chain_resolution)
+                               conservative, profile_with, wild, side_chain_resolution, epochs)
         if not nord:
             slurm = run.slurm_creation()
         else:
