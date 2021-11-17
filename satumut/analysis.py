@@ -14,7 +14,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from .helper import Log, commonlist, find_log
+from .helper import Log, commonlist, find_log, isiterable
 import mdtraj as md
 import numpy as np
 from collections import namedtuple
@@ -918,20 +918,21 @@ def consecutive_analysis(file_name, wild=None, dpi=800, traj=5, output="summary"
     if atoms is None:
         atoms = []
     assert len(atoms) % 2 == 0, "The number of atoms to follow should be multiple of 2"
-    if os.path.exists("{}".format(file_name)):
-        folder, wild_ = find_log(file_name)
+    if isiterable(file_name):
+        pele_folders = commonlist(file_name)
+    elif os.path.exists("{}".format(file_name)):
+        folder, wild = find_log(file_name)
         pele_folders = commonlist(folder)
     else:
-        raise Exception("Pass a list of the path to the different folders")
-    if wild:
-        wild_ = wild
+        raise Exception("Pass a file with the path to the different folders")
+
     if not plot_dir:
         plot_dir = commonprefix(pele_folders[0])
         plot_dir = list(filter(lambda x: "_mut" in x, plot_dir.split("/")))
         plot_dir = plot_dir[0].replace("_mut", "")
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        pooled_analysis(folders, wild_, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
+        pooled_analysis(folders, wild, base, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc, extract,
                         energy_thres, profile_with, atoms)
 
 
