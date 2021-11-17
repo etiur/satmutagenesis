@@ -121,7 +121,7 @@ def parse_args():
             args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
             args.skip, args.rotamers, args.equilibration, args.log, args.turn, args.energy_threshold, args.QM,
             args.dihedral_atoms, args.box_radius, args.mutation, args.conservative, args.profile_with, args.wild,
-            args.side_chain_resolution, args.epoch]
+            args.side_chain_resolution, args.epochs]
 
 
 class SimulationRunner:

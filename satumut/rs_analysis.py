@@ -19,7 +19,6 @@ from functools import partial
 plt.switch_backend('agg')
 
 
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
