@@ -402,7 +402,7 @@ class CreateSlurmFiles:
             if self.log:
                 argument_list.append("-l ")
             if self.wild:
-                argument_list.append("-w {}".format(self.wild))
+                argument_list.append("-w {} ".format(self.wild))
             if self.xtc:
                 argument_list.append("-x ")
             if self.steps != 1000:
@@ -521,7 +521,7 @@ class CreateSlurmFiles:
             if self.log:
                 argument_list.append("-l ")
             if self.wild:
-                argument_list.append("-w {}".format(self.wild))
+                argument_list.append("-w {} ".format(self.wild))
             if self.resolution:
                 argument_list.append("-scr {} ".format(self.resolution))
             if self.box_radius:
