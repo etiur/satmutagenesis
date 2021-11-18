@@ -608,8 +608,6 @@ def main():
             slurm = run.slurm_nord()
         if sbatch and not nord:
             call(["sbatch", "{}".format(slurm)])
-        if sbatch and nord:
-            call(["bsub", "<", "{}".format(slurm)])
 
 
 if __name__ == "__main__":
