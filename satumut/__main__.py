@@ -476,7 +476,7 @@ class CreateSlurmFiles:
                 lines.append("#BSUB -q debug\n")
                 lines.append("#BSUB -W 01:00\n")
             else:
-                lines.append('#BSUB -q bsc_ls')
+                lines.append('#BSUB -q bsc_ls\n')
                 lines.append("#BSUB -W 48:00\n")
 
             if self.total_cpus:
