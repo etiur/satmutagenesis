@@ -468,7 +468,7 @@ class CreateSlurmFiles:
             name = basename(self.dir)
         self.slurm = "{}.sh".format(name)
         with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#BSUB -J PELE\n", "#BSUB -oo {}.out\n".format(name),
+            lines = ["#!/bin/bash\n", "#BSUB -J {}\n".format(name), "#BSUB -oo {}.out\n".format(name),
                      "#BSUB -eo {}.err\n".format(name)]
             if self.test:
                 lines.append("#BSUB -q debug\n")
