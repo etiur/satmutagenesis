@@ -470,6 +470,8 @@ class CreateSlurmFiles:
         with open(self.slurm, "w") as slurm:
             lines = ["#!/bin/bash\n", "#BSUB -J {}\n".format(name), "#BSUB -oo {}.out\n".format(name),
                      "#BSUB -eo {}.err\n".format(name)]
+            if self.cpt:
+                lines.append("#BSUB -M {}\n".format(1800*self.cpt))
             if self.test:
                 lines.append("#BSUB -q debug\n")
                 lines.append("#BSUB -W 01:00\n")
