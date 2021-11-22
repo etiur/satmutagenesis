@@ -319,7 +319,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         yaml = "yaml_files/simulation.yaml"
         if consec:
             files = os.listdir("yaml_files")
-            files.sort(key=lambda x: int(basename(x).split("_")[1].replace(".yaml", "")))
+            files.sort(key=lambda x: int(basename(x).split("_")[1].replace(".yaml", "")) if x != "simulation.yaml" else -999999)
             yaml = "yaml_files/{}".format(files[-1])
     simulation.submit(yaml)
     dirname, original = simulation.pele_folders()
