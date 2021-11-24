@@ -193,7 +193,7 @@ class CreateYamlFiles:
             if self.consec:
                 while os.path.exists(folder):
                     count += 1
-                    folder = "{}_{}".format(folder, count)
+                    folder = "simulations_{}".format(count)
 
         return folder
 
@@ -222,7 +222,7 @@ class CreateYamlFiles:
         with open(self.yaml, "w") as inp:
             lines = ["system: '{}/*.pdb'\n".format(dirname(self.mutant_list[0])), "chain: '{}'\n".format(self.ligchain),
                      "resname: '{}'\n".format(self.ligname), "saturated_mutagenesis: true\n",
-                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps)]
+                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps), "use_peleffy: true\n"]
             if self.atoms:
                 lines.append("atom_dist:\n")
                 lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
