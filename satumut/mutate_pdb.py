@@ -170,12 +170,11 @@ class Mutagenesis:
                     self.folder = "{}_{}_{}".format(self.folder, num+1, "round_{}".format(self.turn))
 
         if self.consec and not self.multiple:
+            count = 1
             self.folder = "next_round_1"
-            if os.path.exists("{}".format(self.folder)):
-                files = list(filter(lambda x: "next_round" in x, os.listdir(".")))
-                files.sort(key=lambda x: int(x.split("_")[-1]))
-                num = int(files[-1].split("_")[-1])
-                self.folder = "next_round_{}".format(num+1)
+            while os.path.exists("{}".format(self.folder)):
+                count += 1
+                self.folder = "next_round_{}".format(count)
         elif self.consec and self.multiple:
             files = list(filter(lambda x: "next_round" in x, os.listdir(".")))
             files.sort(key=lambda x: int(x.split("_")[-1]))
