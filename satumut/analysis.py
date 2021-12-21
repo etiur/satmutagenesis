@@ -357,10 +357,10 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
 
     ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
                      palette="Set2", data=cat, linewidth=0, style_order=cat["Type"].unique(),
-                     hue_order=cat["Type"].unique(), height=4, aspect=2)
+                     hue_order=cat["Type"].unique(), height=3.8, aspect=1.8)
     ex = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(40, 400), size="residence time",
                      palette="Set2", data=cat_1, linewidth=0, style_order=cat["Type"].unique(),
-                     hue_order=cat["Type"].unique(), height=4, aspect=2)
+                     hue_order=cat["Type"].unique(), height=3.8, aspect=1.8)
     ax.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
     ex.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
     ax.savefig(
@@ -842,11 +842,11 @@ def complete_analysis(follow, folders, wild, base, dpi=800, traj=5, output="summ
         Series of atoms of the residues to follow in this format -> chain ID:position:atom name, multiple of 2
     """
     data_dict = analyse_all(folders, wild, traj, cata_dist, energy_thres, extract=extract, follow=follow)
-    bins = binning(data_dict, plot_dir, base, dpi=800, follow=follow)
+    # bins = binning(data_dict, plot_dir, base, dpi=800, follow=follow)
     all_profiles(plot_dir, data_dict, base, dpi, profile_with=profile_with, follow=follow)
     extract_all(plot_dir, data_dict, folders, xtc=xtc, follow=follow)
-    find_top_mutations(plot_dir, bins, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
-                       energy_thres=energy_thres, profile_with=profile_with, follow=follow)
+    # find_top_mutations(plot_dir, bins, base, output, analysis=opt, thres=thres, cata_dist=cata_dist,
+    #                   energy_thres=energy_thres, profile_with=profile_with, follow=follow)
     return data_dict
 
 
