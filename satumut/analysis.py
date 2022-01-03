@@ -355,10 +355,10 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, dpi=8
     if not os.path.exists("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_)):
         os.makedirs("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_))
 
-    ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(1, 100), size="residence time",
+    ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(10, 100), size="residence time",
                      palette="Set2", data=cat, linewidth=0, style_order=cat["Type"].unique(),
                      hue_order=cat["Type"].unique(), height=3.5, aspect=1.5)
-    ex = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(1, 100), size="residence time",
+    ex = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(10, 100), size="residence time",
                      palette="Set2", data=cat_1, linewidth=0, style_order=cat["Type"].unique(),
                      hue_order=cat["Type"].unique(), height=3.5, aspect=1.5)
     ax.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
