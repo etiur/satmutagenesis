@@ -356,8 +356,6 @@ class CreateSlurmFiles:
             lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
 
             lines2 = ['module purge\n',
-                      'export PELE="/gpfs/projects/bsc72/PELE++/mniv/V1.6.2-b1/"\n',
-                      'export SCHRODINGER="/gpfs/projects/bsc72/SCHRODINGER_ACADEMIC"\n',
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0 ANACONDA/2019.10\n',
                       'eval "$(conda shell.bash hook)"\n',
                       "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.1\n\n"]
