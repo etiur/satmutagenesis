@@ -100,6 +100,9 @@ class Mutagenesis:
         self.log = Log("mutate_errors")
         self.single = single
         self.turn = turn
+        self.__check_all_and_return_residues(mut, conservative)
+
+    def __check_all_and_return_residues(self, mut, conservative):
         self._check_folders()
         self._check_coords()
         self.aa_init_resname = self.model.residues[self.position].resname
@@ -109,32 +112,9 @@ class Mutagenesis:
         elif mut and not conservative:
             self.residues = mut
         elif conservative and not mut:
-            self.residues = self.mutation_library(conservative)
+            self.residues = self._mutation_library(conservative)
 
-    def mutate(self, residue, new_aa, bbdep, hydrogens=True):
-        """
-        Mutate the wild type residue to a new residue
-
-        Parameters
-        ___________
-        residue: pmx object
-            The residue has to be a pmx object
-        new_aa: str
-            A 3 letter or 1 letter code to represent the new residue
-        bbdep:
-            A database that can be interpreted by pmx
-        hydrogens: bool, optional
-            A boolean, leave it to True because False cause problems with cysteine
-        """
-        if len(new_aa) == 1:
-            new_aa = _aacids_ext_amber[new_aa]
-        phi = residue.get_phi()
-        psi = residue.get_psi()
-        rotamers = get_rotamers(bbdep, new_aa, phi, psi, residue=residue, full=True, hydrogens=hydrogens)
-        new_r = select_best_rotamer(self.model, rotamers)
-        self.model.replace_residue(residue, new_r)
-    
-    def mutation_library(self, library=1):
+    def _mutation_library(self, library=1):
         """
         Determines how conservative should be the mutations
 
@@ -202,6 +182,29 @@ class Mutagenesis:
             finally:
                 if os.path.exists("{}/original.pdb".format(self.folder)):
                     os.remove("{}/original.pdb".format(self.folder))
+
+    def mutate(self, residue, new_aa, bbdep, hydrogens=True):
+        """
+        Mutate the wild type residue to a new residue
+
+        Parameters
+        ___________
+        residue: pmx object
+            The residue has to be a pmx object
+        new_aa: str
+            A 3 letter or 1 letter code to represent the new residue
+        bbdep:
+            A database that can be interpreted by pmx
+        hydrogens: bool, optional
+            A boolean, leave it to True because False cause problems with cysteine
+        """
+        if len(new_aa) == 1:
+            new_aa = _aacids_ext_amber[new_aa]
+        phi = residue.get_phi()
+        psi = residue.get_psi()
+        rotamers = get_rotamers(bbdep, new_aa, phi, psi, residue=residue, full=True, hydrogens=hydrogens)
+        new_r = select_best_rotamer(self.model, rotamers)
+        self.model.replace_residue(residue, new_r)
 
     def saturated_mutagenesis(self, hydrogens=True):
         """
