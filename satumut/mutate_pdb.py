@@ -100,6 +100,7 @@ class Mutagenesis:
         self.log = Log("mutate_errors")
         self.single = single
         self.turn = turn
+        self._check_folders()
         self._check_coords()
         self.aa_init_resname = self.model.residues[self.position].resname
         if not mut and not conservative:
@@ -144,7 +145,7 @@ class Mutagenesis:
         """
         aa = self._invert_aa[self.aa_init_resname]
         matrix = mat.blosum62
-        matrix = {k:v for k,v in matrix.items() if "X" not in k and "B" not in k and "Z" not in k}
+        matrix = {k: v for k, v in matrix.items() if "X" not in k and "B" not in k and "Z" not in k}
         blosum = [key for key in matrix.keys() if aa in key and key.count(aa) < 2 and "P" not in key]
         value = [matrix[x] for x in blosum]
         new_dict = dict(zip([_aacids_ext_amber[x[1]] if x[0] == aa else _aacids_ext_amber[x[0]] for x in blosum], value))
@@ -155,9 +156,9 @@ class Mutagenesis:
 
         return reduced_dict.keys()
 
-    def _check_coords(self):
+    def _check_folders(self):
         """
-        map the user coordinates with pmx coordinates
+        Check the presence of different folders
         """
         if self.turn and self.single:
             if not os.path.exists("{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))):
@@ -182,6 +183,11 @@ class Mutagenesis:
 
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
+
+    def _check_coords(self):
+        """
+        map the user coordinates with pmx coordinates
+        """
         if not os.path.exists("{}/original.pdb".format(self.folder)):
             self.model.write("{}/original.pdb".format(self.folder))
             self.final_pdbs.append("{}/original.pdb".format(self.folder))
@@ -378,7 +384,7 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
             final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
             pdbs.extend(final_pdbs)
             run.accelerated_insert()
-            count += 1
+        count += 1
         # Mutate in a second position for each of the 20 single mutations
         if multiple and not single and count == 1:
             for files in final_pdbs:
