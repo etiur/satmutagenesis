@@ -3,7 +3,7 @@ This script contains helper functions
 """
 import Bio.PDB
 import logging
-from os.path import basename
+from os.path import basename, dirname
 import itertools
 
 
@@ -70,6 +70,17 @@ def map_atom_string(atom_string, initial_pdb, prep_pdb):
                 break
 
     return after
+
+
+def match_dist(dihedral_atoms, input_pdb, wild):
+    """
+    match the user coordinates to pmx PDB coordinates
+    """
+    topology = "{}/input/{}_processed.pdb".format(dirname(dirname(wild)), basename(wild))
+    atom = dihedral_atoms[:]
+    for i in range(len(atom)):
+        atom[i] = map_atom_string(atom[i], input_pdb, topology)
+    return atom
 
 
 def isiterable(p_object):
