@@ -6,16 +6,15 @@ from glob import glob
 import pandas as pd
 import seaborn as sns
 import argparse
-from os.path import basename, dirname, commonprefix
+from os.path import basename, dirname
 import os
 import sys
 import re
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from functools import partial
-from .helper import commonlist, find_log, isiterable
+from .helper import match_dist, check_completed_log
 import mdtraj as md
-import numpy as np
 plt.switch_backend('agg')
 
 
@@ -24,6 +23,8 @@ def parse_args():
     # main required arguments
     parser.add_argument("--inp", required=True,
                         help="Include the path of the completed_simulations.log created after satumut")
+    parser.add_argument("-ip", "--initial_pdb", required=True,
+                        help="Include the path of input pdb of the simulation")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
     parser.add_argument("--traj", required=False, default=5, type=int,
@@ -45,8 +46,8 @@ def parse_args():
                         help="The path to the folder where the reports from wild type simulation are")
     args = parser.parse_args()
 
-    return [args.inp, args.dpi, args.traj, args.plot, args.cpus, args.catalytic_distance,
-            args.xtc, args.extract, args.energy_threshold, args.profile_with, args.atoms,  args.wild]
+    return [args.inp, args.dpi, args.traj, args.plot, args.cpus, args.catalytic_distance, args.xtc, args.extract,
+            args.energy_threshold, args.profile_with, args.atoms,  args.wild, args.initial_pdb]
 
 
 class SimulationData:
@@ -90,7 +91,6 @@ class SimulationData:
         self.residence = None
         self.weight_dist = None
         self.weight_bind = None
-        self.all = None
         self.followed_distance = "distance0.5"
 
     def filtering(self, followed_distance=None):
@@ -133,11 +133,6 @@ class SimulationData:
             self.profile = frequency.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         # for the PELE profiles
         self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
-        frequency["Type"] = [self.name for _ in range(len(frequency.index))]
-        # binning
-        self.all = pd.DataFrame(np.repeat(frequency[[self.followed_distance, "Binding Energy", "residence time", "Type"]].values,
-                                          frequency["residence time"].values, axis=0),
-                                columns=[self.followed_distance, "Binding Energy", "residence time", "Type"])
 
 
 def analyse_all(folders, wild, follow, traj=5, cata_dist=3.5, energy_thres=None, extract=None):
@@ -492,7 +487,6 @@ def complete_analysis(follow, folders, wild, base, dpi=800, traj=5, plot_dir=Non
 
 def pooled_analysis(folders, wild, base, atoms, dpi=800, traj=5, plot_dir=None, cpus=10, cata_dist=3.5, xtc=False,
                     extract=None, energy_thres=None, profile_with="Binding Energy"):
-
     p = mp.Pool(cpus)
     func = partial(complete_analysis, folders=folders, wild=wild, base=base, dpi=dpi, traj=traj, plot_dir=plot_dir,
                    cata_dist=cata_dist, xtc=xtc, extract=extract, energy_thres=energy_thres, profile_with=profile_with)
@@ -507,14 +501,14 @@ def pooled_analysis(folders, wild, base, atoms, dpi=800, traj=5, plot_dir=None, 
         value.dataframe.to_csv("{}_results/csv/{}/{}.csv".format(plot_dir, base, key), header=True)
 
 
-def consecutive_analysis(file_name, atoms, wild=None, dpi=800, traj=5, plot_dir=None, cpus=10, cata_dist=3.5,
+def consecutive_analysis(file_name, atoms, initial_input, wild=None, dpi=800, traj=5, plot_dir=None, cpus=10, cata_dist=3.5,
                          xtc=False, extract=None, energy_thres=None, profile_with="Binding Energy"):
     """
     Analysis for the different positions
 
     Parameters
     ___________
-    file_name : list[str], str
+    file_name : str
         An iterable that contains the path to the reports of the different simulations or the path to the directory
         where the simulations are
     wild: str, optional
@@ -543,20 +537,8 @@ def consecutive_analysis(file_name, atoms, wild=None, dpi=800, traj=5, plot_dir=
         Series of atoms of the residues to follow in this format -> chain ID:position:atom name, multiple of 2
     """
     assert len(atoms) % 2 == 0, "The number of atoms to follow should be multiple of 2"
-    if isiterable(file_name):
-        pele_folders = commonlist(file_name)
-    elif os.path.exists("{}".format(file_name)):
-        folder, original = find_log(file_name)
-        if original:
-            wild = original
-        pele_folders = commonlist(folder)
-    else:
-        raise Exception("Pass a file with the path to the different folders")
-
-    if not plot_dir:
-        plot_dir = commonprefix(pele_folders[0])
-        plot_dir = list(filter(lambda x: "_mut" in x, plot_dir.split("/")))
-        plot_dir = plot_dir[0].replace("_mut", "")
+    atoms = match_dist(atoms, initial_input, wild)
+    pele_folders, plot_dir, wild = check_completed_log(file_name, wild, plot_dir)
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
         pooled_analysis(folders, atoms, wild, base, dpi, traj, plot_dir, cpus, cata_dist, xtc, extract,
@@ -564,9 +546,9 @@ def consecutive_analysis(file_name, atoms, wild=None, dpi=800, traj=5, plot_dir=
 
 
 def main():
-    inp, dpi, traj, folder, cpus, cata_dist, xtc, extract, energy_thres, profile_with, atoms, wild = parse_args()
-    consecutive_analysis(inp, atoms, wild, dpi=dpi, traj=traj, plot_dir=folder, cpus=cpus, cata_dist=cata_dist, xtc=xtc,
-                         extract=extract, energy_thres=energy_thres, profile_with=profile_with)
+    inp, dpi, traj, folder, cpus, cata_dist, xtc, extract, energy_thres, profile_with, atoms, wild, initial = parse_args()
+    consecutive_analysis(inp, atoms, initial, wild, dpi=dpi, traj=traj, plot_dir=folder, cpus=cpus, cata_dist=cata_dist,
+                         xtc=xtc, extract=extract, energy_thres=energy_thres, profile_with=profile_with)
 
 
 if __name__ == "__main__":

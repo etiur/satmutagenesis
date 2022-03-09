@@ -311,7 +311,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     dirname, original = simulation.pele_folders(wild)
     if dir_ and not plot_dir:
         plot_dir = dir_
-    consecutive_analysis(dirname, atoms, original, dpi, traj, plot_dir, cpus, cata_dist, xtc,
+    consecutive_analysis(dirname, atoms, input_, original, dpi, traj, plot_dir, cpus, cata_dist, xtc,
                          energy_thres=energy_threshold, profile_with=profile_with)
     if dihedral:
         consecutive_analysis_rs(dirname, dihedral, input_, original, dpi, traj,  plot_dir,  cpus,

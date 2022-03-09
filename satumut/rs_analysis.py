@@ -5,12 +5,12 @@ from glob import glob
 import numpy as np
 import pandas as pd
 import argparse
-from os.path import basename, dirname, commonprefix
+from os.path import basename, dirname
 import os
 import sys
 import re
 import matplotlib.pyplot as plt
-from .helper import commonlist, find_log, match_dist
+from .helper import match_dist, check_completed_log
 from .analysis import all_profiles
 import mdtraj as md
 import Bio.PDB
@@ -498,8 +498,6 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
        how many top pdbs are extracted from the trajectories
     plot_dir : str
        Name for the results folder
-    opt : str, optional
-       choose if to analyse distance, energy or both
     cpus : int, optional
        How many cpus to use to extract the top pdbs
     cata_dist: float, optional
@@ -513,21 +511,10 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
     profile_with: str, optional
         The metric to generate the pele profiles with
     """
-    if os.path.exists("{}".format(file_name)):
-        folder, wild_ = find_log(file_name)
-        pele_folders = commonlist(folder)
-    else:
-        raise Exception("Pass a list of the path to the different folders")
-    if wild:
-        wild_ = wild
-    if not plot_dir:
-        plot_dir = commonprefix(pele_folders[0])
-        plot_dir = list(filter(lambda x: "_mut" in x, plot_dir.split("/")))
-        plot_dir = plot_dir[0].replace("_mut", "")
+    pele_folders, plot_dir, wild = check_completed_log(file_name, wild, plot_dir)
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        data_dict = analyse_rs(folders, wild_, dihedral_atoms, initial_pdb, plot_dir, traj, cata_dist, extract,
-                               energy, cpus)
+        data_dict = analyse_rs(folders, wild, dihedral_atoms, initial_pdb, plot_dir, traj, cata_dist, extract, energy, cpus)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS", profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus, xtc=xtc)
 

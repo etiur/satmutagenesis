@@ -3,8 +3,9 @@ This script contains helper functions
 """
 import Bio.PDB
 import logging
-from os.path import basename, dirname
+from os.path import basename, dirname, commonprefix
 import itertools
+import os
 
 
 def map_atom_string(atom_string, initial_pdb, prep_pdb):
@@ -282,13 +283,13 @@ def find_log(folder_name, wild=None):
 
     Returns
     -------
-    original: str
-        Path to the wild type
     folder: list[str]
         A list of the path to the different mutants
+    original: str
+        Path to the wild type
     """
-    original = None
     folder = []
+    original = wild
     with open("{}/simulations/completed_mutations.log".format(folder_name)) as log:
         for paths in log:
             dir_ = paths.split()
@@ -296,8 +297,7 @@ def find_log(folder_name, wild=None):
                 original = "{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4])
             else:
                 folder.append("{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4]))
-    if wild:
-        original = wild
+
     return folder, original
 
 
@@ -323,3 +323,17 @@ def weighted_median(df, val, weight):
     cumsum = df_sorted[weight].cumsum()
     cutoff = df_sorted[weight].sum() / 2.
     return df_sorted[cumsum >= cutoff][val].iloc[0]
+
+
+def check_completed_log(file_name, wild, plot_dir):
+    if os.path.exists("{}".format(file_name)):
+        folder, wild = find_log(file_name, wild)
+        pele_folders = commonlist(folder)
+    else:
+        raise Exception("Pass a file with the path to the different folders")
+    if not plot_dir:
+        plot_dir = commonprefix(pele_folders[0])
+        plot_dir = list(filter(lambda x: "_mut" in x, plot_dir.split("/")))
+        plot_dir = plot_dir[0].replace("_mut", "")
+
+    return pele_folders, plot_dir, wild
