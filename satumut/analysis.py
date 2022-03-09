@@ -536,12 +536,13 @@ def consecutive_analysis(file_name, atoms, initial_input, wild=None, dpi=800, tr
     atoms: list[str]
         Series of atoms of the residues to follow in this format -> chain ID:position:atom name, multiple of 2
     """
+    pele_folders, plot_dir, wild = check_completed_log(file_name, wild, plot_dir)
     assert len(atoms) % 2 == 0, "The number of atoms to follow should be multiple of 2"
     atoms = match_dist(atoms, initial_input, wild)
-    pele_folders, plot_dir, wild = check_completed_log(file_name, wild, plot_dir)
+    distances = ["distance_{}_{}".format("".join(atoms[i].split(":")), "".join(atoms[i+1].split(":"))) for i in range(len(atoms)-1)]
     for folders in pele_folders:
         base = basename(folders[0])[:-1]
-        pooled_analysis(folders, atoms, wild, base, dpi, traj, plot_dir, cpus, cata_dist, xtc, extract,
+        pooled_analysis(folders, wild, base, distances, dpi, traj, plot_dir, cpus, cata_dist, xtc, extract,
                         energy_thres, profile_with)
 
 
