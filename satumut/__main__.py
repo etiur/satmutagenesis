@@ -58,14 +58,8 @@ def parse_args():
                         help="Set the quality of the plots")
     parser.add_argument("-tr", "--trajectory", required=False, default=5, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
-    parser.add_argument("--out", required=False, default="summary",
-                        help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--plot", required=False,
                         help="Path of the plots folder")
-    parser.add_argument("-an", "--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
-                        help="The metric to measure the improvement of the system")
-    parser.add_argument("--thres", required=False, default=0.0, type=float,
-                        help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-sm", "--single_mutagenesis", required=False,
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
@@ -122,12 +116,12 @@ def parse_args():
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
-            args.consec, args.sbatch, args.steps, args.dpi, args.trajectory, args.out, args.plot,
-            args.analyse, args.thres, args.single_mutagenesis, args.plurizyme_at_and_res, args.radius,
-            args.fixed_resids, args.polarization_factor, args.total_cpus, args.xtc, args.catalytic_distance,
-            args.template, args.skip, args.rotamers, args.equilibration, args.log, args.cpus_per_task, args.improve,
-            args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius, args.mutation,
-            args.conservative, args.profile_with, args.wild, args.side_chain_resolution, args.epochs]
+            args.consec, args.sbatch, args.steps, args.dpi, args.trajectory, args.plot, args.single_mutagenesis,
+            args.plurizyme_at_and_res, args.radius, args.fixed_resids, args.polarization_factor, args.total_cpus,
+            args.xtc, args.catalytic_distance, args.template, args.skip, args.rotamers, args.equilibration, args.log,
+            args.cpus_per_task, args.improve, args.turn, args.energy_threshold, args.QM, args.dihedral_atoms,
+            args.box_radius, args.mutation, args.conservative, args.profile_with, args.wild, args.side_chain_resolution,
+            args.epochs]
 
 
 class CreateSlurmFiles:
@@ -137,12 +131,11 @@ class CreateSlurmFiles:
 
     def __init__(self, input_, ligchain, ligname, atoms, position=(), cpus_mutant=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
-                 steps=1000, dpi=800, traj=5, output="summary", plot_dir=None, opt="distance", thres=0.0,
-                 single_mutagenesis=None, plurizyme_at_and_res=None, radius=5.0, fixed_resids=(),
-                 factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None, skip=None, rotamers=None,
-                 equilibration=True, log=False, cpt=None, improve="R", turn=None, energy_thres=None, QM=None,
-                 dihedral=None, box_radius=None, mut=None, conservative=None, profile_with="Binding Energy", wild=None,
-                 side_chain_resolution=10, epochs=1):
+                 steps=1000, dpi=800, traj=5, plot_dir=None,  single_mutagenesis=None, plurizyme_at_and_res=None,
+                 radius=5.0, fixed_resids=(), factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None,
+                 skip=None, rotamers=None, equilibration=True, log=False, cpt=None, improve="R", turn=None,
+                 energy_thres=None, QM=None, dihedral=None, box_radius=None, mut=None, conservative=None,
+                 profile_with="Binding Energy", wild=None, side_chain_resolution=10, epochs=1):
         """
         Initialize the CreateLaunchFiles object
 
@@ -184,14 +177,8 @@ class CreateSlurmFiles:
             The quality of the plots
         traj : int, optional
             how many top pdbs are extracted from the trajectories
-        output : str, optional
-            name of the output file for the pdfs
         plot_dir : str
             Name for the results folder
-        opt : str, optional
-            choose if to analyse distance, energy or both
-        thres : float, optional
-            The threshold for the mutations to be included in the pdf
         single_mutagenesis: str
             The new residue to mutate the positions to, in 3 letter or 1 letter code
         plurizyme_at_and_res: str
@@ -273,10 +260,7 @@ class CreateSlurmFiles:
         self.steps = steps
         self.dpi = dpi
         self.traj = traj
-        self.output = output
         self.plot_dir = plot_dir
-        self.opt = opt
-        self.thres = thres
         self.single = single_mutagenesis
         self.pluri = plurizyme_at_and_res
         self.radius = radius
@@ -409,16 +393,10 @@ class CreateSlurmFiles:
                 argument_list.append("--dpi {} ".format(self.dpi))
             if self.traj != 5:
                 argument_list.append("-tr {} ".format(self.traj))
-            if self.output != "summary":
-                argument_list.append("--out {} ".format(self.output))
             if self.plot_dir:
                 argument_list.append("--plot {} ".format(self.plot_dir))
             if self.resolution:
                 argument_list.append("-scr {} ".format(self.resolution))
-            if self.opt != "distance":
-                argument_list.append("-an {} ".format(self.opt))
-            if self.thres != 0.0:
-                argument_list.append("--thres {} ".format(self.thres))
             if self.cata_dist != 3.5:
                 argument_list.append("-cd {} ".format(self.cata_dist))
             if self.single and self.pluri:
@@ -540,14 +518,8 @@ class CreateSlurmFiles:
                 argument_list.append("--dpi {} ".format(self.dpi))
             if self.traj != 5:
                 argument_list.append("-tr {} ".format(self.traj))
-            if self.output != "summary":
-                argument_list.append("--out {} ".format(self.output))
             if self.plot_dir:
                 argument_list.append("--plot {} ".format(self.plot_dir))
-            if self.opt != "distance":
-                argument_list.append("-an {} ".format(self.opt))
-            if self.thres != 0.0:
-                argument_list.append("--thres {} ".format(self.thres))
             if self.cata_dist != 3.5:
                 argument_list.append("-cd {} ".format(self.cata_dist))
             if self.epochs != 1:
@@ -587,21 +559,19 @@ class CreateSlurmFiles:
 
 
 def main():
-    input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, sbatch, steps, dpi, traj, out, plot_dir, analysis, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, \
-    rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut, conservative, \
-    profile_with, wild, side_chain_resolution, epochs = parse_args()
+    input_, position, ligchain, ligname, atoms, cpus, test, cu, multiple, seed, dir_, nord, pdb_dir, hydrogen, consec, \
+    sbatch, steps, dpi, traj, plot_dir, single_mutagenesis, plurizyme_at_and_res, radius, fixed_resids, factor, \
+    total_cpus, xtc, cata_dist, template, skip, rotamers, equilibration, log, cpt, improve,  turn, energy_thres, QM, \
+    dihedral, box_radius, mut, conservative, profile_with, wild, side_chain_resolution, epochs = parse_args()
 
     if dir_ and len(input_) > 1:
         dir_ = None
     for inp in input_:
-        run = CreateSlurmFiles(inp, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
-                               multiple, pdb_dir, consec, test, cu, seed, nord, steps, dpi, traj,
-                               out, plot_dir, analysis, thres, single_mutagenesis, plurizyme_at_and_res, radius,
-                               fixed_resids, factor, total_cpus, xtc, cata_dist, template, skip, rotamers,
-                               equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral, box_radius, mut,
-                               conservative, profile_with, wild, side_chain_resolution, epochs)
+        run = CreateSlurmFiles(inp, ligchain, ligname, atoms, position, cpus, dir_, hydrogen, multiple, pdb_dir, consec,
+                               test, cu, seed, nord, steps, dpi, traj, plot_dir, single_mutagenesis,
+                               plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template,
+                               skip, rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral,
+                               box_radius, mut, conservative, profile_with, wild, side_chain_resolution, epochs)
         if not nord:
             slurm = run.slurm_creation()
         else:
