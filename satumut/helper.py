@@ -259,13 +259,15 @@ class Log:
         self._logger.critical(messages, exc_info=exc_info)
 
 
-def find_log(folder_name):
+def find_log(folder_name, wild=None):
     """
     Find the completed log file and gets the path of the different mutations
     Parameters
     ----------
     folder_name: str
         The name of the folder where the simulations are
+    wild: str
+        The path to the wildtype simulation
 
     Returns
     -------
@@ -283,7 +285,8 @@ def find_log(folder_name):
                 original = "{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4])
             else:
                 folder.append("{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4]))
-
+    if wild:
+        original = wild
     return folder, original
 
 

@@ -171,7 +171,7 @@ class SimulationRunner:
 
         return self.input
 
-    def pele_folders(self):
+    def pele_folders(self, wild=None):
         """
         Creates a file with the names of the different folders where the pele simulations are contained
         """
@@ -181,7 +181,7 @@ class SimulationRunner:
         else:
             base = self.dir.replace(".pdb", "").replace("_mut", "")
 
-        folder, original = find_log("{}_mut".format(base))
+        folder, original = find_log("{}_mut".format(base), wild)
         return folder, original
 
     def submit(self, yaml):
@@ -249,14 +249,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
        The quality of the plots
     traj : int, optional
        how many top pdbs are extracted from the trajectories
-    output : str, optional
-       name of the output file for the pdfs
     plot_dir : str
        Name for the results folder
-    opt : str, optional
-       choose if to analyse distance, energy or both
-    thres : float, optional
-       The threshold for the mutations to be included in the pdf
     factor: int, optional
         The number to divide the metal charges
     plurizyme_at_and_res: str
@@ -322,13 +316,11 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
             files.sort(key=lambda x: int(basename(x).split("_")[1].replace(".yaml", "")) if x != "simulation.yaml" else -999999)
             yaml = "yaml_files/{}".format(files[-1])
     simulation.submit(yaml)
-    dirname, original = simulation.pele_folders()
+    dirname, original = simulation.pele_folders(wild)
     if dir_ and not plot_dir:
         plot_dir = dir_
-    if wild:
-        original = wild
-    consecutive_analysis(dirname, original, dpi, traj, output, plot_dir, opt, cpus, thres, cata_dist, xtc,
-                         energy_thres=energy_threshold, profile_with=profile_with, atoms=atoms)
+    consecutive_analysis(dirname, atoms, original, dpi, traj, plot_dir, cpus, cata_dist, xtc,
+                         energy_thres=energy_threshold, profile_with=profile_with)
     if dihedral:
         consecutive_analysis_rs(dirname, dihedral, input_, original, dpi, traj,  plot_dir,  cpus,
                                 thres, cata_dist, xtc, energy=energy_threshold, profile_with=profile_with)
