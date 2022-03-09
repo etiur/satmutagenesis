@@ -21,8 +21,8 @@ plt.switch_backend('agg')
 def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
-    parser.add_argument("--inp", required=True,
-                        help="Include the path of the completed_simulations.log created after satumut")
+    parser.add_argument("-f", "--simulation_folder", required=True,
+                        help="Include the path to the folder created during the simulation")
     parser.add_argument("-ip", "--initial_pdb", required=True,
                         help="Include the path of input pdb of the simulation")
     parser.add_argument("--dpi", required=False, default=800, type=int,
@@ -46,7 +46,7 @@ def parse_args():
                         help="The path to the folder where the reports from wild type simulation are")
     args = parser.parse_args()
 
-    return [args.inp, args.dpi, args.traj, args.plot, args.cpus, args.catalytic_distance, args.xtc, args.extract,
+    return [args.simulation_folder, args.dpi, args.traj, args.plot, args.cpus, args.catalytic_distance, args.xtc, args.extract,
             args.energy_threshold, args.profile_with, args.atoms,  args.wild, args.initial_pdb]
 
 
@@ -547,9 +547,11 @@ def consecutive_analysis(file_name, atoms, initial_input, wild=None, dpi=800, tr
 
 
 def main():
-    inp, dpi, traj, folder, cpus, cata_dist, xtc, extract, energy_thres, profile_with, atoms, wild, initial = parse_args()
-    consecutive_analysis(inp, atoms, initial, wild, dpi=dpi, traj=traj, plot_dir=folder, cpus=cpus, cata_dist=cata_dist,
-                         xtc=xtc, extract=extract, energy_thres=energy_thres, profile_with=profile_with)
+    simulation_folder, dpi, traj, folder, cpus, cata_dist, xtc, extract, energy_thres, profile_with, atoms, wild, \
+    initial = parse_args()
+    consecutive_analysis(simulation_folder, atoms, initial, wild, dpi=dpi, traj=traj, plot_dir=folder, cpus=cpus,
+                         cata_dist=cata_dist, xtc=xtc, extract=extract, energy_thres=energy_thres,
+                         profile_with=profile_with)
 
 
 if __name__ == "__main__":

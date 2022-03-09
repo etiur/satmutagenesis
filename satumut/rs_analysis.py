@@ -22,8 +22,8 @@ plt.switch_backend('agg')
 def parse_args():
     parser = argparse.ArgumentParser(description="Analyse the different PELE simulations and create plots")
     # main required arguments
-    parser.add_argument("--inp", required=True,
-                        help="Include the path of the completed_simulations.log created after satumut")
+    parser.add_argument("-f", "--simulation_folder", required=True,
+                        help="Include the path to the folder created during the simulation")
     parser.add_argument("-ip", "--initial_pdb", required=True,
                         help="Include the path of input pdb of the simulation")
     parser.add_argument("--dpi", required=False, default=800, type=int,
@@ -47,7 +47,7 @@ def parse_args():
                         help="The path to the folder where the reports from wild type simulation are")
     args = parser.parse_args()
 
-    return [args.inp, args.dpi, args.traj, args.plot, args.cpus,
+    return [args.simulation_folder, args.dpi, args.traj, args.plot, args.cpus,
             args.catalytic_distance, args.xtc, args.extract, args.dihedral_atoms, args.energy_threshold,
             args.initial_pdb, args.profile_with, args.wild]
 
@@ -520,11 +520,11 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
 
 
 def main():
-    inp, dpi, traj, folder, cpus, cata_dist, xtc,  extract, dihedral_atoms, energy, initial_pdb, profile_with, \
-    wild = parse_args()
-    consecutive_analysis_rs(inp, dihedral_atoms, initial_pdb, wild, dpi=dpi, traj=traj, plot_dir=folder,
-                            cpus=cpus, cata_dist=cata_dist, xtc=xtc, extract=extract,
-                            energy=energy, profile_with=profile_with)
+    simulation_folder, dpi, traj, folder, cpus, cata_dist, xtc,  extract, dihedral_atoms, energy, initial_pdb, \
+    profile_with, wild = parse_args()
+    consecutive_analysis_rs(simulation_folder, dihedral_atoms, initial_pdb, wild, dpi=dpi, traj=traj, plot_dir=folder,
+                            cpus=cpus, cata_dist=cata_dist, xtc=xtc, extract=extract, energy=energy,
+                            profile_with=profile_with)
 
 
 if __name__ == "__main__":
