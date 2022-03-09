@@ -138,7 +138,10 @@ class SimulationRunner:
 
         self.input = input_
         self.proc = None
-        self.dir = dir_
+        if not dir_:
+            self.base = self.input.replace(".pdb", "")
+        else:
+            self.base = dir_.replace(".pdb", "").replace("_mut", "")
         self.log = Log("simulation_time")
         self.turn = turn
 
@@ -152,15 +155,11 @@ class SimulationRunner:
             The new path of the input
         """
         self.input = abspath(self.input)
-        if not self.dir:
-            base = self.input.replace(".pdb", "")
-        else:
-            base = self.dir.replace(".pdb", "").replace("_mut", "")
-        if not os.path.exists("{}_mut".format(base)):
-            os.makedirs("{}_mut".format(base))
+        if not os.path.exists("{}_mut".format(self.base)):
+            os.makedirs("{}_mut".format(self.base))
         if self.turn:
-            shutil.copy(self.input, "{}_mut".format(base))
-        os.chdir("{}_mut".format(base))
+            shutil.copy(self.input, "{}_mut".format(self.base))
+        os.chdir("{}_mut".format(self.base))
 
         return self.input
 
@@ -169,12 +168,7 @@ class SimulationRunner:
         Creates a file with the names of the different folders where the pele simulations are contained
         """
         os.chdir("../")
-        if not self.dir:
-            base = self.input.replace(".pdb", "")
-        else:
-            base = self.dir.replace(".pdb", "").replace("_mut", "")
-
-        folder, original = find_log("{}_mut".format(base), wild)
+        folder, original = find_log("{}_mut".format(self.base), wild)
         return folder, original
 
     def restart_yaml(self, consec=False):
@@ -229,7 +223,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     cpus: int, optional
         how many cpus do you want to use
     dir_: str, optional
-        Name of the folder ofr the simulations
+        Name of the folder for the simulations
     hydrogens: bool, optional
         Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
     multiple: bool, optional
@@ -284,7 +278,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         The path to the QM charges
     dihedral: list[str]
         The 4 atoms that form the dihedral in format chain ID:position:atom name
-    adaptive_restart: bool, optional
+    restart: bool, optional
         Placing the adaptive restart flag
     box_radius: int, optional
         The radius of the exploration box
