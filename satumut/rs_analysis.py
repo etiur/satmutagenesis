@@ -10,7 +10,7 @@ import os
 import sys
 import re
 import matplotlib.pyplot as plt
-from .helper import commonlist, find_log, map_atom_string
+from .helper import commonlist, find_log, match_dist
 from .analysis import all_profiles
 import mdtraj as md
 import Bio.PDB
@@ -24,7 +24,7 @@ def parse_args():
     # main required arguments
     parser.add_argument("--inp", required=True,
                         help="Include the path of the completed_simulations.log created after satumut")
-    parser.add_argument("-ip","--initial_pdb", required=True,
+    parser.add_argument("-ip", "--initial_pdb", required=True,
                         help="Include the path of input pdb of the simulation")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
@@ -239,19 +239,6 @@ class SimulationRS:
                 type_.append("noise")
         self.profile["Type"] = type_
 
-        # for the binning
-        type_2 = []
-        for x in frequency["dihedral"].values:
-            if -40 >= x >= -140:
-                type_2.append("R_{}".format(self.name))
-            elif 40 <= x <= 140:
-                type_2.append("S_{}".format(self.name))
-            else:
-                type_2.append("noise")
-        frequency["Type"] = type_2
-        self.all = pd.DataFrame(np.repeat(frequency[[self.followed, "Binding Energy", "residence time", "Type"]].values,
-                                          frequency["residence time"].values, axis=0),
-                                columns=[self.followed, "Binding Energy", "residence time", "Type"])
         # To extract the best distances
         trajectory = frequency.sort_values(by=self.followed)
         trajectory.reset_index(inplace=True)
@@ -266,100 +253,6 @@ class SimulationRS:
             else:
                 orien.append("noise")
         self.trajectory["orientation"] = orien
-
-
-def match_dist(dihedral_atoms, input_pdb, wild):
-    """
-    match the user coordinates to pmx PDB coordinates
-    """
-    topology = "{}/input/{}_processed.pdb".format(dirname(dirname(wild)), basename(wild))
-    atom = dihedral_atoms[:]
-    for i in range(len(atom)):
-        atom[i] = map_atom_string(atom[i], input_pdb, topology)
-    return atom
-
-
-def binning(data_dict, res_dir, position_num, follow="distance0.5"):
-    """
-    Bins the values as to have a better analysis of the pele reports
-
-    Parameters
-    ___________
-    bin_dict: dict
-        A dictionary containing the mutations as keys and the SimulationData.all dataframe as values
-    res_dir: str
-        The directory for the results
-    position_num: str
-        The position at the which the mutations was produced
-    """
-    bin_dict = {}
-    for key, value in data_dict.items():
-        bin_dict[key] = value.all[["Binding Energy", follow, "Type"]].copy()
-    data = pd.concat(bin_dict.values())
-    energy_bin = np.linspace(min(data["Binding Energy"]), min(max(data["Binding Energy"]), min(data["Binding Energy"])+3), num=5)
-    distance_bin = np.linspace(min(data[follow]), min(max(data[follow]), min(data[follow])+3), num=5)
-    energybin_labels = ["({}, {}]".format(energy_bin[i], energy_bin[i + 1]) for i in range(len(energy_bin) - 1)]
-    distancebin_labels = ["({}, {}]".format(distance_bin[i], distance_bin[i + 1]) for i in range(len(distance_bin) - 1)]
-    # The best distance with different energies
-    best_distance = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[i], energy_bin[i+1]))) &
-                     (data[follow].apply(lambda x: x in pd.Interval(distance_bin[0], distance_bin[1])))] for i in range(len(energy_bin)-1)]
-    # The best energies with different distances
-    best_energy = [data[(data["Binding Energy"].apply(lambda x: x in pd.Interval(energy_bin[0], energy_bin[1]))) &
-                   (data[follow].apply(lambda x: x in pd.Interval(distance_bin[i], distance_bin[i+1])))] for i in range(len(distance_bin)-1)]
-    # For bins in distance_active, I calculate the frequency and the median for each of the mutations and enantiomers
-    r_distance_len = [{key: len(frame[frame["Type"] == "R_{}".format(key)]) for key in bin_dict.keys()} for frame in best_distance]
-    r_distance_median = [{key: frame[frame["Type"] == "R_{}".format(key)][follow].median() for key in bin_dict.keys()} for frame in best_distance]
-    r_distance_energy = [{key: frame[frame["Type"] == "R_{}".format(key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_distance]
-    s_distance_len = [{key: len(frame[frame["Type"] == "S_{}".format(key)]) for key in bin_dict.keys()} for frame in best_distance]
-    s_distance_median = [{key: frame[frame["Type"] == "S_{}".format(key)][follow].median() for key in bin_dict.keys()} for frame in best_distance]
-    s_distance_energy = [
-        {key: frame[frame["Type"] == "S_{}".format(key)]["Binding Energy"].median() for key in bin_dict.keys()} for
-        frame in best_distance]
-    # For bins in energy active, I calculate the frequency, the median for each of the mutations and enantiomers
-    r_energy_len = [{key: len(frame[frame["Type"] == "R_{}".format(key)]) for key in bin_dict.keys()} for frame in best_energy]
-    r_energy_median = [{key: frame[frame["Type"] == "R_{}".format(key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
-    r_energy_distance = [
-        {key: frame[frame["Type"] == "R_{}".format(key)][follow].median() for key in bin_dict.keys()} for
-        frame in best_energy]
-    s_energy_len = [{key: len(frame[frame["Type"] == "S_{}".format(key)]) for key in bin_dict.keys()} for frame in best_energy]
-    s_energy_median = [{key: frame[frame["Type"] == "S_{}".format(key)]["Binding Energy"].median() for key in bin_dict.keys()} for frame in best_energy]
-    s_energy_distance = [
-        {key: frame[frame["Type"] == "S_{}".format(key)][follow].median() for key in bin_dict.keys()} for
-        frame in best_energy]
-    # For the energy bins, distance changes so using distance labels
-    r_energy_median = pd.DataFrame(r_energy_median, index=["R_{} energy median".format(x) for x in distancebin_labels])
-    s_energy_median = pd.DataFrame(s_energy_median, index=["S_{} energy median".format(x) for x in distancebin_labels])
-    r_energy_len = pd.DataFrame(r_energy_len, index=["R_{} energy freq".format(x) for x in distancebin_labels])
-    s_energy_len = pd.DataFrame(s_energy_len, index=["S_{} energy freq".format(x) for x in distancebin_labels])
-    r_energy_median.fillna(0, inplace=True)
-    s_energy_median.fillna(0, inplace=True)
-    r_energy_distance = pd.DataFrame(r_energy_distance, index=["R_{} energy distance median".format(x) for x in distancebin_labels])
-    s_energy_distance = pd.DataFrame(s_energy_distance, index=["S_{} energy distance median".format(x) for x in distancebin_labels])
-    r_energy_distance.fillna(0, inplace=True)
-    s_energy_distance.fillna(0, inplace=True)
-    # For the distance bins, energy changes so using energy labels
-    r_distance_median = pd.DataFrame(r_distance_median, index=["R_{} distance median".format(x) for x in energybin_labels])
-    s_distance_median = pd.DataFrame(s_distance_median, index=["S_{} distance median".format(x) for x in energybin_labels])
-    r_distance_median.fillna(0, inplace=True)
-    s_distance_median.fillna(0, inplace=True)
-    r_distance_len = pd.DataFrame(r_distance_len, index=["R_{} distance freq".format(x) for x in energybin_labels])
-    s_distance_len = pd.DataFrame(s_distance_len, index=["S_{} distance freq".format(x) for x in energybin_labels])
-    r_distance_energy = pd.DataFrame(r_distance_energy, index=["R_{} distance energy median".format(x) for x in energybin_labels])
-    s_distance_energy = pd.DataFrame(s_distance_energy, index=["S_{} distance energy median".format(x) for x in energybin_labels])
-    r_distance_energy.fillna(0, inplace=True)
-    s_distance_energy.fillna(0, inplace=True)
-    # concatenate everything
-    everything = pd.concat([r_energy_median, s_energy_median, r_energy_distance, s_energy_distance, r_energy_len,
-                            s_energy_len, r_distance_median, s_distance_median, r_distance_energy, s_distance_energy,
-                            r_distance_len, s_distance_len])
-    # To csv
-    if not os.path.exists("{}_RS/csv".format(res_dir)):
-        os.makedirs("{}_RS/csv".format(res_dir))
-    everything.to_csv("{}_RS/csv/binning_{}_{}.csv".format(res_dir, position_num, follow))
-    # save the dataframe with the reports in csvs
-    for key, value in data_dict.items():
-        value.dataframe.to_csv("{}_RS/csv/{}.csv".format(res_dir, key), header=True)
-    return everything
 
 
 def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, traj=5, cata_dist=3.5, extract=None, energy=None,
@@ -399,14 +292,14 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, traj=5, cata
     """
     data_dict = {}
     atoms = match_dist(dihedral_atoms, initial_pdb, wild)
-    original = SimulationRS(wild, atoms, initial_pdb, res_dir,
-                            pdb=traj, catalytic_dist=cata_dist, extract=extract, energy=energy, cpus=cpus)
+    original = SimulationRS(wild, atoms, initial_pdb, res_dir, pdb=traj, catalytic_dist=cata_dist, extract=extract,
+                            energy=energy, cpus=cpus)
     original.filtering(follow)
     data_dict["original"] = original
     for folder in folders:
         name = basename(folder)
-        data = SimulationRS(folder, atoms, initial_pdb, res_dir,
-                            pdb=traj, catalytic_dist=cata_dist, extract=extract, energy=energy, cpus=cpus)
+        data = SimulationRS(folder, atoms, initial_pdb, res_dir, pdb=traj, catalytic_dist=cata_dist, extract=extract,
+                            energy=energy, cpus=cpus)
         data.filtering(follow)
         data_dict[name] = data
 
@@ -635,7 +528,6 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
         base = basename(folders[0])[:-1]
         data_dict = analyse_rs(folders, wild_, dihedral_atoms, initial_pdb, plot_dir, traj, cata_dist, extract,
                                energy, cpus)
-        binning(data_dict, plot_dir, base)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS", profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus, xtc=xtc)
 
