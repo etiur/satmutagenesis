@@ -100,19 +100,24 @@ class Mutagenesis:
         self.log = Log("mutate_errors")
         self.single = single
         self.turn = turn
-        self.__check_all_and_return_residues(mut, conservative)
+        self.residues = self.__check_all_and_return_residues(mut, conservative)
 
     def __check_all_and_return_residues(self, mut, conservative):
-        self._check_folders()
+        if self.turn and self.single:
+            self._check_folders_single()
+        self._check_folders_saturated()
+        if not os.path.exists(self.folder):
+            os.makedirs(self.folder)
         self._check_coords()
         self.aa_init_resname = self.model.residues[self.position].resname
         if not mut and not conservative:
-            self.residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
-                             'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
+            residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
+                        'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
         elif mut and not conservative:
-            self.residues = mut
+            residues = mut
         elif conservative and not mut:
-            self.residues = self._mutation_library(conservative)
+            residues = self._mutation_library(conservative)
+        return residues
 
     def _mutation_library(self, library=1):
         """
@@ -136,20 +141,23 @@ class Mutagenesis:
 
         return reduced_dict.keys()
 
-    def _check_folders(self):
+    def _check_folders_single(self):
         """
-        Check the presence of different folders
+        Check the presence of different folders in single mutagenesis
         """
-        if self.turn and self.single:
-            if not os.path.exists("{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))):
-                self.folder = "{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))
-            else:
-                if os.path.exists("{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))):
-                    files = list(filter(lambda x: "{}".format(self.folder) in x, os.listdir(".")))
-                    files.sort(key=lambda x: int(x.replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), "")))
-                    num = int(files[-1].replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), ""))
-                    self.folder = "{}_{}_{}".format(self.folder, num+1, "round_{}".format(self.turn))
+        if not os.path.exists("{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))):
+            self.folder = "{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))
+        else:
+            if os.path.exists("{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))):
+                files = list(filter(lambda x: "{}".format(self.folder) in x, os.listdir(".")))
+                files.sort(key=lambda x: int(x.replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), "")))
+                num = int(files[-1].replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), ""))
+                self.folder = "{}_{}_{}".format(self.folder, num+1, "round_{}".format(self.turn))
 
+    def _check_folders_saturated(self):
+        """
+        Check the presence of different folders in saturated mutagenesis
+        """
         if self.consec and not self.multiple:
             count = 1
             self.folder = "next_round_1"
@@ -160,9 +168,6 @@ class Mutagenesis:
             files = list(filter(lambda x: "next_round" in x, os.listdir(".")))
             files.sort(key=lambda x: int(x.split("_")[-1]))
             self.folder = files[-1]
-
-        if not os.path.exists(self.folder):
-            os.makedirs(self.folder)
 
     def _check_coords(self):
         """
@@ -175,13 +180,16 @@ class Mutagenesis:
         self.chain_id = after.split(":")[0]
         self.position = int(after.split(":")[1]) - 1
         if self.wild:
-            try:
-                self.final_pdbs.remove("{}/original.pdb".format(self.folder))
-            except ValueError:
-                pass
-            finally:
-                if os.path.exists("{}/original.pdb".format(self.folder)):
-                    os.remove("{}/original.pdb".format(self.folder))
+            self._check_wild()
+
+    def _check_wild(self):
+        try:
+            self.final_pdbs.remove("{}/original.pdb".format(self.folder))
+        except ValueError:
+            pass
+        finally:
+            if os.path.exists("{}/original.pdb".format(self.folder)):
+                os.remove("{}/original.pdb".format(self.folder))
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
