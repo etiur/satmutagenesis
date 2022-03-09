@@ -52,14 +52,8 @@ def parse_args():
                         help="Set the quality of the plots")
     parser.add_argument("-tr", "--trajectory", required=False, default=5, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
-    parser.add_argument("--out", required=False, default="summary",
-                        help="Name of the summary file created at the end of the analysis")
     parser.add_argument("--plot", required=False,
                         help="Path of the plots folder")
-    parser.add_argument("-an", "--analyse", required=False, choices=("energy", "distance", "both"), default="distance",
-                        help="The metric to measure the improvement of the system")
-    parser.add_argument("--thres", required=False, default=0.0, type=float,
-                        help="The threshold for the improvement which will affect what will be included in the summary")
     parser.add_argument("-sm", "--single_mutagenesis", required=False,
                         help="Specifiy the name of the residue that you want the "
                              "original residue to be mutated to. Both 3 letter "
@@ -116,12 +110,11 @@ def parse_args():
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant,
             args.polarize_metals, args.multiple, args.seed, args.dir, args.nord, args.pdb_dir, args.hydrogen,
-            args.consec, args.steps, args.dpi, args.trajectory, args.out, args.plot, args.analyse, args.thres,
-            args.single_mutagenesis, args.plurizyme_at_and_res, args.radius, args.fixed_resids,
-            args.polarization_factor, args.total_cpus, args.restart, args.xtc, args.catalytic_distance, args.template,
-            args.skip, args.rotamers, args.equilibration, args.log, args.turn, args.energy_threshold, args.QM,
-            args.dihedral_atoms, args.box_radius, args.mutation, args.conservative, args.profile_with, args.wild,
-            args.side_chain_resolution, args.epochs]
+            args.consec, args.steps, args.dpi, args.trajectory, args.plot, args.single_mutagenesis,
+            args.plurizyme_at_and_res, args.radius, args.fixed_resids, args.polarization_factor, args.total_cpus,
+            args.restart, args.xtc, args.catalytic_distance, args.template, args.skip, args.rotamers, args.equilibration,
+            args.log, args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius, args.mutation,
+            args.conservative, args.profile_with, args.wild, args.side_chain_resolution, args.epochs]
 
 
 class SimulationRunner:
@@ -184,13 +177,23 @@ class SimulationRunner:
         folder, original = find_log("{}_mut".format(base), wild)
         return folder, original
 
+    def restart_yaml(self, consec=False):
+        yaml = "yaml_files/simulation.yaml"
+        if consec:
+            files = os.listdir("yaml_files")
+            files.sort(key=lambda x: int(
+                basename(x).split("_")[1].replace(".yaml", "")) if x != "simulation.yaml" else -999999)
+            yaml = "yaml_files/{}".format(files[-1])
+        self.submit(yaml)
+        return yaml
+
     def submit(self, yaml):
         """
         Tries to parallelize the call to the pele_platform
 
         Parameters
         __________
-        yaml_list: list[path]
+        yaml: list[path]
             A list of paths to the yaml files
         """
         command = ["python", "-m", "pele_platform.main", "{}".format(yaml)]
@@ -202,14 +205,12 @@ class SimulationRunner:
 
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
-                         multiple=False, pdb_dir="pdb_files", consec=False, cu=False, seed=12345,
-                         nord=False, steps=1000, dpi=800, traj=5, output="summary",
-                         plot_dir=None, opt="distance", thres=0.0, factor=None, plurizyme_at_and_res=None,
+                         multiple=False, pdb_dir="pdb_files", consec=False, cu=False, seed=12345, nord=False,
+                         steps=1000, dpi=800, traj=5,  plot_dir=None,  factor=None, plurizyme_at_and_res=None,
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
-                         template=None, skip=None, rotamers=None, equilibration=True, log=False,
-                         energy_threshold=None, QM=None, dihedral=None, box_radius=None,
-                         mut=None, conservative=None, profile_with="Binding Energy", wild=None,
-                         side_chain_resolution=10, epochs=1):
+                         template=None, skip=None, rotamers=None, equilibration=True, log=False, energy_threshold=None,
+                         QM=None, dihedral=None, box_radius=None, mut=None, conservative=None,
+                         profile_with="Binding Energy", wild=None, side_chain_resolution=10, epochs=1):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -309,13 +310,10 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
                                skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, QM=QM,
                                box_radius=box_radius, side_chain_resolution=side_chain_resolution, epochs=epochs)
+        simulation.submit(yaml)
     else:
-        yaml = "yaml_files/simulation.yaml"
-        if consec:
-            files = os.listdir("yaml_files")
-            files.sort(key=lambda x: int(basename(x).split("_")[1].replace(".yaml", "")) if x != "simulation.yaml" else -999999)
-            yaml = "yaml_files/{}".format(files[-1])
-    simulation.submit(yaml)
+        simulation.restart_yaml(consec)
+
     dirname, original = simulation.pele_folders(wild)
     if dir_ and not plot_dir:
         plot_dir = dir_
@@ -323,7 +321,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          energy_thres=energy_threshold, profile_with=profile_with)
     if dihedral:
         consecutive_analysis_rs(dirname, dihedral, input_, original, dpi, traj,  plot_dir,  cpus,
-                                thres, cata_dist, xtc, energy=energy_threshold, profile_with=profile_with)
+                                cata_dist, xtc, energy=energy_threshold, profile_with=profile_with)
 
 
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
@@ -408,10 +406,9 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
 
 
 def main():
-    input_, position, ligchain, ligname, atoms, cpus, cu, multiple, seed, dir_, nord, pdb_dir, \
-    hydrogen, consec, steps, dpi, traj, out, plot_dir, analyze, thres, single_mutagenesis, \
-    plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, xtc, cata_dist, template, \
-    skip, rotamers, equilibration, log, turn, energy_thres, QM, dihedral, box_radius, mut, \
+    input_, position, ligchain, ligname, atoms, cpus, cu, multiple, seed, dir_, nord, pdb_dir, hydrogen, consec, steps,\
+    dpi, traj, plot_dir, single_mutagenesis, plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, \
+    xtc, cata_dist, template, skip, rotamers, equilibration, log, turn, energy_thres, QM, dihedral, box_radius, mut, \
     conservative, profile_with, wild, side_chain_resolution, epochs = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
@@ -422,12 +419,11 @@ def main():
                              side_chain_resolution, epochs)
     else:
         # Else, perform saturated mutagenesis
-        saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen,
-                             multiple, pdb_dir, consec, cu, seed, nord, steps, dpi, traj, out,
-                             plot_dir, analyze, thres, factor, plurizyme_at_and_res, radius, fixed_resids,
-                             total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration, log,
-                             energy_thres, QM, dihedral, box_radius, mut, conservative,
-                             profile_with, wild, side_chain_resolution, epochs)
+        saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen, multiple, pdb_dir,
+                             consec, cu, seed, nord, steps, dpi, traj,  plot_dir, factor, plurizyme_at_and_res, radius,
+                             fixed_resids, total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration,
+                             log, energy_thres, QM, dihedral, box_radius, mut, conservative, profile_with, wild,
+                             side_chain_resolution, epochs)
 
 
 if __name__ == "__main__":
