@@ -5,13 +5,12 @@ This script used pmx to mutate the residues within proteins
 from pmx import Model
 from pmx.rotamer import load_bbdep
 import argparse
-import os
 from .helper import map_atom_string, Log
 from pmx.library import _aacids_ext_amber
 from pmx.rotamer import get_rotamers, select_best_rotamer
-from os.path import basename
 from multiprocessing import Process
 from Bio.SubsMat import MatrixInfo as mat
+from pathlib import Path
 
 
 # Argument parsers
@@ -80,13 +79,14 @@ class Mutagenesis:
         wild: str, optional
             The path to the wild type simulation
         """
-        self.model = Model(model)
-        self.input = model
+        print(model)
+        self.model = Model(str(model))
+        self.input = Path(model)
         self.wild = wild
         if not initial:
-            self.initial = model
+            self.initial = Path(model)
         else:
-            self.initial = initial
+            self.initial = Path(model)
         self.coords = position
         self.rotamers = load_bbdep()
         self.final_pdbs = []
@@ -94,7 +94,7 @@ class Mutagenesis:
         self._invert_aa = {v: k for k, v in _aacids_ext_amber.items()}
         self._invert_aa["HIS"] = "H"
         self.chain_id = None
-        self.folder = folder
+        self.folder = Path(folder)
         self.consec = consec
         self.multiple = multiple
         self.log = Log("mutate_errors")
@@ -103,11 +103,9 @@ class Mutagenesis:
         self.residues = self.__check_all_and_return_residues(mut, conservative)
 
     def __check_all_and_return_residues(self, mut, conservative):
-        if self.turn and self.single:
-            self._check_folders_single()
-        self._check_folders_saturated()
-        if not os.path.exists(self.folder):
-            os.makedirs(self.folder)
+        self._check_folders_single_mutations()
+        self._check_folders_multiple_mutations()
+        self.folder.mkdir(parents=True, exist_ok=True)
         self._check_coords()
         self.aa_init_resname = self.model.residues[self.position].resname
         if not mut and not conservative:
@@ -135,61 +133,54 @@ class Mutagenesis:
         value = [matrix[x] for x in blosum]
         new_dict = dict(zip([_aacids_ext_amber[x[1]] if x[0] == aa else _aacids_ext_amber[x[0]] for x in blosum], value))
         if library == 1:
-            reduced_dict = {k:v for k, v in new_dict.items() if v >= 0}
+            reduced_dict = {k: v for k, v in new_dict.items() if v >= 0}
         elif library == 2:
-            reduced_dict = {k:v for k, v in new_dict.items() if v >= -1}
+            reduced_dict = {k: v for k, v in new_dict.items() if v >= -1}
 
         return reduced_dict.keys()
 
-    def _check_folders_single(self):
+    def _check_folders_single_mutations(self):
         """
         Check the presence of different folders in single mutagenesis
         """
-        if not os.path.exists("{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))):
-            self.folder = "{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))
-        else:
-            if os.path.exists("{}_{}_{}".format(self.folder, 1, "round_{}".format(self.turn))):
-                files = list(filter(lambda x: "{}".format(self.folder) in x, os.listdir(".")))
-                files.sort(key=lambda x: int(x.replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), "")))
-                num = int(files[-1].replace("{}_".format(self.folder), "").replace("_round_{}".format(self.turn), ""))
-                self.folder = "{}_{}_{}".format(self.folder, num+1, "round_{}".format(self.turn))
+        if self.turn and self.single:
+            if not Path(f"{self.folder.name}_1_round_{self.turn}").exists():
+                self.folder = Path(f"{self.folder.name}_1_round_{self.turn}")
+            else:
+                files = [x for x in Path.cwd().glob("*") if self.folder.name in x.name]
+                files.sort(key=lambda x: int(x.name.replace(f"{self.folder.name}_", "").replace(f"_round_{self.turn}", "")))
+                num = int(files[-1].name.replace(f"{self.folder.name}_", "").replace(f"_round_{self.turn}", ""))
+                self.folder = Path(f"{self.folder.name}_{num+1}_round_{self.turn}")
 
-    def _check_folders_saturated(self):
+    def _check_folders_multiple_mutations(self):
         """
         Check the presence of different folders in saturated mutagenesis
         """
         if self.consec and not self.multiple:
             count = 1
-            self.folder = "next_round_1"
-            while os.path.exists("{}".format(self.folder)):
+            self.folder = Path("next_round_1")
+            while self.folder.exists():
                 count += 1
-                self.folder = "next_round_{}".format(count)
+                self.folder = Path(f"next_round_{count}")
         elif self.consec and self.multiple:
-            files = list(filter(lambda x: "next_round" in x, os.listdir(".")))
-            files.sort(key=lambda x: int(x.split("_")[-1]))
+            files = [x for x in Path.cwd().glob("*") if "next_round" in x.name or self.folder.name in x.name]
+            files.sort(key=lambda x: int(x.name.split("_")[-1]) if x.name.split("_")[-1].isdigit() else -99999)
             self.folder = files[-1]
 
     def _check_coords(self):
         """
         map the user coordinates with pmx coordinates
         """
-        if not os.path.exists("{}/original.pdb".format(self.folder)):
-            self.model.write("{}/original.pdb".format(self.folder))
-            self.final_pdbs.append("{}/original.pdb".format(self.folder))
-        after = map_atom_string(self.coords, self.initial, "{}/original.pdb".format(self.folder))
+        original = self.folder.joinpath("original.pdb")
+        if not original.exists():
+            self.model.write(str(original))
+            self.final_pdbs.append(original)
+        after = map_atom_string(self.coords, self.initial, original)
         self.chain_id = after.split(":")[0]
         self.position = int(after.split(":")[1]) - 1
         if self.wild:
-            self._check_wild()
-
-    def _check_wild(self):
-        try:
-            self.final_pdbs.remove("{}/original.pdb".format(self.folder))
-        except ValueError:
-            pass
-        finally:
-            if os.path.exists("{}/original.pdb".format(self.folder)):
-                os.remove("{}/original.pdb".format(self.folder))
+            self.final_pdbs = [x for x in self.final_pdbs if "original" not in x.name]
+            original.unlink(missing_ok=True)
 
     def mutate(self, residue, new_aa, bbdep, hydrogens=True):
         """
@@ -214,7 +205,7 @@ class Mutagenesis:
         new_r = select_best_rotamer(self.model, rotamers)
         self.model.replace_residue(residue, new_r)
 
-    def saturated_mutagenesis(self, hydrogens=True):
+    def saturated_mutagenesis(self, hydrogens=True, count=0):
         """
         Generate all the other 19 mutations
 
@@ -237,14 +228,13 @@ class Mutagenesis:
                     self.log.error("position {}:{} has no rotamer in the library so it was skipped".format(self.chain_id,
                                    self.position+1), exc_info=True)
                 # writing into a pdb
-                if self.consec or self.multiple:
-                    name = basename(self.input).replace(".pdb", "")
-                    output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, self._invert_aa[new_aa])
+                if self.consec or count == 1:
+                    output = Path(f"{self.input.stem}_{aa_name}{self.position+1}{self._invert_aa[new_aa]}.pdb")
                 else:
-                    output = "{}{}{}.pdb".format(aa_name, self.position + 1, self._invert_aa[new_aa])
+                    output = Path(f"{aa_name}{self.position+1}{self._invert_aa[new_aa]}.pdb")
 
-                self.model.write("{}/{}".format(self.folder, output))
-                self.final_pdbs.append("{}/{}".format(self.folder, output))
+                self.model.write(str(self.folder/output))
+                self.final_pdbs.append(self.folder/output)
 
         return self.final_pdbs
 
@@ -268,21 +258,20 @@ class Mutagenesis:
         try:
             self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
         except KeyError:
-            self.log.error("position {}:{} has no rotamer in the library so it was skipped".format(self.chain_id,
-                            self.position + 1), exc_info=True)
+            self.log.error(f"position {self.chain_id}:{self.position+1} has no rotamer in the library so it was skipped",
+                           exc_info=True)
         # writing into a pdb
         if len(new_aa) == 1:
             new = new_aa
         else:
             new = self._invert_aa[new_aa]
         if self.turn:
-            name = basename(self.input).replace(".pdb", "")
-            output = "{}_{}{}{}.pdb".format(name, aa_name, self.position + 1, new)
+            output = Path(f"{self.input.stem}_{aa_name}{self.position+1}{new}.pdb")
         else:
-            output = "{}{}{}.pdb".format(aa_name, self.position + 1, new)
+            output = Path(f"{aa_name}{self.position+1}{new}.pdb")
 
-        file_ = "{}/{}".format(self.folder, output)
-        self.model.write(file_)
+        file_ = self.folder/output
+        self.model.write(str(file_))
         self.insert_atomtype(file_)
 
         return file_
@@ -344,8 +333,48 @@ class Mutagenesis:
             p.join()
 
 
-def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False,
-                       single=None, turn=None, mut=None, conservative=None, wild=None):
+def generate_single_mutations(input_, position, single, hydrogens=True, pdb_dir="pdb_files", turn=None, wild=None):
+    """
+        To generate up to single mutations per pdb
+
+        Parameters
+        ___________
+        input_: str
+            Input pdb to be used to generate the mutations
+        position: list[str]
+            [chain ID:position] of the residue, for example [A:139,..]
+        hydrogens: bool, optional
+            Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
+        pdb_dir: str, optional
+            The name of the folder where the mutated PDB files will be stored
+        single: str
+            The new residue to mutate the positions to, in 3 letter or 1 letter code
+        turn: int, optional
+            The round of plurizymer generation
+
+        Returns
+        ________
+        pdbs: list[paths]
+            The list of all generated pdbs' path
+        """
+    pdbs = []
+    for mutation in position:
+        # If the single_mutagenesis flag is used, execute this
+        run = Mutagenesis(input_, mutation, pdb_dir, single=single, turn=turn, wild=wild)
+        single = single.upper()
+        mutant = run.single_mutagenesis(single, hydrogens)
+        pdbs.append(mutant)
+
+    if not wild:
+        ori = run.folder/"original.pdb"
+        run.insert_atomtype(ori)
+        pdbs.append(run.folder/"original.pdb")
+
+    return pdbs
+
+
+def generate_saturated_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir="pdb_files", consec=False,
+                                 mut=None, conservative=None, wild=None):
     """
     To generate up to 2 mutations per pdb
 
@@ -363,10 +392,6 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
         The name of the folder where the mutated PDB files will be stored
     consec: bool, optional
         Consecutively mutate the PDB file for several rounds
-    single: str
-        The new residue to mutate the positions to, in 3 letter or 1 letter code
-    turn: int, optional
-        The round of plurizymer generation
     mut: list[str]
         A list of mutations to perform
     conservative: int, optional
@@ -382,36 +407,38 @@ def generate_mutations(input_, position, hydrogens=True, multiple=False, pdb_dir
     count = 0
     for mutation in position:
         if multiple and count == 1:
-            run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative, multiple, wild=wild)
+            run = Mutagenesis(input_, mutation, pdb_dir, consec, mut=mut, conservative=conservative, multiple=multiple,
+                              wild=wild)
         else:
-            run = Mutagenesis(input_, mutation, pdb_dir, consec, single, turn, mut, conservative, wild=wild)
-        if single:
-            # If the single_mutagenesis flag is used, execute this
-            single = single.upper()
-            mutant = run.single_mutagenesis(single, hydrogens)
-            pdbs.append(mutant)
-        else:
-            # Else, perform saturated mutations
-            final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
-            pdbs.extend(final_pdbs)
-            run.accelerated_insert()
+            run = Mutagenesis(input_, mutation, pdb_dir, consec, mut=mut, conservative=conservative, wild=wild)
+        # run saturated mutagenesis
+        final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
+        pdbs.extend(final_pdbs)
+        run.accelerated_insert()
         count += 1
         # Mutate in a second position for each of the 20 single mutations
-        if multiple and not single and count == 1:
+        if multiple and count == 1:
             for files in final_pdbs:
-                name = basename(files).replace(".pdb", "")
-                if name != "original":
+                if files.stem != "original":
                     run_ = Mutagenesis(files, position[1], pdb_dir, consec, conservative=conservative, mut=mut,
                                        multiple=multiple, initial=input_)
-                    final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens)
+                    final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens, count=count)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
 
-    if single:
-        ori = "{}/original.pdb".format(run.folder)
-        run.insert_atomtype(ori)
-        pdbs.append("{}/original.pdb".format(run.folder))
+    return pdbs
 
+
+def generate_mutations(input_, position, hydrogen=True, multiple=False, pdb_dir="pdb_files", consec=False, single=None,
+                       turn=None, mut=None, conservative=None, wild=None):
+    """
+    A function that combines both previous functions
+    """
+    if single:
+        pdbs = generate_single_mutations(input_, position, single, hydrogen, pdb_dir, turn, wild)
+    else:
+        pdbs = generate_saturated_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, mut, conservative,
+                                            wild)
     return pdbs
 
 
