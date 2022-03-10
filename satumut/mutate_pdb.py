@@ -79,7 +79,6 @@ class Mutagenesis:
         wild: str, optional
             The path to the wild type simulation
         """
-        print(model)
         self.model = Model(str(model))
         self.input = Path(model)
         self.wild = wild
