@@ -3,9 +3,9 @@ This script contains helper functions
 """
 import Bio.PDB
 import logging
-from os.path import basename, dirname, commonprefix
+from os.path import basename, commonprefix
 import itertools
-import os
+from pathlib import Path
 
 
 def map_atom_string(atom_string, initial_pdb, prep_pdb):
@@ -77,7 +77,8 @@ def match_dist(dihedral_atoms, input_pdb, wild):
     """
     match the user coordinates to pmx PDB coordinates
     """
-    topology = "{}/input/{}_processed.pdb".format(dirname(dirname(wild)), basename(wild))
+    wild = Path(wild)
+    topology = wild.parent.parent / f"input/{wild.stem}_processed.pdb"
     atom = dihedral_atoms[:]
     for i in range(len(atom)):
         atom[i] = map_atom_string(atom[i], input_pdb, topology)
@@ -290,13 +291,13 @@ def find_log(folder_name, wild=None):
     """
     folder = []
     original = wild
-    with open("{}/simulations/completed_mutations.log".format(folder_name)) as log:
+    with open(f"{folder_name}/simulations/completed_mutations.log") as log:
         for paths in log:
             dir_ = paths.split()
             if "original" in dir_[1]:
-                original = "{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4])
+                original = f"{folder_name}/simulations/{dir_[5]}/output/{dir_[1][:-4]}"
             else:
-                folder.append("{}/simulations/{}/output/{}".format(folder_name, dir_[5], dir_[1][:-4]))
+                folder.append(f"{folder_name}/simulations/{dir_[5]}/output/{dir_[1][:-4]}")
 
     return folder, original
 
@@ -326,7 +327,7 @@ def weighted_median(df, val, weight):
 
 
 def check_completed_log(file_name, wild, plot_dir):
-    if os.path.exists("{}".format(file_name)):
+    if Path(file_name).exists():
         folder, wild = find_log(file_name, wild)
         pele_folders = commonlist(folder)
     else:

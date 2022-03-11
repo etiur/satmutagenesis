@@ -3,10 +3,9 @@ This script is used to generate the yaml files for pele platform
 """
 
 import argparse
-import os
 from .helper import map_atom_string
 import glob
-from os.path import dirname, basename
+from pathlib import Path
 
 
 def parse_args():
@@ -163,7 +162,7 @@ class CreateYamlFiles:
         self.log = log
         self.consec = consec
         self.turn = turn
-        self.input_pdb = input_pdb
+        self.input_pdb = Path(input_pdb)
         self.qm = QM
         self.box = box_radius
         self.resolution = side_chain_resolution
@@ -184,16 +183,16 @@ class CreateYamlFiles:
         Looks at which round of the mutation it is
         """
         if self.single and not self.turn:
-            folder = "round_1"
+            folder = Path("round_1")
         elif self.single and self.turn:
-            folder = "round_{}".format(self.turn)
+            folder = Path(f"round_{self.turn}")
         else:
             count = 1
-            folder = "simulations"
+            folder = Path("simulations")
             if self.consec:
-                while os.path.exists(folder):
+                while folder.exists():
                     count += 1
-                    folder = "simulations_{}".format(count)
+                    folder = Path(f"simulations_{count}")
 
         return folder
 
@@ -201,13 +200,13 @@ class CreateYamlFiles:
         """
         Generating the corresponding yaml files for each of the mutation rounds
         """
-        if not os.path.exists("yaml_files"):
-            os.mkdir("yaml_files")
-        yaml = "yaml_files/simulation.yaml"
+        yaml_folder = Path("yaml_files")
+        yaml_folder.mkdir(exist_ok=True)
+        yaml = yaml_folder/"simulation.yaml"
         if self.consec or self.turn:
             count = 1
-            while os.path.exists(yaml):
-                yaml = "yaml_files/simulation_{}.yaml".format(count)
+            while yaml.exists():
+                yaml = yaml_folder/f"simulation_{count}.yaml"
                 count += 1
         return yaml
 
@@ -220,55 +219,55 @@ class CreateYamlFiles:
         self.yaml = self.yaml_file()
 
         with open(self.yaml, "w") as inp:
-            lines = ["system: '{}/*.pdb'\n".format(dirname(self.mutant_list[0])), "chain: '{}'\n".format(self.ligchain),
-                     "resname: '{}'\n".format(self.ligname), "saturated_mutagenesis: true\n",
-                     "seed: {}\n".format(self.seed), "steps: {}\n".format(self.steps), "use_peleffy: true\n"]
+            lines = [f"system: '{self.mutant_list[0].parent}/*.pdb'\n", f"chain: '{self.ligchain}'\n",
+                     f"resname: '{self.ligname}'\n", "saturated_mutagenesis: true\n",
+                     f"seed: {self.seed}\n", f"steps: {self.steps}\n", "use_peleffy: true\n"]
             if self.atoms:
                 lines.append("atom_dist:\n")
-                lines_atoms = ["- '{}'\n".format(atom) for atom in self.atoms]
+                lines_atoms = [f"- '{atom}'\n" for atom in self.atoms]
                 lines.extend(lines_atoms)
             if self.xtc:
                 lines.append("traj: trajectory.xtc\n")
             if not self.nord:
                 lines.append("usesrun: true\n")
             if self.turn:
-                lines.append("working_folder: '{}/{}'\n".format(folder, basename(self.input_pdb.strip(".pdb"))))
+                lines.append(f"working_folder: '{folder}/{self.input_pdb.stem}'\n")
             else:
-                lines.append("working_folder: '{}'\n".format(folder))
-            lines2 = ["cpus: {}\n".format(self.total_cpu), "cpus_per_mutation: {}\n".format(self.cpus),
+                lines.append(f"working_folder: '{folder}'\n")
+            lines2 = [f"cpus: {self.total_cpu}\n", f"cpus_per_mutation: {self.cpus}\n",
                       "pele_license: '/gpfs/projects/bsc72/PELE++/license'\n"]
             if not self.nord:
                 lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.7/bin/PELE-1.7_mpi'\n")
             else:
-                lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/nord/V1.7/bin/PELE-1.7_mpi'\n")
+                lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/nord4/V1.7.1/bin/PELE-1.7.1_mpi'\n")
             if self.equilibration:
                 lines2.append("equilibration: true\n")
             if self.log:
                 lines2.append("log: true\n")
             if self.resolution:
-                lines.append("sidechain_res: {}\n".format(self.resolution))
+                lines.append(f"sidechain_res: {self.resolution}\n")
             if self.cu:
                 lines2.append("polarize_metals: true\n")
             if self.qm:
-                lines2.append("mae_lig: {}\n".format(self.qm))
+                lines2.append(f"mae_lig: {self.qm}\n")
             if self.cu and self.factor:
-                lines2.append("polarization_factor: {}\n".format(self.factor))
+                lines2.append(f"polarization_factor: {self.factor}\n")
             if self.template:
                 lines2.append("templates:\n")
                 for templates in self.template:
-                    lines2.append(" - '{}'\n".format(templates))
+                    lines2.append(f" - '{templates}'\n")
             if self.epochs != 1:
-                lines2.append("iterations: {}\n".format(self.epochs))
+                lines2.append(f"iterations: {self.epochs}\n")
             if self.rotamers:
                 lines2.append("rotamers:\n")
                 for rotamers in self.rotamers:
-                    lines2.append(" - '{}'\n".format(rotamers))
+                    lines2.append(f" - '{rotamers}'\n")
             if self.skip:
                 lines2.append("skip_ligand_prep:\n")
                 for skip in self.skip:
-                    lines2.append(" - '{}'\n".format(skip))
+                    lines2.append(f" - '{skip}'\n")
             if self.box:
-                lines2.append("box_radius: {}\n".format(self.box))
+                lines2.append(f"box_radius: {self.box}\n")
             lines.extend(lines2)
             inp.writelines(lines)
 
@@ -284,8 +283,8 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
 
     Parameters
     ___________
-    pdb_files: str, list[str]
-        the directory to the pdbs or a list of the paths to the mutant pdbs
+    pdb_files: str, list[Path]
+        the directory to the pdbs or a list of the Path objects to the mutant pdbs
     ligchain: str
         the chain ID where the ligand is located
     ligname: str
@@ -343,7 +342,7 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
         The input file path for the pele_platform
     """
     if type(pdb_files) == str:
-        pdb_list = glob.glob("{}/*.pdb".format(pdb_files))
+        pdb_list = Path(pdb_files).glob("*.pdb")
     else:
         pdb_list = pdb_files
     run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, initial=initial, cu=cu, seed=seed, nord=nord,
