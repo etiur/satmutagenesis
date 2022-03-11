@@ -12,6 +12,7 @@ import time
 from .analysis import consecutive_analysis
 from .helper import neighbourresidues, Log, find_log
 from .rs_analysis import consecutive_analysis_rs
+from pathlib import Path
 
 
 def parse_args():
@@ -136,12 +137,12 @@ class SimulationRunner:
             The round of the plurizyme generation
         """
 
-        self.input = input_
+        self.input = Path().cwd() / input_
         self.proc = None
         if not dir_:
-            self.base = self.input.replace(".pdb", "")
+            self.base = self.input.parent / self.input.stem
         else:
-            self.base = dir_.replace(".pdb", "").replace("_mut", "")
+            self.base = Path(dir_.replace(".pdb", "").replace("_mut", ""))
         self.log = Log("simulation_time")
         self.turn = turn
 
@@ -154,12 +155,10 @@ class SimulationRunner:
         input_: str
             The new path of the input
         """
-        self.input = abspath(self.input)
-        if not os.path.exists("{}_mut".format(self.base)):
-            os.makedirs("{}_mut".format(self.base))
+        Path(f"{self.base}_mut").mkdir(exist_ok=True)
         if self.turn:
-            shutil.copy(self.input, "{}_mut".format(self.base))
-        os.chdir("{}_mut".format(self.base))
+            shutil.copy(self.input, f"{self.base}_mut")
+        os.chdir(f"{self.base}_mut")
 
         return self.input
 
@@ -168,16 +167,15 @@ class SimulationRunner:
         Creates a file with the names of the different folders where the pele simulations are contained
         """
         os.chdir("../")
-        folder, original = find_log("{}_mut".format(self.base), wild)
+        folder, original = find_log(f"{self.base}_mut", wild)
         return folder, original
 
     def restart_yaml(self, consec=False):
-        yaml = "yaml_files/simulation.yaml"
+        yaml = Path("yaml_files/simulation.yaml")
         if consec:
-            files = os.listdir("yaml_files")
-            files.sort(key=lambda x: int(
-                basename(x).split("_")[1].replace(".yaml", "")) if x != "simulation.yaml" else -999999)
-            yaml = "yaml_files/{}".format(files[-1])
+            files = list(Path("yaml_files").glob("*.yaml"))
+            files.sort(key=lambda x: int(x.stem.split("_")[1]) if x.name != "simulation.yaml" else -999999)
+            yaml = "yaml_files"/files[-1]
         self.submit(yaml)
         return yaml
 
@@ -190,12 +188,12 @@ class SimulationRunner:
         yaml: list[path]
             A list of paths to the yaml files
         """
-        command = ["python", "-m", "pele_platform.main", "{}".format(yaml)]
+        command = ["python", "-m", "pele_platform.main", f"{yaml}"]
         start = time.time()
         return_code = call(command, close_fds=False)
         end = time.time()
         # creating a log
-        self.log.info("It took {} min to run the simulation with return code {}".format((end - start), return_code))
+        self.log.info(f"It took {end - start} min to run the simulation with return code {return_code}")
 
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
@@ -298,7 +296,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
     if not position and plurizyme_at_and_res:
         position = neighbourresidues(input_, plurizyme_at_and_res, radius, fixed_resids)
     if not restart:
-        pdb_names = generate_mutations(input_, position, hydrogens=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
+        pdb_names = generate_mutations(input_, position, hydrogen=hydrogen, multiple=multiple, pdb_dir=pdb_dir,
                                        consec=consec, mut=mut, conservative=conservative, wild=wild)
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
