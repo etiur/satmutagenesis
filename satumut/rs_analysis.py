@@ -16,6 +16,7 @@ import mdtraj as md
 import Bio.PDB
 from multiprocessing import Pool
 from functools import partial
+from pathlib import Path
 plt.switch_backend('agg')
 
 
@@ -72,10 +73,10 @@ def dihedral(trajectory, select, topology=None):
     """
     if ".xtc" in trajectory:
         traj = md.load_xtc(trajectory, topology)
-        num = int(basename(trajectory).replace(".xtc", "").split("_")[1])
+        num = int(Path(trajectory).name.replace(".xtc", "").split("_")[1])
     else:
         traj = md.load_pdb(trajectory)
-        num = int(basename(trajectory).replace(".pdb", "").split("_")[1])
+        num = int(Path(trajectory).name.replace(".pdb", "").split("_")[1])
     traj = traj[int(len(traj)*0.10):]
     Atom_pair_1 = int(traj.topology.select(f"resSeq {select[0][0]} and name {select[0][1]} and resn {select[0][2]}"))
     Atom_pair_2 = int(traj.topology.select(f"resSeq {select[1][0]} and name {select[1][1]} and resn {select[1][2]}"))
@@ -120,7 +121,7 @@ class SimulationRS:
             The number of cpus to extract the md trajectories
         """
         self.input_pdb = input_pdb
-        self.folder = folder
+        self.folder = Path(folder)
         self.dataframe = None
         self.profile = None
         self.catalytic = catalytic_dist
@@ -137,9 +138,9 @@ class SimulationRS:
         self.len = None
         self.dist_diff = None
         self.binding = None
-        self.name = basename(self.folder)
+        self.name = self.folder.name
         self.extract = extract
-        self.topology = "{}/input/{}_processed.pdb".format(dirname(dirname(folder)), basename(folder))
+        self.topology = self.folder.parent.parent/"input"/f"{self.folder.name}_processed.pdb"
         self.energy = energy
         self.res_dir = res_dir
         self.cpus = cpus
@@ -168,15 +169,14 @@ class SimulationRS:
         """
         Paralelizes the insert atomtype function
         """
-        if not os.path.exists("{}_RS/angles".format(self.res_dir)):
-            os.makedirs("{}_RS/angles".format(self.res_dir))
-        traject_list = sorted(glob("{}/trajectory_*".format(self.folder)), key=lambda s: int(basename(s)[:-4].split("_")[1]))
+        Path(f"{self.res_dir}_RS/angles").mkdir(parents=True, exist_ok=True)
+        traject_list = sorted(list(self.folder.glob("trajectory_*")), key=lambda s: int(s.stem.split("_")[1]))
         # parallelize the function
         p = Pool(self.cpus)
         func = partial(dihedral, select=select, topology=self.topology)
         angles = pd.concat(list(p.map(func, traject_list)))
         angles.reset_index(drop=True, inplace=True)
-        angles.to_csv("{}_RS/angles/{}.csv".format(self.res_dir, self.name), header=True)
+        angles.to_csv(f"{self.res_dir}_RS/angles/{self.name}.csv", header=True)
         return angles
 
     def filtering(self, follow=None):
@@ -190,9 +190,9 @@ class SimulationRS:
         select = self._transform_coordinates()
         angles = self.accelerated_dihedral(select)
         # read the reports
-        for files in sorted(glob("{}/report_*".format(self.folder)), key=lambda s: int(basename(s).split("_")[1])):
+        for files in sorted(self.folder.glob("report_*"), key=lambda s: int(s.name.split("_")[1])):
             residence_time = [0]
-            rep = int(basename(files).split("_")[1])
+            rep = int(files.name.split("_")[1])
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
             data.rename(columns={'#Task': "ID"}, inplace=True)
@@ -232,9 +232,9 @@ class SimulationRS:
         type_ = []
         for x in self.profile["dihedral"].values:
             if -40 >= x >= -140:
-                type_.append("R_{}".format(self.name))
+                type_.append(f"R_{self.name}")
             elif 40 <= x <= 140:
-                type_.append("S_{}".format(self.name))
+                type_.append(f"S_{self.name}")
             else:
                 type_.append("noise")
         self.profile["Type"] = type_
@@ -334,20 +334,17 @@ def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, muta
     follow: str, optional
         The column name of the different followed distances during PELE simulation
     """
-    if not os.path.exists("{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)):
-        os.makedirs("{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation))
-
-    trajectories = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
-    topology = "{}/input/{}_processed.pdb".format(dirname(dirname(simulation_folder)), mutation)
-    if len(trajectories) == 0 or not os.path.exists(topology):
-        sys.exit("Trajectory_{} or topology file not found".format(f_id))
+    Path(f"{res_dir}_RS/{follow}_{position_num}/{mutation}_pdbs").mkdir(exist_ok=True, parents=True)
+    trajectories = list(Path(simulation_folder).glob(f"*trajectory*_{f_id}.*"))
+    topology = Path(simulation_folder).parent.parent/"input"/f"{mutation}_processed.pdb"
+    if len(trajectories) == 0 or not topology.exists():
+        sys.exit(f"Trajectory_{f_id} or topology file not found")
 
     # load the trajectory and write it to pdb
     traj = md.load_xtc(trajectories[0], topology)
-    name = "traj{}_step{}_dist{}_bind{}_{}_{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2), orientation,
-                                                          round(angle, 2))
-    path_ = "{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)
-    traj[int(step)].save_pdb(os.path.join(path_, name))
+    name = f"traj{f_id}_step{step}_dist{round(dist, 2)}_bind{round(bind, 2)}_{orientation}_{ound(angle, 2)}.pdb"
+    path_ = Path(f"{res_dir}_RS/{follow}_{position_num}/{mutation}_pdbs")
+    traj[int(step)].save_pdb(path_/name)
 
 
 def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, orientation,
@@ -378,13 +375,11 @@ def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutatio
     follow: str, optional
         The column name of the different followed distances during PELE simulation
     """
-    if not os.path.exists("{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)):
-        os.makedirs("{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation))
-
-    f_in = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
+    Path(f"{res_dir}_RS/{follow}_{position_num}/{mutation}_pdbs").mkdir(exist_ok=True, parents=True)
+    f_in = list(Path(simulation_folder).glob(f"*trajectory*_{f_id}.*"))
     if len(f_in) == 0:
-        sys.exit("Trajectory_{} not found. Be aware that PELE trajectories must contain the label 'trajectory' in "
-                 "their file name to be detected".format(f_id))
+        sys.exit(f"Trajectory_{f_id} not found. Be aware that PELE trajectories must contain the label 'trajectory' in "
+                 "their file name to be detected")
     f_in = f_in[0]
     with open(f_in, 'r') as res_dirfile:
         file_content = res_dirfile.read()
@@ -392,10 +387,9 @@ def snapshot_from_pdb_rs(res_dir, simulation_folder, f_id, position_num, mutatio
 
     # Output Snapshot
     traj = []
-    path_ = "{}_RS/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)
-    name = "traj{}_step{}_dist{}_bind{}_{}_{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2), orientation,
-                                                          round(angle, 2))
-    with open(os.path.join(path_, name), 'w') as f:
+    path_ = Path(f"{res_dir}_RS/{follow}_{position_num}/{mutation}_pdbs")
+    name = f"traj{f_id}_step{step}_dist{round(dist, 2)}_bind{round(bind, 2)}_{orientation}_{round(angle, 2)}.pdb"
+    with open(path_/name, 'w') as f:
         traj.append("MODEL     {}".format(int(step) + 1))
         try:
             traj.append(trajectory_selected.group(1))
@@ -462,7 +456,7 @@ def extract_all(res_dir, data_dict, folders, cpus=10, xtc=False, follow="distanc
     """
     args = []
     for pele in folders:
-        name = basename(pele)
+        name = Path(pele).name
         output = name[:-1]
         args.append((pele, output, name))
 
@@ -513,7 +507,7 @@ def consecutive_analysis_rs(file_name, dihedral_atoms, initial_pdb, wild=None, d
     """
     pele_folders, plot_dir, wild = check_completed_log(file_name, wild, plot_dir)
     for folders in pele_folders:
-        base = basename(folders[0])[:-1]
+        base = Path(folders[0]).name[:-1]
         data_dict = analyse_rs(folders, wild, dihedral_atoms, initial_pdb, plot_dir, traj, cata_dist, extract, energy, cpus)
         all_profiles(plot_dir, data_dict, base, dpi, mode="RS", profile_with=profile_with)
         extract_all(plot_dir, data_dict, folders, cpus, xtc=xtc)
