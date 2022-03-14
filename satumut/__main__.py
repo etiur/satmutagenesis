@@ -452,7 +452,7 @@ def main():
 
         slurm = run.slurm_creation()
         if sbatch:
-            call(["sbatch", "{}".format(slurm)])
+            call(["sbatch", f"{slurm}"])
 
 
 if __name__ == "__main__":
