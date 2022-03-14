@@ -2,12 +2,9 @@
 This script is used to analyse the results of the simulations
 """
 
-from glob import glob
 import pandas as pd
 import seaborn as sns
 import argparse
-from os.path import basename, dirname
-import os
 import sys
 import re
 import matplotlib.pyplot as plt
@@ -15,6 +12,7 @@ import multiprocessing as mp
 from functools import partial
 from .helper import match_dist, check_completed_log
 import mdtraj as md
+from pathlib import Path
 plt.switch_backend('agg')
 
 
@@ -73,7 +71,7 @@ class SimulationData:
         extract: int, optional
             The number of steps to analyse
         """
-        self.folder = folder
+        self.folder = Path(folder)
         self.extract = extract
         self.dataframe = None
         self.dist_diff = None
@@ -86,7 +84,7 @@ class SimulationData:
         self.frequency = None
         self.len_ratio = None
         self.len = None
-        self.name = basename(folder)
+        self.name = self.folder.name
         self.energy = energy_thres
         self.residence = None
         self.weight_dist = None
@@ -99,9 +97,9 @@ class SimulationData:
         """
         pd.options.mode.chained_assignment = None
         reports = []
-        for files in glob("{}/report_*".format(self.folder)):
+        for files in self.folder.glob("report_*"):
             residence_time = [0]
-            rep = basename(files).split("_")[1]
+            rep = files.name.split("_")[1]
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
             data.rename(columns={'#Task': "ID"}, inplace=True)
@@ -117,7 +115,7 @@ class SimulationData:
         self.dataframe = self.dataframe.iloc[:len(self.dataframe) - min(int(len(self.dataframe)*0.1), 20)]
         self.dataframe.sort_values(by="Binding Energy", inplace=True)
         self.dataframe.reset_index(drop=True, inplace=True)
-        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - int(len(self.dataframe)*0.2)] # eliminating the 20% with the highest biding energies
+        self.dataframe = self.dataframe.iloc[:len(self.dataframe) - int(len(self.dataframe)*0.2)]  # eliminating the 20% with the highest biding energies
         if followed_distance:
             self.followed_distance = followed_distance
         # extracting trajectories
@@ -125,7 +123,6 @@ class SimulationData:
         trajectory.reset_index(drop=True, inplace=True)
         self.trajectory = trajectory.iloc[:self.pdb]
         if not self.energy:
-            frequency = trajectory.loc[trajectory[self.followed_distance] <= self.catalytic]  # frequency of catalytic poses
             self.profile = self.dataframe.drop(["Step", "numberOfAcceptedPeleSteps", 'ID'], axis=1)
         else:
             frequency = trajectory.loc[(trajectory[self.followed_distance] <= self.catalytic) &
@@ -167,7 +164,7 @@ def analyse_all(folders, wild, follow, traj=5, cata_dist=3.5, energy_thres=None,
     original.filtering(follow)
     data_dict["original"] = original
     for folder in folders:
-        name = basename(folder)
+        name = Path(folder).name
         data = SimulationData(folder, pdb=traj, catalytic_dist=cata_dist, energy_thres=energy_thres, extract=extract)
         data.filtering(follow)
         data_dict[name] = data
@@ -207,22 +204,20 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, follo
     cat = pd.concat([distance, original], axis=0)
     cat_1 = pd.concat([original, distance], axis=0)
     # Creating the scatter plots
-    if not os.path.exists("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_)):
-        os.makedirs("{}_{}/Plots/{}/scatter_{}_{}".format(res_dir, mode, follow, position_num, type_))
-
+    Path(f"{res_dir}_{mode}/Plots/{follow}/scatter_{position_num}_{type_}").mkdir(parents=True, exist_ok=True)
     ax = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(10, 100), size="residence time",
                      palette="Set2", data=cat, linewidth=0, style_order=cat["Type"].unique(),
                      hue_order=cat["Type"].unique(), height=3.5, aspect=1.5)
     ex = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(10, 100), size="residence time",
                      palette="Set2", data=cat_1, linewidth=0, style_order=cat["Type"].unique(),
                      hue_order=cat["Type"].unique(), height=3.5, aspect=1.5)
-    ax.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
-    ex.set(title="{} scatter plot of {} vs {} ".format(key, profile_with, type_))
+    ax.set(title=f"{key} scatter plot of {profile_with} vs {type_} ")
+    ex.set(title=f"{key} scatter plot of {profile_with} vs {type_} ")
     ax.savefig(
-        "{}_{}/Plots/{}/scatter_{}_{}/{}_{}_1.png".format(res_dir, mode, follow, position_num, type_, key, type_),
+        f"{res_dir}_{mode}/Plots/{follow}/scatter_{position_num}_{type_}/{key}_{type_}_1.png",
         dpi=dpi)
     ex.savefig(
-        "{}_{}/Plots/{}/scatter_{}_{}/{}_{}_2.png".format(res_dir, mode, follow, position_num, type_, key, type_),
+        f"{res_dir}_{mode}/Plots/{follow}/scatter_{position_num}_{type_}/{key}_{type_}_2.png",
         dpi=dpi)
     plt.close(ax.fig)
     plt.close(ex.fig)
@@ -314,19 +309,17 @@ def extract_snapshot_xtc(res_dir, simulation_folder, f_id, position_num, mutatio
         The column name of the different followed distances during PELE simulation
     """
 
-    if not os.path.exists("{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)):
-        os.makedirs("{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation))
-
-    trajectories = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
-    topology = "{}/input/{}_processed.pdb".format(dirname(dirname(simulation_folder)), mutation)
-    if len(trajectories) == 0 or not os.path.exists(topology):
-        sys.exit("Trajectory_{} or topology file not found".format(f_id))
+    Path(f"{res_dir}_results/{follow}_{position_num}/{mutation}_pdbs").mkdir(parents=True, exist_ok=True)
+    trajectories = list(Path(f"{simulation_folder}").glob(f"trajectory*_{f_id}.*"))
+    topology = Path(simulation_folder).parent.parent/"input"/f"{mutation}_processed.pdb"
+    if len(trajectories) == 0 or not topology.exists():
+        sys.exit(f"Trajectory_{f_id} or topology file not found")
 
     # load the trajectory and write it to pdb
     traj = md.load_xtc(trajectories[0], topology)
-    name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
-    path_ = "{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)
-    traj[int(step)].save_pdb(os.path.join(path_, name))
+    name = f"traj{f_id}_step{step}_dist{round(dist, 2)}_bind{round(bind, 2)}.pdb"
+    path_ = Path(f"{res_dir}_results/{follow}_{position_num}/{mutation}_pdbs")
+    traj[int(step)].save_pdb(path_.joinpath(name))
 
 
 def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, follow):
@@ -354,13 +347,11 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
     follow: str, optional
         The column name of the different followed distances during PELE simulation
     """
-    if not os.path.exists("{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)):
-        os.makedirs("{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation))
-
-    f_in = glob("{}/*trajectory*_{}.*".format(simulation_folder, f_id))
+    Path(f"{res_dir}_results/{follow}_{position_num}/{mutation}_pdbs").mkdir(parents=True, exist_ok=True)
+    f_in = list(Path(f"{simulation_folder}").glob(f"trajectory*_{f_id}.*"))
     if len(f_in) == 0:
-        sys.exit("Trajectory_{} not found. Be aware that PELE trajectories must contain the label 'trajectory' in "
-                 "their file name to be detected".format(f_id))
+        sys.exit(f"Trajectory_{f_id} not found. Be aware that PELE trajectories must contain the label 'trajectory' in "
+                 "their file name to be detected")
     f_in = f_in[0]
     with open(f_in, 'r') as res_dirfile:
         file_content = res_dirfile.read()
@@ -368,9 +359,9 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
 
     # Output Snapshot
     traj = []
-    path_ = "{}_results/{}_{}/{}_pdbs".format(res_dir, follow, position_num, mutation)
-    name = "traj{}_step{}_dist{}_bind{}.pdb".format(f_id, step, round(dist, 2), round(bind, 2))
-    with open(os.path.join(path_, name), 'w') as f:
+    name = f"traj{f_id}_step{step}_dist{round(dist, 2)}_bind{round(bind, 2)}.pdb"
+    path_ = Path(f"{res_dir}_results/{follow}_{position_num}/{mutation}_pdbs")
+    with open(path_.joinpath(name), 'w') as f:
         traj.append("MODEL     {}".format(int(step) + 1))
         try:
             traj.append(trajectory_selected.group(1))
@@ -433,7 +424,7 @@ def extract_all(res_dir, data_dict, folders, follow, xtc=False):
     """
     args = []
     for pele in folders:
-        name = basename(pele)
+        name = Path(pele).name
         output = name[:-1]
         args.append((pele, output, name))
 
@@ -495,10 +486,9 @@ def pooled_analysis(folders, wild, base, atoms, dpi=800, traj=5, plot_dir=None, 
     p.join()
 
     # save the dataframe with the reports in csvs
-    if not os.path.exists("{}_results/csv/{}".format(plot_dir, base)):
-        os.makedirs("{}_results/csv/{}".format(plot_dir, base))
+    Path(f"{plot_dir}_results/csv/{base}").mkdir(parents=True, exist_ok=True)
     for key, value in data_dicts[0].items():
-        value.dataframe.to_csv("{}_results/csv/{}/{}.csv".format(plot_dir, base, key), header=True)
+        value.dataframe.to_csv(f"{plot_dir}_results/csv/{base}/{key}.csv")
 
 
 def consecutive_analysis(file_name, atoms, initial_input, wild=None, dpi=800, traj=5, plot_dir=None, cpus=10, cata_dist=3.5,
@@ -539,9 +529,9 @@ def consecutive_analysis(file_name, atoms, initial_input, wild=None, dpi=800, tr
     pele_folders, plot_dir, wild = check_completed_log(file_name, wild, plot_dir)
     assert len(atoms) % 2 == 0, "The number of atoms to follow should be multiple of 2"
     atoms = match_dist(atoms, initial_input, wild)
-    distances = ["distance_{}_{}".format("".join(atoms[i].split(":")), "".join(atoms[i+1].split(":"))) for i in range(0, len(atoms), 2)]
+    distances = [f"distance_{''.join(atoms[i].split(':'))}_{''.join(atoms[i+1].split(':'))}" for i in range(0, len(atoms), 2)]
     for folders in pele_folders:
-        base = basename(folders[0])[:-1]
+        base = Path(folders[0]).name[:-1]
         pooled_analysis(folders, wild, base, distances, dpi, traj, plot_dir, cpus, cata_dist, xtc, extract,
                         energy_thres, profile_with)
 
