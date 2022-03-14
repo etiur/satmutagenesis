@@ -1,12 +1,9 @@
 """
 This script is used to analyse the results of the simulations for substrate with chiral centers
 """
-from glob import glob
 import numpy as np
 import pandas as pd
 import argparse
-from os.path import basename, dirname
-import os
 import sys
 import re
 import matplotlib.pyplot as plt
@@ -297,7 +294,7 @@ def analyse_rs(folders, wild, dihedral_atoms, initial_pdb, res_dir, traj=5, cata
     original.filtering(follow)
     data_dict["original"] = original
     for folder in folders:
-        name = basename(folder)
+        name = Path(folder).name
         data = SimulationRS(folder, atoms, initial_pdb, res_dir, pdb=traj, catalytic_dist=cata_dist, extract=extract,
                             energy=energy, cpus=cpus)
         data.filtering(follow)
@@ -342,7 +339,7 @@ def extract_snapshot_xtc_rs(res_dir, simulation_folder, f_id, position_num, muta
 
     # load the trajectory and write it to pdb
     traj = md.load_xtc(trajectories[0], topology)
-    name = f"traj{f_id}_step{step}_dist{round(dist, 2)}_bind{round(bind, 2)}_{orientation}_{ound(angle, 2)}.pdb"
+    name = f"traj{f_id}_step{step}_dist{round(dist, 2)}_bind{round(bind, 2)}_{orientation}_{round(angle, 2)}.pdb"
     path_ = Path(f"{res_dir}_RS/{follow}_{position_num}/{mutation}_pdbs")
     traj[int(step)].save_pdb(path_/name)
 
