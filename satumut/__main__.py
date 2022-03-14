@@ -10,6 +10,7 @@ __email__ = "ruite.xiang@bsc.es"
 import argparse
 from subprocess import call
 from os.path import basename
+from pathlib import Path
 from .helper import neighbourresidues
 from Bio import PDB
 
@@ -229,7 +230,7 @@ class CreateSlurmFiles:
             The number of adaptive epochs to run
         """
 
-        self.input = input_
+        self.input = Path(input_)
         self.ligchain = ligchain
         self.ligname = ligname
         if atoms:
@@ -255,7 +256,7 @@ class CreateSlurmFiles:
         self.hydrogen = hydrogen
         self.multiple = multiple
         self.consec = consec
-        self.dir = dir_
+        self.dir = Path(dir_)
         self.pdb_dir = pdb_dir
         self.steps = steps
         self.dpi = dpi
@@ -322,41 +323,41 @@ class CreateSlurmFiles:
         Creates the slurm running files for PELE in sbatch managed systems
         """
         if not self.dir:
-            name = basename(self.input).replace(".pdb", "")
+            name = self.input.stem
         else:
-            name = basename(self.dir)
-        self.slurm = "{}.sh".format(name)
+            name = self.dir.name
+        self.slurm = f"{name}.sh"
         with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#SBATCH -J {}\n".format(name), "#SBATCH --output={}.out\n".format(name),
-                     "#SBATCH --error={}.err\n".format(name)]
+            lines = ["#!/bin/bash\n", f"#SBATCH -J {name}\n", f"#SBATCH --output={name}.out\n",
+                     f"#SBATCH --error={name}.err\n"]
             if self.test:
                 lines.append("#SBATCH --qos=debug\n")
             if self.cpt:
-                lines.append("#SBATCH --cpus-per-task={}\n".format(self.cpt))
+                lines.append(f"#SBATCH --cpus-per-task={self.cpt}\n")
             if self.total_cpus:
                 real_cpus = self.total_cpus
             else:
                 real_cpus = self.cpus * self.len + 1
-            lines.append("#SBATCH --ntasks={}\n\n".format(real_cpus))
+            lines.append(f"#SBATCH --ntasks={real_cpus}\n\n")
 
             lines2 = ['module purge\n',
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0 ANACONDA/2019.10\n',
                       'eval "$(conda shell.bash hook)"\n',
-                      "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.1\n\n"]
+                      "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.2\n\n"]
 
             argument_list = []
-            arguments = "-i {} -lc {} -ln {} ".format(self.input, self.ligchain, self.ligname)
+            arguments = f"-i {self.input} -lc {self.ligchain} -ln {self.ligname} "
             argument_list.append(arguments)
             if self.atoms:
-                argument_list.append("-at {} ".format(self.atoms))
+                argument_list.append(f"-at {self.atoms} ")
             if self.position:
-                argument_list.append("-p {} ".format(self.position))
+                argument_list.append(f"-p {self.position} ")
             if self.seed != 12345:
-                argument_list.append("--seed {} ".format(self.seed))
+                argument_list.append(f"--seed {self.seed} ")
             if self.cpus != 25:
-                argument_list.append("-cpm {} ".format(self.cpus))
+                argument_list.append(f"-cpm {self.cpus} ")
             if self.total_cpus:
-                argument_list.append("-tcpus {} ".format(self.total_cpus))
+                argument_list.append(f"-tcpus {self.total_cpus} ")
             if not self.hydrogen:
                 argument_list.append("-hy ")
             if self.consec:
@@ -366,191 +367,67 @@ class CreateSlurmFiles:
             if self.cu:
                 argument_list.append("-po ")
             if self.qm:
-                argument_list.append("--QM {} ".format(self.qm))
+                argument_list.append(f"--QM {self.qm} ")
             if self.box_radius:
-                argument_list.append("-br {} ".format(self.box_radius))
+                argument_list.append(f"-br {self.box_radius} ")
             if self.nord:
                 argument_list.append("--nord ")
             if self.pdb_dir != "pdb_files":
-                argument_list.append("-pd {} ".format(self.pdb_dir))
+                argument_list.append(f"-pd {self.pdb_dir} ")
             if self.epochs != 1:
-                argument_list.append("-ep {} ".format(self.epochs))
+                argument_list.append(f"-ep {self.epochs} ")
             if self.dir:
-                argument_list.append("--dir {} ".format(self.dir))
+                argument_list.append(f"--dir {self.dir} ")
             if self.equilibration:
                 argument_list.append("-e ")
             if self.profile_with != "Binding Energy":
-                argument_list.append("-pw {} ".format(self.profile_with))
+                argument_list.append(f"-pw {self.profile_with} ")
             if self.log:
                 argument_list.append("-l ")
             if self.wild:
-                argument_list.append("-w {} ".format(self.wild))
+                argument_list.append(f"-w {self.wild} ")
             if self.xtc:
                 argument_list.append("-x ")
             if self.steps != 1000:
-                argument_list.append("--steps {} ".format(self.steps))
+                argument_list.append(f"--steps {self.steps} ")
             if self.dpi != 800:
-                argument_list.append("--dpi {} ".format(self.dpi))
+                argument_list.append(f"--dpi {self.dpi} ")
             if self.traj != 5:
-                argument_list.append("-tr {} ".format(self.traj))
+                argument_list.append(f"-tr {self.traj} ")
             if self.plot_dir:
-                argument_list.append("--plot {} ".format(self.plot_dir))
+                argument_list.append(f"--plot {self.plot_dir} ")
             if self.resolution:
-                argument_list.append("-scr {} ".format(self.resolution))
+                argument_list.append(f"-scr {self.resolution} ")
             if self.cata_dist != 3.5:
-                argument_list.append("-cd {} ".format(self.cata_dist))
+                argument_list.append(f"-cd {self.cata_dist} ")
             if self.single and self.pluri:
-                argument_list.append("-sm {} ".format(self.single))
-                argument_list.append("-PR {} ".format(self.pluri))
+                argument_list.append(f"-sm {self.single} ")
+                argument_list.append(f"-PR {self.pluri} ")
                 if self.radius != 5.0:
-                    argument_list.append("-r {} ".format(self.radius))
+                    argument_list.append(f"-r {self.radius} ")
                 if len(self.avoid) != 0:
-                    argument_list.append("-f {} ".format(self.avoid))
+                    argument_list.append(f"-f {self.avoid} ")
             if self.cu and self.factor:
-                argument_list.append("-fa {} ".format(self.factor))
+                argument_list.append(f"-fa {self.factor} ")
             if self.template:
-                argument_list.append("-tem {} ".format(self.template))
+                argument_list.append(f"-tem {self.template} ")
             if self.mut:
-                argument_list.append("-mut {} ".format(self.mut))
+                argument_list.append(f"-mut {self.mut} ")
             if self.rotamer:
-                argument_list.append("-rot {} ".format(self.rotamer))
+                argument_list.append(f"-rot {self.rotamer} ")
             if self.skip:
-                argument_list.append("-sk {} ".format(self.skip))
+                argument_list.append(f"-sk {self.skip} ")
             if self.dihedral_atoms:
-                argument_list.append("-da {} ".format(self.dihedral_atoms))
-                argument_list.append("-im {} ".format(self.improve))
+                argument_list.append(f"-da {self.dihedral_atoms} ")
+                argument_list.append(f"-im {self.improve} ")
             if self.turn:
-                argument_list.append("-tu {} ".format(self.turn))
+                argument_list.append(f"-tu {self.turn} ")
             if self.energy_thres:
-                argument_list.append("-en {} ".format(self.energy_thres))
+                argument_list.append(f"-en {self.energy_thres} ")
             if self.conservative:
-                argument_list.append("-cst {} ".format(self.conservative))
+                argument_list.append(f"-cst {self.conservative} ")
             all_arguments = "".join(argument_list)
-            python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
-                all_arguments)
-            lines2.append(python)
-            lines.extend(lines2)
-            slurm.writelines(lines)
-
-        return self.slurm
-
-    def slurm_nord(self):
-        """
-        Create slurm files for PELE in LSF managed systems
-        """
-        if not self.dir:
-            name = basename(self.input).replace(".pdb", "")
-        else:
-            name = basename(self.dir)
-        self.slurm = "{}.sh".format(name)
-        with open(self.slurm, "w") as slurm:
-            lines = ["#!/bin/bash\n", "#BSUB -J {}\n".format(name), "#BSUB -oo {}.out\n".format(name),
-                     "#BSUB -eo {}.err\n".format(name)]
-            if self.cpt:
-                lines.append("#BSUB -M {}\n".format(1800*self.cpt))
-            if self.test:
-                lines.append("#BSUB -q debug\n")
-                lines.append("#BSUB -W 01:00\n")
-            else:
-                lines.append('#BSUB -q bsc_ls\n')
-                lines.append("#BSUB -W 48:00\n")
-
-            if self.total_cpus:
-                real_cpus = self.total_cpus
-            else:
-                real_cpus = self.cpus * self.len + 1
-            lines.append("#BSUB -n {}\n\n".format(real_cpus))
-
-            lines2 = ['module purge\n',
-                      'module load intel gcc openmpi/1.8.1 boost/1.63.0 MKL/11.3 GTK+3/3.2.4\n',
-                      'module load ANACONDA/2020.11\n',
-                      'eval "$(conda shell.bash hook)"\n',
-                      'conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.0_nord\n']
-
-            argument_list = []
-            arguments = "-i {} -lc {} -ln {} ".format(self.input, self.ligchain, self.ligname)
-            argument_list.append(arguments)
-            if self.atoms:
-                argument_list.append("-at {} ".format(self.atoms))
-            if self.position:
-                argument_list.append("-p {} ".format(self.position))
-            if self.seed != 12345:
-                argument_list.append("--seed {} ".format(self.seed))
-            if self.cpus != 25:
-                argument_list.append("-cpm {} ".format(self.cpus))
-            if self.total_cpus:
-                argument_list.append("-tcpus {} ".format(self.total_cpus))
-            if not self.hydrogen:
-                argument_list.append("-hy ")
-            if self.consec:
-                argument_list.append("-co ")
-            if self.multiple:
-                argument_list.append("-m ")
-            if self.cu:
-                argument_list.append("-po ")
-            if self.mut:
-                argument_list.append("-mut {} ".format(self.mut))
-            if self.nord:
-                argument_list.append("--nord ")
-            if self.equilibration:
-                argument_list.append("-e ")
-            if self.profile_with != "Binding Energy":
-                argument_list.append("-pw {} ".format(self.profile_with))
-            if self.log:
-                argument_list.append("-l ")
-            if self.wild:
-                argument_list.append("-w {} ".format(self.wild))
-            if self.resolution:
-                argument_list.append("-scr {} ".format(self.resolution))
-            if self.box_radius:
-                argument_list.append("-br {} ".format(self.box_radius))
-            if self.qm:
-                argument_list.append("--QM {} ".format(self.qm))
-            if self.pdb_dir != "pdb_files":
-                argument_list.append("-pd {} ".format(self.pdb_dir))
-            if self.dir:
-                argument_list.append("--dir {} ".format(self.dir))
-            if self.xtc:
-                argument_list.append("-x ")
-            if self.steps != 1000:
-                argument_list.append("--steps {} ".format(self.steps))
-            if self.dpi != 800:
-                argument_list.append("--dpi {} ".format(self.dpi))
-            if self.traj != 5:
-                argument_list.append("-tr {} ".format(self.traj))
-            if self.plot_dir:
-                argument_list.append("--plot {} ".format(self.plot_dir))
-            if self.cata_dist != 3.5:
-                argument_list.append("-cd {} ".format(self.cata_dist))
-            if self.epochs != 1:
-                argument_list.append("-ep {} ".format(self.epochs))
-            if self.single and self.pluri:
-                argument_list.append("-sm {} ".format(self.single))
-                argument_list.append("-PR {} ".format(self.pluri))
-                if self.radius != 5.0:
-                    argument_list.append("-r {} ".format(self.radius))
-                if len(self.avoid) != 0:
-                    argument_list.append("-f {} ".format(self.avoid))
-            if self.cu and self.factor:
-                argument_list.append("-fa {} ".format(self.factor))
-            if self.template:
-                argument_list.append("-tem {} ".format(self.template))
-            if self.rotamer:
-                argument_list.append("-rot {} ".format(self.rotamer))
-            if self.skip:
-                argument_list.append("-sk {} ".format(self.skip))
-            if self.dihedral_atoms:
-                argument_list.append("-da {} ".format(self.dihedral_atoms))
-                argument_list.append("-im {} ".format(self.improve))
-            if self.turn:
-                argument_list.append("-tu {} ".format(self.turn))
-            if self.energy_thres:
-                argument_list.append("-en {} ".format(self.energy_thres))
-            if self.conservative:
-                argument_list.append("-cst {} ".format(self.conservative))
-            all_arguments = "".join(argument_list)
-            python = "/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {}\n".format(
-                all_arguments)
+            python = f"/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {all_arguments}\n"
             lines2.append(python)
             lines.extend(lines2)
             slurm.writelines(lines)
@@ -572,11 +449,9 @@ def main():
                                plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, xtc, cata_dist, template,
                                skip, rotamers, equilibration, log, cpt, improve, turn, energy_thres, QM, dihedral,
                                box_radius, mut, conservative, profile_with, wild, side_chain_resolution, epochs)
-        if not nord:
-            slurm = run.slurm_creation()
-        else:
-            slurm = run.slurm_nord()
-        if sbatch and not nord:
+
+        slurm = run.slurm_creation()
+        if sbatch:
             call(["sbatch", "{}".format(slurm)])
 
 
