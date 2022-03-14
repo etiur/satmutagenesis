@@ -327,7 +327,9 @@ def weighted_median(df, val, weight):
 
 
 def check_completed_log(file_name, wild, plot_dir):
-    if Path(file_name).exists():
+    if isiterable(file_name):
+        pele_folders = commonlist(file_name)
+    elif Path(file_name).exists():
         folder, wild = find_log(file_name, wild)
         pele_folders = commonlist(folder)
     else:
