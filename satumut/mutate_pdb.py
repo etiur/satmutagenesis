@@ -11,7 +11,7 @@ from pmx.rotamer import get_rotamers, select_best_rotamer
 from multiprocessing import Process
 from Bio.SubsMat import MatrixInfo as mat
 from pathlib import Path
-
+import Bio.Align.substitution_matrices
 
 # Argument parsers
 def parse_args():

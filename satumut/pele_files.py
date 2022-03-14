@@ -4,7 +4,6 @@ This script is used to generate the yaml files for pele platform
 
 import argparse
 from .helper import map_atom_string
-import glob
 from pathlib import Path
 
 
