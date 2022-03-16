@@ -11,7 +11,8 @@ from pmx.rotamer import get_rotamers, select_best_rotamer
 from multiprocessing import Process
 from Bio.SubsMat import MatrixInfo as mat
 from pathlib import Path
-import Bio.Align.substitution_matrices
+import Bio.Align.substitution_matrices as new_mat
+
 
 # Argument parsers
 def parse_args():
@@ -129,6 +130,28 @@ class Mutagenesis:
         matrix = mat.blosum62
         matrix = {k: v for k, v in matrix.items() if "X" not in k and "B" not in k and "Z" not in k}
         blosum = [key for key in matrix.keys() if aa in key and key.count(aa) < 2 and "P" not in key]
+        value = [matrix[x] for x in blosum]
+        new_dict = dict(zip([_aacids_ext_amber[x[1]] if x[0] == aa else _aacids_ext_amber[x[0]] for x in blosum], value))
+        if library == 1:
+            reduced_dict = {k: v for k, v in new_dict.items() if v >= 0}
+        elif library == 2:
+            reduced_dict = {k: v for k, v in new_dict.items() if v >= -1}
+
+        return reduced_dict.keys()
+
+    def _mutation_library_new(self, library=1):
+        """
+        Determines how conservative should be the mutations in the new versions of biopython
+
+        Parameters
+        ___________
+        library: int
+            Choose between 1 and 2 to configure how conservative should be the mutations
+        """
+        aa = self._invert_aa[self.aa_init_resname]
+        matrix = new_mat.load("BLOSUM62")
+        matrix = {k: v for k, v in matrix.items() if "X" not in k and "B" not in k and "Z" not in k and "*" not in k}
+        blosum = [key for key in matrix.keys() if aa == key[1] and key.count(aa) < 2 and "P" not in key]
         value = [matrix[x] for x in blosum]
         new_dict = dict(zip([_aacids_ext_amber[x[1]] if x[0] == aa else _aacids_ext_amber[x[0]] for x in blosum], value))
         if library == 1:
