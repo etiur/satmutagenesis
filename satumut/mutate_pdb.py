@@ -114,7 +114,7 @@ class Mutagenesis:
         elif mut and not conservative:
             residues = mut
         elif conservative and not mut:
-            residues = self._mutation_library(conservative)
+            residues = self._mutation_library_new(conservative)
         return residues
 
     def _mutation_library(self, library=1):
