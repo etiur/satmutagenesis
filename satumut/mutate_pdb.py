@@ -247,8 +247,7 @@ class Mutagenesis:
                 try:
                     self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
                 except KeyError:
-                    self.log.error("position {}:{} has no rotamer in the library so it was skipped".format(self.chain_id,
-                                   self.position+1), exc_info=True)
+                    self.log.error(f"position {self.chain_id}:{self.position+1} has no rotamer in the library so it was skipped", exc_info=True)
                 # writing into a pdb
                 if self.consec or count == 1:
                     output = Path(f"{self.input.stem}_{aa_name}{self.position+1}{self._invert_aa[new_aa]}.pdb")
@@ -332,9 +331,9 @@ class Mutagenesis:
 
                 atom_name = line[12:16].strip()
                 if atom_name[0].isalpha():
-                    atom_type = "           {}  \n".format(atom_name[0])
+                    atom_type = f"           {atom_name[0]}  \n"
                 else:
-                    atom_type = "           {}  \n".format(atom_name[1])
+                    atom_type = f"           {atom_name[1]}  \n"
 
                 prep_lines[ind] = line.strip("\n") + atom_type
 
