@@ -161,7 +161,8 @@ class CreateYamlFiles:
         self.log = log
         self.consec = consec
         self.turn = turn
-        self.input_pdb = Path(input_pdb)
+        if input_pdb:
+            self.input_pdb = Path(input_pdb)
         self.qm = QM
         self.box = box_radius
         self.resolution = side_chain_resolution

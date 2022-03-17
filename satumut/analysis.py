@@ -478,6 +478,8 @@ def complete_analysis(follow, folders, wild, base, dpi=800, traj=5, plot_dir=Non
 
 def pooled_analysis(folders, wild, base, atoms, dpi=800, traj=5, plot_dir=None, cpus=10, cata_dist=3.5, xtc=False,
                     extract=None, energy_thres=None, profile_with="Binding Energy"):
+
+    # atoms = [f"distance{x}5" for x in range(len(atoms)//2)]
     p = mp.Pool(cpus)
     func = partial(complete_analysis, folders=folders, wild=wild, base=base, dpi=dpi, traj=traj, plot_dir=plot_dir,
                    cata_dist=cata_dist, xtc=xtc, extract=extract, energy_thres=energy_thres, profile_with=profile_with)

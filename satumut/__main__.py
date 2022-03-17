@@ -342,7 +342,7 @@ class CreateSlurmFiles:
             lines2 = ['module purge\n',
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0 ANACONDA/2019.10\n',
                       'eval "$(conda shell.bash hook)"\n',
-                      "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.2\n\n"]
+                      "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.1\n\n"]
 
             argument_list = []
             arguments = f"-i {self.input} -lc {self.ligchain} -ln {self.ligname} "
@@ -426,7 +426,7 @@ class CreateSlurmFiles:
             if self.conservative:
                 argument_list.append(f"-cst {self.conservative} ")
             all_arguments = "".join(argument_list)
-            python = f"/gpfs/projects/bsc72/conda_envs/saturated/bin/python -m satumut.simulation {all_arguments}\n"
+            python = f"/home/bsc72/bsc72661/.conda/envs/satumut_3/bin/python -m satumut.simulation {all_arguments}\n"
             lines2.append(python)
             lines.extend(lines2)
             slurm.writelines(lines)
