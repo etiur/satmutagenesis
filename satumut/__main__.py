@@ -56,7 +56,7 @@ def parse_args():
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("-tr", "--trajectory", required=False, default=5, type=int,
+    parser.add_argument("-tr", "--trajectory", required=False, default=1, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--plot", required=False,
                         help="Path of the plots folder")
@@ -74,7 +74,7 @@ def parse_args():
                         help="Specify the list of residues that you don't want"
                              "to have mutated (Must write the list of residue position"
                              "numbers)")
-    parser.add_argument("-x", "--xtc", required=False, action="store_true",
+    parser.add_argument("-x", "--xtc", required=False, action="store_false",
                         help="Change the pdb format to xtc")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
@@ -131,8 +131,8 @@ class CreateSlurmFiles:
 
     def __init__(self, input_, ligchain, ligname, atoms, position=(), cpus_mutant=25, dir_=None, hydrogen=True,
                  multiple=False, pdb_dir="pdb_files", consec=False, test=False, cu=False, seed=12345, nord=False,
-                 steps=1000, dpi=800, traj=5, plot_dir=None,  single_mutagenesis=None, plurizyme_at_and_res=None,
-                 radius=5.0, fixed_resids=(), factor=None, total_cpus=None, xtc=False, cata_dist=3.5, template=None,
+                 steps=1000, dpi=800, traj=1, plot_dir=None,  single_mutagenesis=None, plurizyme_at_and_res=None,
+                 radius=5.0, fixed_resids=(), factor=None, total_cpus=None, xtc=True, cata_dist=3.5, template=None,
                  skip=None, rotamers=None, equilibration=True, log=False, cpt=None, improve="R", turn=None,
                  energy_thres=None, QM=None, dihedral=None, box_radius=None, mut=None, conservative=None,
                  profile_with="Binding Energy", wild=None, side_chain_resolution=10, epochs=1):
@@ -385,13 +385,13 @@ class CreateSlurmFiles:
                 argument_list.append("-l ")
             if self.wild:
                 argument_list.append(f"-w {self.wild} ")
-            if self.xtc:
+            if not self.xtc:
                 argument_list.append("-x ")
             if self.steps != 1000:
                 argument_list.append(f"--steps {self.steps} ")
             if self.dpi != 800:
                 argument_list.append(f"--dpi {self.dpi} ")
-            if self.traj != 5:
+            if self.traj != 1:
                 argument_list.append(f"-tr {self.traj} ")
             if self.plot_dir:
                 argument_list.append(f"--plot {self.plot_dir} ")

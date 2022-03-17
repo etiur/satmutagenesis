@@ -31,7 +31,7 @@ def parse_args():
                         help="Include the seed number to make the simulation reproducible")
     parser.add_argument("-st", "--steps", required=False, type=int, default=1000,
                         help="The number of PELE steps")
-    parser.add_argument("-x", "--xtc", required=False, action="store_true",
+    parser.add_argument("-x", "--xtc", required=False, action="store_false",
                         help="Change the pdb format to xtc")
     parser.add_argument("-e", "--equilibration", required=False, action="store_true",
                         help="Set equilibration")
@@ -68,7 +68,7 @@ class CreateYamlFiles:
     Creates the 2 necessary files for the pele simulations
     """
     def __init__(self, mutant_list,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345, nord=False,
-                 steps=1000, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
+                 steps=1000, single=None, factor=None, total_cpus=None, xtc=True, template=None, skip=None,
                  rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None,
                  box_radius=None, side_chain_resolution=10, epochs=1):
         """
@@ -275,7 +275,7 @@ class CreateYamlFiles:
 
 
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, cu=False, seed=12345, nord=False,
-                    steps=1000, single=None, factor=None, total_cpus=None, xtc=False, template=None, skip=None,
+                    steps=1000, single=None, factor=None, total_cpus=None, xtc=True, template=None, skip=None,
                     rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None,
                     box_radius=None, side_chain_resolution=10, epochs=1):
     """

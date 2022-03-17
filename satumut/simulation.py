@@ -50,7 +50,7 @@ def parse_args():
                         help="The number of PELE steps")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("-tr", "--trajectory", required=False, default=5, type=int,
+    parser.add_argument("-tr", "--trajectory", required=False, default=1, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--plot", required=False,
                         help="Path of the plots folder")
@@ -70,7 +70,7 @@ def parse_args():
                              "numbers)")
     parser.add_argument("-re", "--restart", required=False, action="store_true",
                         help="Restart after manually editing the yaml file with restart or adaptive restart flags")
-    parser.add_argument("-x", "--xtc", required=False, action="store_true",
+    parser.add_argument("-x", "--xtc", required=False, action="store_false",
                         help="Change the pdb format to xtc")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
@@ -197,8 +197,8 @@ class SimulationRunner:
 
 def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=25, dir_=None, hydrogen=True,
                          multiple=False, pdb_dir="pdb_files", consec=False, cu=False, seed=12345, nord=False,
-                         steps=1000, dpi=800, traj=5,  plot_dir=None,  factor=None, plurizyme_at_and_res=None,
-                         radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=False,
+                         steps=1000, dpi=800, traj=1,  plot_dir=None,  factor=None, plurizyme_at_and_res=None,
+                         radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=True,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, energy_threshold=None,
                          QM=None, dihedral=None, box_radius=None, mut=None, conservative=None,
                          profile_with="Binding Energy", wild=None, side_chain_resolution=10, epochs=1):
@@ -318,7 +318,7 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
 def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", cu=False, seed=12345, nord=False, steps=300, factor=None,
-                         total_cpus=None, xtc=False, template=None, skip=None, rotamers=None, equilibration=True,
+                         total_cpus=None, xtc=True, template=None, skip=None, rotamers=None, equilibration=True,
                          log=False, turn=None, box_radius=None, side_chain_resolution=10, epochs=1):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations

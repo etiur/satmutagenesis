@@ -25,14 +25,14 @@ def parse_args():
                         help="Include the path of input pdb of the simulation")
     parser.add_argument("--dpi", required=False, default=800, type=int,
                         help="Set the quality of the plots")
-    parser.add_argument("--traj", required=False, default=5, type=int,
+    parser.add_argument("--traj", required=False, default=1, type=int,
                         help="Set how many PDBs are extracted from the trajectories")
     parser.add_argument("--plot", required=False, help="Path of the plots folder")
     parser.add_argument("--cpus", required=False, default=25, type=int,
                         help="Include the number of cpus desired")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
-    parser.add_argument("-x", "--xtc", required=False, action="store_true", help="Change the pdb format to xtc")
+    parser.add_argument("-x", "--xtc", required=False, action="store_false", help="Change the pdb format to xtc")
     parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("-en", "--energy_threshold", required=False, type=int,
                         help="An energy threshold that limits the points of scatter plots")
@@ -52,7 +52,7 @@ class SimulationData:
     """
     A class to store data from the simulations in dictionaries
     """
-    def __init__(self, folder, pdb=5, catalytic_dist=3.5, energy_thres=None, extract=None):
+    def __init__(self, folder, pdb=1, catalytic_dist=3.5, energy_thres=None, extract=None):
         """
         Initialize the SimulationData Object
 
@@ -132,7 +132,7 @@ class SimulationData:
         self.profile["Type"] = [self.name for _ in range(len(self.profile.index))]
 
 
-def analyse_all(folders, wild, follow, traj=5, cata_dist=3.5, energy_thres=None, extract=None):
+def analyse_all(folders, wild, follow, traj=1, cata_dist=3.5, energy_thres=None, extract=None):
     """
     Analyse all the 19 simulations folders and build SimulationData objects for each of them
 
@@ -371,7 +371,7 @@ def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mu
         f.write("\n".join(traj))
 
 
-def extract_10_pdb_single(info, res_dir, data_dict, follow, xtc=False):
+def extract_10_pdb_single(info, res_dir, data_dict, follow, xtc=True):
     """
     Extracts the top 10 distances for one mutation
 
@@ -401,7 +401,7 @@ def extract_10_pdb_single(info, res_dir, data_dict, follow, xtc=False):
             extract_snapshot_xtc(res_dir, simulation_folder, ids, position_num, mutation, step, dist, bind, follow)
 
 
-def extract_all(res_dir, data_dict, folders, follow, xtc=False):
+def extract_all(res_dir, data_dict, folders, follow, xtc=True):
     """
     Extracts the top 10 distances for the 19 mutations at the same position
 
@@ -433,7 +433,7 @@ def extract_all(res_dir, data_dict, folders, follow, xtc=False):
         extract_10_pdb_single(arg, res_dir, data_dict, xtc=xtc, follow=follow)
 
 
-def complete_analysis(follow, folders, wild, base, dpi=800, traj=5, plot_dir=None, cata_dist=3.5, xtc=False,
+def complete_analysis(follow, folders, wild, base, dpi=800, traj=1, plot_dir=None, cata_dist=3.5, xtc=True,
                       extract=None, energy_thres=None, profile_with="Binding Energy"):
     """
     A function that does a complete analysis of the simulation results
@@ -476,7 +476,7 @@ def complete_analysis(follow, folders, wild, base, dpi=800, traj=5, plot_dir=Non
     return data_dict
 
 
-def pooled_analysis(folders, wild, base, atoms, dpi=800, traj=5, plot_dir=None, cpus=10, cata_dist=3.5, xtc=False,
+def pooled_analysis(folders, wild, base, atoms, dpi=800, traj=1, plot_dir=None, cpus=10, cata_dist=3.5, xtc=True,
                     extract=None, energy_thres=None, profile_with="Binding Energy"):
 
     # atoms = [f"distance{x}5" for x in range(len(atoms)//2)]
@@ -493,8 +493,8 @@ def pooled_analysis(folders, wild, base, atoms, dpi=800, traj=5, plot_dir=None, 
         value.dataframe.to_csv(f"{plot_dir}_results/csv/{base}/{key}.csv")
 
 
-def consecutive_analysis(file_name, atoms, initial_input, wild=None, dpi=800, traj=5, plot_dir=None, cpus=10, cata_dist=3.5,
-                         xtc=False, extract=None, energy_thres=None, profile_with="Binding Energy"):
+def consecutive_analysis(file_name, atoms, initial_input, wild=None, dpi=800, traj=1, plot_dir=None, cpus=10, cata_dist=3.5,
+                         xtc=True, extract=None, energy_thres=None, profile_with="Binding Energy"):
     """
     Analysis for the different positions
 
