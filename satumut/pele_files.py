@@ -221,7 +221,7 @@ class CreateYamlFiles:
         with open(self.yaml, "w") as inp:
             lines = [f"system: '{self.mutant_list[0].parent}/*.pdb'\n", f"chain: '{self.ligchain}'\n",
                      f"resname: '{self.ligname}'\n", "saturated_mutagenesis: true\n",
-                     f"seed: {self.seed}\n", f"steps: {self.steps}\n", "use_peleffy: true\n"]
+                     f"seed: {self.seed}\n", f"steps: {self.steps}\n", "use_peleffy: false\n"]
             if self.atoms:
                 lines.append("atom_dist:\n")
                 lines_atoms = [f"- '{atom}'\n" for atom in self.atoms]
