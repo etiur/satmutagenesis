@@ -155,7 +155,7 @@ class SimulationRS:
             resSeq = coord.split(":")[1]
             name = coord.split(":")[2]
             try:
-                resname = structure[0][coord.split(":")[0]][int(resSeq)-1].resname
+                resname = structure[0][coord.split(":")[0]][int(resSeq)].resname
             except KeyError:
                 resname = list(structure[0][coord.split(":")[0]].get_residues())[0].resname
             select.append((resSeq, name, resname))

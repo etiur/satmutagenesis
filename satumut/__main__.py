@@ -342,7 +342,7 @@ class CreateSlurmFiles:
             lines2 = ['module purge\n',
                       'module load intel mkl impi gcc # 2> /dev/null\n', 'module load boost/1.64.0 ANACONDA/2019.10\n',
                       'eval "$(conda shell.bash hook)"\n',
-                      "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.1\n\n"]
+                      "conda activate /gpfs/projects/bsc72/conda_envs/platform/1.6.3\n\n"]
 
             argument_list = []
             arguments = f"-i {self.input} -lc {self.ligchain} -ln {self.ligname} "
