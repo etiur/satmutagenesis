@@ -82,6 +82,8 @@ def parse_args():
                         help="Path to external rotamers templates")
     parser.add_argument("-e", "--equilibration", required=False, action="store_true",
                         help="Set equilibration")
+    parser.add_argument("-et", "--equilibration_steps", required=False, type=int,
+                        help="Set equilibration steps")
     parser.add_argument("-l", "--log", required=False, action="store_true",
                         help="write logs")
     parser.add_argument("-da", "--dihedral_atoms", required=False, nargs="+",
@@ -114,7 +116,8 @@ def parse_args():
             args.plurizyme_at_and_res, args.radius, args.fixed_resids, args.polarization_factor, args.total_cpus,
             args.restart, args.xtc, args.catalytic_distance, args.template, args.skip, args.rotamers, args.equilibration,
             args.log, args.turn, args.energy_threshold, args.QM, args.dihedral_atoms, args.box_radius, args.mutation,
-            args.conservative, args.profile_with, args.wild, args.side_chain_resolution, args.epochs]
+            args.conservative, args.profile_with, args.wild, args.side_chain_resolution, args.epochs,
+            args.equilibration_steps]
 
 
 class SimulationRunner:
@@ -201,7 +204,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
                          radius=5.0, fixed_resids=(), total_cpus=None, restart=False, cata_dist=3.5, xtc=True,
                          template=None, skip=None, rotamers=None, equilibration=True, log=False, energy_threshold=None,
                          QM=None, dihedral=None, box_radius=None, mut=None, conservative=None,
-                         profile_with="Binding Energy", wild=None, side_chain_resolution=10, epochs=1):
+                         profile_with="Binding Energy", wild=None, side_chain_resolution=10, epochs=1,
+                         equilibration_steps=None):
     """
     A function that uses the SimulationRunner class to run saturated mutagenesis simulations
 
@@ -300,7 +304,8 @@ def saturated_simulation(input_, ligchain, ligname, atoms, position=None, cpus=2
         yaml = create_20sbatch(pdb_names, ligchain, ligname, atoms, cpus=cpus, initial=input_, cu=cu, seed=seed,
                                nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc, template=template,
                                skip=skip, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, QM=QM,
-                               box_radius=box_radius, side_chain_resolution=side_chain_resolution, epochs=epochs)
+                               box_radius=box_radius, side_chain_resolution=side_chain_resolution, epochs=epochs,
+                               equilibration_steps=equilibration_steps)
         simulation.submit(yaml)
     else:
         simulation.restart_yaml(consec)
@@ -319,7 +324,8 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
                          radius=5.0, fixed_resids=(), cpus=30, dir_=None, hydrogen=True,
                          pdb_dir="pdb_files", cu=False, seed=12345, nord=False, steps=300, factor=None,
                          total_cpus=None, xtc=True, template=None, skip=None, rotamers=None, equilibration=True,
-                         log=False, turn=None, box_radius=None, side_chain_resolution=10, epochs=1):
+                         log=False, turn=None, box_radius=None, side_chain_resolution=10, epochs=1,
+                         equilibration_steps=None):
     """
     Run the simulations for the plurizyme's projct which is based on single mutations
 
@@ -392,7 +398,7 @@ def plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, p
                            steps=steps, single=single_mutagenesis, factor=factor, total_cpus=total_cpus, xtc=xtc,
                            template=template, skip=skip, rotamers=rotamers, equilibration=equilibration, log=log,
                            input_pdb=input_, box_radius=box_radius, side_chain_resolution=side_chain_resolution,
-                           epochs=epochs)
+                           epochs=epochs, equilibration_steps=equilibration_steps)
     simulation.submit(yaml)
 
 
@@ -400,21 +406,21 @@ def main():
     input_, position, ligchain, ligname, atoms, cpus, cu, multiple, seed, dir_, nord, pdb_dir, hydrogen, consec, steps,\
     dpi, traj, plot_dir, single_mutagenesis, plurizyme_at_and_res, radius, fixed_resids, factor, total_cpus, restart, \
     xtc, cata_dist, template, skip, rotamers, equilibration, log, turn, energy_thres, QM, dihedral, box_radius, mut, \
-    conservative, profile_with, wild, side_chain_resolution, epochs = parse_args()
+    conservative, profile_with, wild, side_chain_resolution, epochs, equilibration_steps = parse_args()
 
     if plurizyme_at_and_res and single_mutagenesis:
         # if the other 2 flags are present perform plurizyme simulations
         plurizyme_simulation(input_, ligchain, ligname, atoms, single_mutagenesis, plurizyme_at_and_res,
                              radius, fixed_resids, cpus, dir_, hydrogen, pdb_dir, cu, seed, nord, steps,
                              factor, total_cpus, xtc, template, skip, rotamers, equilibration, log, turn, box_radius,
-                             side_chain_resolution, epochs)
+                             side_chain_resolution, epochs, equilibration_steps)
     else:
         # Else, perform saturated mutagenesis
         saturated_simulation(input_, ligchain, ligname, atoms, position, cpus, dir_, hydrogen, multiple, pdb_dir,
                              consec, cu, seed, nord, steps, dpi, traj,  plot_dir, factor, plurizyme_at_and_res, radius,
                              fixed_resids, total_cpus, restart, cata_dist, xtc, template, skip, rotamers, equilibration,
                              log, energy_thres, QM, dihedral, box_radius, mut, conservative, profile_with, wild,
-                             side_chain_resolution, epochs)
+                             side_chain_resolution, epochs, equilibration_steps)
 
 
 if __name__ == "__main__":

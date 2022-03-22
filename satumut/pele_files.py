@@ -55,12 +55,14 @@ def parse_args():
                         help="Affects the side chain sampling, the smaller the more accurate")
     parser.add_argument("-ep", "--epochs", required=False, type=int, default=1,
                         help="the number of adaptive epochs to run")
+    parser.add_argument("-et", "--equilibration_steps", required=False, type=int,
+                        help="Set equilibration steps")
     args = parser.parse_args()
 
     return [args.folder, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.polarize_metals,
             args.seed, args.nord, args.steps, args.polarization_factor, args.total_cpus, args.xtc, args.template,
             args.skip, args.rotamers, args.equilibration, args.log, args.consec, args.turn, args.QM, args.box_radius,
-            args.side_chain_resolution, args.epochs]
+            args.side_chain_resolution, args.epochs, args.equilibration_steps]
 
 
 class CreateYamlFiles:
@@ -70,7 +72,7 @@ class CreateYamlFiles:
     def __init__(self, mutant_list,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                  steps=1000, single=None, factor=None, total_cpus=None, xtc=True, template=None, skip=None,
                  rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None,
-                 box_radius=None, side_chain_resolution=10, epochs=1):
+                 box_radius=None, side_chain_resolution=10, epochs=1, equilibration_steps=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -167,6 +169,7 @@ class CreateYamlFiles:
         self.box = box_radius
         self.resolution = side_chain_resolution
         self.epochs = epochs
+        self.equilibration_steps = equilibration_steps
 
     def _match_dist(self):
         """
@@ -242,6 +245,8 @@ class CreateYamlFiles:
                 lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/nord4/V1.7.1/bin/PELE-1.7.1_mpi'\n")
             if self.equilibration:
                 lines2.append("equilibration: true\n")
+            if self.equilibration and self.equilibration_steps:
+                lines.append(f"equilibration_steps: {self.equilibration_steps}\n")
             if self.log:
                 lines2.append("log: true\n")
             if self.resolution:
@@ -277,7 +282,7 @@ class CreateYamlFiles:
 def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, cu=False, seed=12345, nord=False,
                     steps=1000, single=None, factor=None, total_cpus=None, xtc=True, template=None, skip=None,
                     rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None,
-                    box_radius=None, side_chain_resolution=10, epochs=1):
+                    box_radius=None, side_chain_resolution=10, epochs=1, equilibration_steps=None):
     """
     creates for each of the mutants the yaml and slurm files
 
@@ -348,20 +353,21 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
     run = CreateYamlFiles(pdb_list, ligchain, ligname, atoms, cpus, initial=initial, cu=cu, seed=seed, nord=nord,
                           steps=steps, single=single, factor=factor, total_cpus=total_cpus, xtc=xtc, skip=skip,
                           template=template, rotamers=rotamers, equilibration=equilibration, log=log, consec=consec,
-                          turn=turn, input_pdb=input_pdb, QM=QM, box_radius=box_radius,
-                          side_chain_resolution=side_chain_resolution, epochs=epochs)
+                          turn=turn, input_pdb=input_pdb, QM=QM, box_radius=box_radius, epochs=epochs,
+                          side_chain_resolution=side_chain_resolution, equilibration_steps=equilibration_steps)
     yaml = run.yaml_creation()
     return yaml
 
 
 def main():
     folder, ligchain, ligname, atoms, cpus, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
-    skip, rotamers, equilibration, log, consec, turn, QM, box_radius, side_chain_resolution, epochs = parse_args()
+    skip, rotamers, equilibration, log, consec, turn, QM, box_radius, side_chain_resolution, epochs, equi_steps\
+        = parse_args()
     yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, cu=cu,
                                  seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc,
                                  skip=skip, template=template, rotamers=rotamers, equilibration=equilibration, log=log,
-                                 consec=consec, turn=turn, QM=QM, box_radius=box_radius,
-                                 side_chain_resolution=side_chain_resolution, epochs=epochs)
+                                 consec=consec, turn=turn, QM=QM, box_radius=box_radius, epochs=epochs,
+                                 side_chain_resolution=side_chain_resolution, equilibration_steps=equi_steps)
 
     return yaml_files
 
