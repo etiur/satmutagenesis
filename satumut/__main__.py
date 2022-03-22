@@ -112,6 +112,8 @@ def parse_args():
                         help="Affects the side chain sampling, the smaller the more accurate")
     parser.add_argument("-ep", "--epochs", required=False, type=int, default=1,
                         help="the number of adaptive epochs to run")
+    parser.add_argument("-et", "--equilibration_steps", required=False, type=int,
+                        help="Set equilibration steps")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -121,7 +123,7 @@ def parse_args():
             args.xtc, args.catalytic_distance, args.template, args.skip, args.rotamers, args.equilibration, args.log,
             args.cpus_per_task, args.improve, args.turn, args.energy_threshold, args.QM, args.dihedral_atoms,
             args.box_radius, args.mutation, args.conservative, args.profile_with, args.wild, args.side_chain_resolution,
-            args.epochs]
+            args.epochs, args.equilibration_steps]
 
 
 class CreateSlurmFiles:
@@ -135,7 +137,7 @@ class CreateSlurmFiles:
                  radius=5.0, fixed_resids=(), factor=None, total_cpus=None, xtc=True, cata_dist=3.5, template=None,
                  skip=None, rotamers=None, equilibration=True, log=False, cpt=None, improve="R", turn=None,
                  energy_thres=None, QM=None, dihedral=None, box_radius=None, mut=None, conservative=None,
-                 profile_with="Binding Energy", wild=None, side_chain_resolution=10, epochs=1):
+                 profile_with="Binding Energy", wild=None, side_chain_resolution=10, epochs=1, equilibration_steps=None):
         """
         Initialize the CreateLaunchFiles object
 
@@ -302,6 +304,7 @@ class CreateSlurmFiles:
         self.wild = wild
         self.resolution = side_chain_resolution
         self.epochs = epochs
+        self.equilibration_steps = equilibration_steps
 
     def _size(self):
         """
@@ -379,6 +382,8 @@ class CreateSlurmFiles:
                 argument_list.append(f"--dir {self.dir} ")
             if self.equilibration:
                 argument_list.append("-e ")
+            if self.equilibration and self.equilibration_steps:
+                argument_list.append(f"-et {self.equilibration_steps} ")
             if self.profile_with != "Binding Energy":
                 argument_list.append(f"-pw {self.profile_with} ")
             if self.log:
