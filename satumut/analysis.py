@@ -316,10 +316,10 @@ def extract_snapshot_xtc(res_dir, simulation_folder, f_id, position_num, mutatio
         sys.exit(f"Trajectory_{f_id} or topology file not found")
 
     # load the trajectory and write it to pdb
-    traj = md.load_xtc(trajectories[0], topology)
+    traj = md.load_xtc(str(trajectories[0]), str(topology))
     name = f"traj{f_id}_step{step}_dist{round(dist, 2)}_bind{round(bind, 2)}.pdb"
     path_ = Path(f"{res_dir}_results/{follow}_{position_num}/{mutation}_pdbs")
-    traj[int(step)].save_pdb(path_.joinpath(name))
+    traj[int(step)].save_pdb(str(path_.joinpath(name)))
 
 
 def extract_snapshot_from_pdb(res_dir, simulation_folder, f_id, position_num, mutation, step, dist, bind, follow):
