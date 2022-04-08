@@ -237,12 +237,7 @@ class CreateYamlFiles:
                 lines.append(f"working_folder: '{folder}/{self.input_pdb.stem}'\n")
             else:
                 lines.append(f"working_folder: '{folder}'\n")
-            lines2 = [f"cpus: {self.total_cpu}\n", f"cpus_per_mutation: {self.cpus}\n",
-                      "pele_license: '/gpfs/projects/bsc72/PELE++/license'\n"]
-            if not self.nord:
-                lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/mniv/V1.7/bin/PELE-1.7_mpi'\n")
-            else:
-                lines2.append("pele_exec: '/gpfs/projects/bsc72/PELE++/nord4/V1.7.1/bin/PELE-1.7.1_mpi'\n")
+            lines2 = [f"cpus: {self.total_cpu}\n", f"cpus_per_mutation: {self.cpus}\n"]
             if self.equilibration:
                 lines2.append("equilibration: true\n")
             if self.equilibration and self.equilibration_steps:

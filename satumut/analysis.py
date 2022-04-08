@@ -93,7 +93,7 @@ class SimulationData:
 
     def filtering(self, followed_distance=None):
         """
-        Generates the different
+        Generates the different dataframes to be used for all the other functions
         """
         pd.options.mode.chained_assignment = None
         reports = []
