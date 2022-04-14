@@ -49,7 +49,7 @@ def parse_args():
                         help="the round of plurizyme generation, not needed for the 1st round")
     parser.add_argument("--QM", required=False,
                         help="The path to the QM charges")
-    parser.add_argument("-br","--box_radius", required=False, type=int,
+    parser.add_argument("-br", "--box_radius", required=False, type=int,
                         help="Radius of the exploration box")
     parser.add_argument("-scr", "--side_chain_resolution", required=False, type=int, default=10,
                         help="Affects the side chain sampling, the smaller the more accurate")
@@ -67,8 +67,8 @@ class CreateYamlFiles:
     """
     Creates the 2 necessary files for the pele simulations
     """
-    def __init__(self, mutant_list,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345, nord=False,
-                 steps=1000, single=None, factor=None, total_cpus=None, xtc=True, template=None, skip=None,
+    def __init__(self, mutant_list,  ligchain, ligname, atoms=None, cpus=25, initial=None, cu=False, seed=12345,
+                 nord=False, steps=1000, single=None, factor=None, total_cpus=None, xtc=True, template=None, skip=None,
                  rotamers=None, equilibration=True, log=False, consec=False, turn=None, input_pdb=None, QM=None,
                  box_radius=None, side_chain_resolution=10, epochs=1):
         """
@@ -352,10 +352,10 @@ def create_20sbatch(pdb_files, ligchain, ligname, atoms, cpus=25, initial=None, 
 def main():
     folder, ligchain, ligname, atoms, cpus, cu, seed, nord, steps, factor, total_cpus, xtc, template, \
     skip, rotamers, equilibration, log, consec, turn, QM, box_radius, side_chain_resolution, epochs = parse_args()
-    yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, cu=cu,
-                                 seed=seed, nord=nord, steps=steps, factor=factor, total_cpus=total_cpus, xtc=xtc,
-                                 skip=skip, template=template, rotamers=rotamers, equilibration=equilibration, log=log,
-                                 consec=consec, turn=turn, QM=QM, box_radius=box_radius, epochs=epochs,
+    yaml_files = create_20sbatch(folder, ligchain, ligname, atoms, cpus=cpus, cu=cu, seed=seed, nord=nord, steps=steps,
+                                 factor=factor, total_cpus=total_cpus, xtc=xtc, skip=skip, template=template,
+                                 rotamers=rotamers, equilibration=equilibration, log=log, consec=consec, turn=turn,
+                                 QM=QM, box_radius=box_radius, epochs=epochs,
                                  side_chain_resolution=side_chain_resolution)
 
     return yaml_files
