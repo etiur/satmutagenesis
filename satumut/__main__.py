@@ -112,8 +112,6 @@ def parse_args():
                         help="Affects the side chain sampling, the smaller the more accurate")
     parser.add_argument("-ep", "--epochs", required=False, type=int, default=1,
                         help="the number of adaptive epochs to run")
-    parser.add_argument("-et", "--equilibration_steps", required=False, type=int,
-                        help="Set equilibration steps")
     args = parser.parse_args()
 
     return [args.input, args.position, args.ligchain, args.ligname, args.atoms, args.cpus_per_mutant, args.test,
@@ -123,7 +121,7 @@ def parse_args():
             args.xtc, args.catalytic_distance, args.template, args.skip, args.rotamers, args.equilibration, args.log,
             args.cpus_per_task, args.improve, args.turn, args.energy_threshold, args.QM, args.dihedral_atoms,
             args.box_radius, args.mutation, args.conservative, args.profile_with, args.wild, args.side_chain_resolution,
-            args.epochs, args.equilibration_steps]
+            args.epochs]
 
 
 class CreateSlurmFiles:
