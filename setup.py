@@ -19,5 +19,5 @@ setup(name="satumut", author="Ruite Xiang", author_email="ruite.xiang@bsc.es",
                    "Environment :: Console",
                    "Development Status :: 1 - Planning",
                    "Topic :: Scientific/Engineering :: Bio-Informatics"],
-      install_requires=["pmx @ git+https://github.com/cescgina/pmx.git@develop", "fpdf", "matplotlib", "numpy", "pandas", "seaborn", "biopython", "mdtraj"],
+      install_requires=["pmx-satumut", "fpdf", "matplotlib", "numpy", "pandas", "seaborn", "biopython", "mdtraj"],
       keywords="protein engineering, bioinformatics, mutate proteins, simulations")
