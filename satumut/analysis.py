@@ -102,7 +102,7 @@ class SimulationData:
             rep = files.name.split("_")[1]
             data = pd.read_csv(files, sep="    ", engine="python")
             data['#Task'].replace({1: rep}, inplace=True)
-            data.rename(columns={'#Task': "ID"}, inplace=True)
+            data.rename(columns={'#Task': "Traj"}, inplace=True)
             for x in range(1, len(data)):
                 residence_time.append(data["Step"].iloc[x] - data["Step"].iloc[x-1])
             data["residence time"] = residence_time

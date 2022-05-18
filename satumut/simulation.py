@@ -173,8 +173,9 @@ class SimulationRunner:
         yaml = Path("yaml_files/simulation.yaml")
         if consec:
             files = list(Path("yaml_files").glob("*.yaml"))
-            files.sort(key=lambda x: int(x.stem.split("_")[1]) if x.name != "simulation.yaml" else -999999)
-            yaml = "yaml_files"/files[-1]
+            if len(files) > 1:
+                files.sort(key=lambda x: int(x.stem.split("_")[1]) if x.name != "simulation.yaml" else -999999)
+                yaml = "yaml_files"/files[-1]
         self.submit(yaml)
         return yaml
 

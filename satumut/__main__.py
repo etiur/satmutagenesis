@@ -75,7 +75,7 @@ def parse_args():
                              "to have mutated (Must write the list of residue position"
                              "numbers)")
     parser.add_argument("-x", "--xtc", required=False, action="store_false",
-                        help="Change the pdb format to xtc")
+                        help="Change the pdb format to xtc, default to true")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
     parser.add_argument("-tem", "--template", required=False, nargs="+",
