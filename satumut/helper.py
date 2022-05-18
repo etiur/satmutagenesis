@@ -155,7 +155,7 @@ def neighbourresidues(input_, specific_at_res_chainid, radius=5.0, fixed_resids=
     parser = Bio.PDB.PDBParser(QUIET=True)
 
     # Open the PDB file with the Bio module and get the topology of the desired atom to get the coordinates
-    structure = parser.get_structure(input_[:-4], input_)
+    structure = parser.get_structure(Path(input_).name[:-4], input_)
     try:
         target_residue = structure[0][specific_at_res_chainid[0]][int(specific_at_res_chainid[1])]
         target_atom = target_residue[specific_at_res_chainid[2]]
