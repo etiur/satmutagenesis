@@ -221,8 +221,8 @@ class Mutagenesis:
         """
         if len(new_aa) == 1:
             new_aa = _aacids_ext_amber[new_aa]
-        phi = residue.get_phi()
-        psi = residue.get_psi()
+        phi = residue.get_phi(degree=True)
+        psi = residue.get_psi(degree=True)
         rotamers = get_rotamers(bbdep, new_aa, phi, psi, residue=residue, full=True, hydrogens=hydrogens)
         new_r = select_best_rotamer(self.model, rotamers)
         self.model.replace_residue(residue, new_r)

@@ -32,7 +32,8 @@ def parse_args():
                         help="Include the number of cpus desired")
     parser.add_argument("-cd", "--catalytic_distance", required=False, default=3.5, type=float,
                         help="The distance considered to be catalytic")
-    parser.add_argument("-x", "--xtc", required=False, action="store_false", help="Change the pdb format to xtc")
+    parser.add_argument("-x", "--xtc", required=False, action="store_false", help="Change the pdb format to xtc, "
+                                                                                  "default to true")
     parser.add_argument("-ex", "--extract", required=False, type=int, help="The number of steps to analyse")
     parser.add_argument("-en", "--energy_threshold", required=False, type=int,
                         help="An energy threshold that limits the points of scatter plots")
@@ -211,8 +212,8 @@ def pele_profile_single(key, mutation, res_dir, wild, type_, position_num, follo
     ex = sns.relplot(x=type_, y=profile_with, hue="Type", style="Type", sizes=(10, 100), size="residence time",
                      palette="Set2", data=cat_1, linewidth=0, style_order=cat["Type"].unique(),
                      hue_order=cat["Type"].unique(), height=3.5, aspect=1.5)
-    ax.set(title=f"{key} scatter plot of {profile_with} vs {type_} ")
-    ex.set(title=f"{key} scatter plot of {profile_with} vs {type_} ")
+    ax.set(title=f"Scatter plot of {key}")
+    ex.set(title=f"Scatter plot of {key}")
     ax.savefig(
         f"{res_dir}_{mode}/Plots/{follow}/scatter_{position_num}_{type_}/{key}_{type_}_1.png",
         dpi=dpi)
