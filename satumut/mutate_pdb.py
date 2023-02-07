@@ -9,7 +9,6 @@ from .helper import map_atom_string, Log
 from pmx.library import _aacids_ext_amber
 from pmx.rotamer import get_rotamers, select_best_rotamer
 from multiprocessing import Process
-from Bio.SubsMat import MatrixInfo as mat
 from pathlib import Path
 import Bio.Align.substitution_matrices as new_mat
 
@@ -53,7 +52,7 @@ class Mutagenesis:
     To perform mutations on PDB files
     """
     def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None, mut=None,
-                 conservative=None, multiple=False, initial=None, wild=None):
+                 conservative=None, multiple=False, initial=None, wild_simulation=None):
         """
         Initialize the Mutagenesis object
 
@@ -77,16 +76,16 @@ class Mutagenesis:
             Same round but double mutations
         initial: str, optional
             The initial input pdb, used if multiple true to check the coordinates
-        wild: str, optional
+        wild_simulation: str, optional
             The path to the wild type simulation
         """
         self.model = Model(str(model))
         self.input = Path(model)
-        self.wild = wild
+        self.wild = wild_simulation
         if not initial:
-            self.initial = Path(model)
+            self.initial = self.input
         else:
-            self.initial = Path(model)
+            self.initial = Path(initial)
         self.coords = position
         self.rotamers = load_bbdep()
         self.final_pdbs = []
@@ -101,6 +100,7 @@ class Mutagenesis:
         self.single = single
         self.turn = turn
         self.residues = self.__check_all_and_return_residues(mut, conservative)
+        self.initial_connect = self.get_coordinates_from_connect_lines()
 
     def __check_all_and_return_residues(self, mut, conservative):
         self._check_folders_single_mutations()
@@ -116,28 +116,6 @@ class Mutagenesis:
         elif conservative and not mut:
             residues = self._mutation_library_new(conservative)
         return residues
-
-    def _mutation_library(self, library=1):
-        """
-        Determines how conservative should be the mutations
-
-        Parameters
-        ___________
-        library: int
-            Choose between 1 and 2 to configure how conservative should be the mutations
-        """
-        aa = self._invert_aa[self.aa_init_resname]
-        matrix = mat.blosum62
-        matrix = {k: v for k, v in matrix.items() if "X" not in k and "B" not in k and "Z" not in k}
-        blosum = [key for key in matrix.keys() if aa in key and key.count(aa) < 2 and "P" not in key]
-        value = [matrix[x] for x in blosum]
-        new_dict = dict(zip([_aacids_ext_amber[x[1]] if x[0] == aa else _aacids_ext_amber[x[0]] for x in blosum], value))
-        if library == 1:
-            reduced_dict = {k: v for k, v in new_dict.items() if v >= 0}
-        elif library == 2:
-            reduced_dict = {k: v for k, v in new_dict.items() if v >= -1}
-
-        return reduced_dict.keys()
 
     def _mutation_library_new(self, library=1):
         """
@@ -213,7 +191,7 @@ class Mutagenesis:
         residue: pmx object
             The residue has to be a pmx object
         new_aa: str
-            A 3 letter or 1 letter code to represent the new residue
+            A 3 letter or 1-letter code to represent the new residue
         bbdep:
             A database that can be interpreted by pmx
         hydrogens: bool, optional
@@ -341,6 +319,32 @@ class Mutagenesis:
         with open(prep_pdb, "w") as prep:
             prep.writelines(prep_lines)
 
+    def insert_connect_lines(self, prep_pdb):
+        pmx_file_indices = self.get_atom_indices(prep_pdb)
+        pmx_all_connect = []
+        if self.initial_connect:
+            for x in self.initial_connect:
+                pmx_connect = [" "*len(str(pmx_file_indices[y])) + str(pmx_file_indices[y]) for y in x]
+                pmx_connect = f"CONECT{''.join(pmx_connect)}\n"
+                pmx_all_connect.append(pmx_connect)
+        # read in preprocessed input and write the new connect lines
+        with open(prep_pdb, "r") as prep:
+            prep_lines = prep.readlines()
+
+        with open(prep_pdb, "w") as prep:
+            prep_lines[len(prep_lines)-1:len(prep_lines)-1] = pmx_all_connect
+            prep.writelines(prep_lines)
+
+    def accelerated_connect(self):
+        pros = []
+        if self.initial_connect:
+            for prep_pdb in self.final_pdbs:
+                p = Process(target=self.insert_connect_lines, args=(prep_pdb,))
+                p.start()
+                pros.append(p)
+            for p in pros:
+                p.join()
+
     def accelerated_insert(self):
         """
         Paralelizes the insert atomtype function
@@ -352,6 +356,41 @@ class Mutagenesis:
             pros.append(p)
         for p in pros:
             p.join()
+
+    def get_coordinates_from_connect_lines(self):
+        coords = []
+        initial_atom_indices = self.get_atom_indices(self.initial)
+        with open(self.initial, "r") as initial:
+            initial_lines = initial.readlines()
+        connect = [x for x in initial_lines if x.startswith("CONECT")]
+        if connect:
+            for x in connect:
+                x = x.replace("CONECT", "")
+                x.strip("\n")
+                num = len(x) / 5
+                if num.is_integer():
+                    new_x = [int(x[i * 5:(i * 5) + 5]) for i in range(int(num))]
+                    new_coords = [initial_atom_indices[y] for y in new_x]
+                    coords.append(new_coords)
+
+            return coords
+        else:
+            return []
+
+    def get_atom_indices(self, file):
+        # read in user input
+        atom_indices = {}
+        with open(file, "r") as initial:
+            initial_lines = initial.readlines()
+
+        for ind, line in enumerate(initial_lines):
+            if line.startswith("HETATM") or line.startswith("ATOM"):
+                index = int(line[6:11])
+                coords = float(line[30:38]), float(line[38:46]), float(line[46:54])
+                atom_indices[coords] = index
+                atom_indices[index] = coords
+
+        return atom_indices
 
 
 def generate_single_mutations(input_, position, single, hydrogens=True, pdb_dir="pdb_files", turn=None, wild=None):
