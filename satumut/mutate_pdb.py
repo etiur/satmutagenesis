@@ -272,6 +272,7 @@ class Mutagenesis:
         file_ = self.folder/output
         self.model.write(str(file_))
         self.insert_atomtype(file_)
+        self.insert_conect_lines(file_)
 
         return file_
 
@@ -319,27 +320,36 @@ class Mutagenesis:
         with open(prep_pdb, "w") as prep:
             prep.writelines(prep_lines)
 
-    def insert_connect_lines(self, prep_pdb):
-        pmx_file_indices = self.get_atom_indices(prep_pdb)
-        pmx_all_connect = []
+    def insert_conect_lines(self, prep_pdb):
+        """
+        Insert the conect lines to a pdb
+        """
         if self.initial_connect:
+            # I get both the atom coord and indices from the pmx mutants
+            pmx_file_indices = self.get_atom_indices(prep_pdb)
+            pmx_all_connect = []
             for x in self.initial_connect:
-                pmx_connect = [" "*len(str(pmx_file_indices[y])) + str(pmx_file_indices[y]) for y in x]
+                # Using the coords of the input pdb I get the atom indices of the pmx file
+                # the conect lines are multiple of 5, so if the length is < 5 add white spaces
+                pmx_connect = [" "*(5-len(str(pmx_file_indices[y]))) + str(pmx_file_indices[y]) for y in x]
                 pmx_connect = f"CONECT{''.join(pmx_connect)}\n"
                 pmx_all_connect.append(pmx_connect)
-        # read in preprocessed input and write the new connect lines
-        with open(prep_pdb, "r") as prep:
-            prep_lines = prep.readlines()
+            # read in preprocessed input and write the new connect lines
+            with open(prep_pdb, "r") as prep:
+                prep_lines = prep.readlines()
 
-        with open(prep_pdb, "w") as prep:
-            prep_lines[len(prep_lines)-1:len(prep_lines)-1] = pmx_all_connect
-            prep.writelines(prep_lines)
+            with open(prep_pdb, "w") as prep:
+                prep_lines[len(prep_lines)-1:len(prep_lines)-1] = pmx_all_connect
+                prep.writelines(prep_lines)
 
     def accelerated_connect(self):
+        """
+        Parallelize the insert_conect_lines function
+        """
         pros = []
         if self.initial_connect:
             for prep_pdb in self.final_pdbs:
-                p = Process(target=self.insert_connect_lines, args=(prep_pdb,))
+                p = Process(target=self.insert_conect_lines, args=(prep_pdb,))
                 p.start()
                 pros.append(p)
             for p in pros:
@@ -347,7 +357,7 @@ class Mutagenesis:
 
     def accelerated_insert(self):
         """
-        Paralelizes the insert atomtype function
+        Parallelize the insert atomtype function
         """
         pros = []
         for prep_pdb in self.final_pdbs:
@@ -358,6 +368,9 @@ class Mutagenesis:
             p.join()
 
     def get_coordinates_from_connect_lines(self):
+        """
+        I transform the atom indices of the input pdb into a list of a list of coordinates of those in CONECT lines
+        """
         coords = []
         initial_atom_indices = self.get_atom_indices(self.initial)
         with open(self.initial, "r") as initial:
@@ -369,8 +382,8 @@ class Mutagenesis:
                 x.strip("\n")
                 num = len(x) / 5
                 if num.is_integer():
-                    new_x = [int(x[i * 5:(i * 5) + 5]) for i in range(int(num))]
-                    new_coords = [initial_atom_indices[y] for y in new_x]
+                    new_x = [int(x[i * 5:(i * 5) + 5]) for i in range(int(num))] # I get the atom indices of the CONECT
+                    new_coords = [initial_atom_indices[y] for y in new_x] # I get the coords using atom indices
                     coords.append(new_coords)
 
             return coords
@@ -378,7 +391,9 @@ class Mutagenesis:
             return []
 
     def get_atom_indices(self, file):
-        # read in user input
+        """
+        I get the indices and coords of the pdb file
+        """
         atom_indices = {}
         with open(file, "r") as initial:
             initial_lines = initial.readlines()
@@ -475,6 +490,7 @@ def generate_saturated_mutations(input_, position, hydrogens=True, multiple=Fals
         final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
         pdbs.extend(final_pdbs)
         run.accelerated_insert()
+        run.accelerated_connect()
         count += 1
         # Mutate in a second position for each of the 20 single mutations
         if multiple and count == 1:
@@ -485,6 +501,7 @@ def generate_saturated_mutations(input_, position, hydrogens=True, multiple=Fals
                     final_pdbs_2 = run_.saturated_mutagenesis(hydrogens=hydrogens, count=count)
                     pdbs.extend(final_pdbs_2)
                     run_.accelerated_insert()
+                    run_.accelerated_connect()
 
     return pdbs
 
