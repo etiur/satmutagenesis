@@ -17,7 +17,7 @@ import Bio.Align.substitution_matrices as new_mat
 def parse_args():
     parser = argparse.ArgumentParser(description="Performs saturated mutagenesis given a PDB file")
     # main required arguments
-    parser.add_argument("-i", "--input", required=True, help="Include PDB file's path")
+    parser.add_argument("-i", "--input", required=True, nargs="+", help="Include PDB file's path")
     parser.add_argument("-p", "--position", required=True, nargs="+",
                         help="Include one or more chain IDs and positions -> Chain ID:position")
     parser.add_argument("-m", "--multiple", required=False, action="store_true",
@@ -34,17 +34,20 @@ def parse_args():
     parser.add_argument("-tu", "--turn", required=False, type=int,
                         help="the round of plurizyme generation, not needed for the 1st round")
     parser.add_argument("-mut", "--mutation", required=False, nargs="+",
-                        choices=('ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN',
+                        choices=('ALA', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN',
                                  'GLN', 'PRO', 'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR'),
                         help="The aminoacid in 3 letter code")
     parser.add_argument("-cst", "--conservative", required=False, choices=(1, 2), default=None, type=int,
                         help="How conservative should the mutations be, choises are 1 and 2")
     parser.add_argument("-w", "--wild", required=False, default=None,
                         help="The path to the folder where the reports from wild type simulation are")
+    parser.add_argument("-mp", "--multiple_pdbs", required=False, action="store_true",
+                        help="When you are performing single mutations on different pdbs and want to place them in the"
+                             "same folder")
 
     args = parser.parse_args()
     return [args.input, args.position, args.hydrogen, args.multiple, args.pdb_dir, args.consec, args.single_mutagenesis,
-            args.turn, args.mutation, args.conservative, args.wild]
+            args.turn, args.mutation, args.conservative, args.wild, args.multiple_pdbs]
 
 
 class Mutagenesis:
@@ -52,7 +55,7 @@ class Mutagenesis:
     To perform mutations on PDB files
     """
     def __init__(self, model, position, folder="pdb_files", consec=False, single=None, turn=None, mut=None,
-                 conservative=None, multiple=False, initial=None, wild_simulation=None):
+                 conservative=None, multiple=False, initial=None, wild_simulation=None, multiple_input=False):
         """
         Initialize the Mutagenesis object
 
@@ -78,6 +81,10 @@ class Mutagenesis:
             The initial input pdb, used if multiple true to check the coordinates
         wild_simulation: str, optional
             The path to the wild type simulation
+        single: str, optional
+            The new residue to be mutated to, in 3-letter or 1-letter code
+        multiple_input: bool, optional
+            If the goal is to mutate several pdbs for the single mutagenesis and want to place them in a single folder
         """
         self.model = Model(str(model))
         self.input = Path(model)
@@ -86,6 +93,7 @@ class Mutagenesis:
             self.initial = self.input
         else:
             self.initial = Path(initial)
+        self.multiple_pdbs = multiple_input
         self.coords = position
         self.rotamers = load_bbdep()
         self.final_pdbs = []
@@ -109,7 +117,7 @@ class Mutagenesis:
         self._check_coords()
         self.aa_init_resname = self.model.residues[self.position].resname
         if not mut and not conservative:
-            residues = ['ALA', 'CYS', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
+            residues = ['ALA', 'GLU', 'ASP', 'GLY', 'PHE', 'ILE', 'HIS', 'LYS', 'MET', 'LEU', 'ASN', 'GLN',
                         'SER', 'ARG', 'THR', 'TRP', 'VAL', 'TYR']
         elif mut and not conservative:
             residues = mut
@@ -143,13 +151,13 @@ class Mutagenesis:
         """
         Check the presence of different folders in single mutagenesis
         """
-        if self.turn and self.single:
-            if not Path(f"{self.folder.name}_1_round_{self.turn}").exists():
-                self.folder = Path(f"{self.folder.name}_1_round_{self.turn}")
+        if self.turn and self.single and not self.multiple_pdbs:
+            if not Path(f"{self.folder.parent/self.folder.name}_1_round_{self.turn}").exists():
+                self.folder = Path(f"{self.folder.parent/self.folder.name}_1_round_{self.turn}")
             else:
-                files = [x for x in Path.cwd().glob("*") if self.folder.name in x.name]
-                files.sort(key=lambda x: int(x.name.replace(f"{self.folder.name}_", "").replace(f"_round_{self.turn}", "")))
-                num = int(files[-1].name.replace(f"{self.folder.name}_", "").replace(f"_round_{self.turn}", ""))
+                files = [x for x in self.folder.parent.glob("*") if self.folder.name in x.name]
+                files.sort(key=lambda x: int(x.name.replace(f"_round_{self.turn}", "").split("_")[-1]))
+                num = int(files[-1].name.replace(f"_round_{self.turn}", "").split("_")[-1])
                 self.folder = Path(f"{self.folder.name}_{num+1}_round_{self.turn}")
 
     def _check_folders_multiple_mutations(self):
@@ -171,6 +179,7 @@ class Mutagenesis:
         """
         map the user coordinates with pmx coordinates
         """
+
         original = self.folder.joinpath("original.pdb")
         if not original.exists():
             self.model.write(str(original))
@@ -178,7 +187,7 @@ class Mutagenesis:
         after = map_atom_string(self.coords, self.initial, original)
         self.chain_id = after.split(":")[0]
         self.position = int(after.split(":")[1]) - 1
-        if self.wild:
+        if self.wild or (self.multiple_pdbs and self.single):
             self.final_pdbs = [x for x in self.final_pdbs if "original" not in x.name]
             original.unlink(missing_ok=True)
 
@@ -237,14 +246,12 @@ class Mutagenesis:
 
         return self.final_pdbs
 
-    def single_mutagenesis(self, new_aa, hydrogens=True):
+    def single_mutagenesis(self, hydrogens=True):
         """
         Create single mutations
 
         Parameters
         ___________
-        new_aa: str
-            The aa to mutate to, in 3 letter code or 1 letter code
         hydrogens: bool, optional
             Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
 
@@ -255,16 +262,16 @@ class Mutagenesis:
         """
         aa_name = self._invert_aa[self.aa_init_resname]
         try:
-            self.mutate(self.model.residues[self.position], new_aa, self.rotamers, hydrogens=hydrogens)
+            self.mutate(self.model.residues[self.position], self.single, self.rotamers, hydrogens=hydrogens)
         except KeyError:
             self.log.error(f"position {self.chain_id}:{self.position+1} has no rotamer in the library so it was skipped",
                            exc_info=True)
         # writing into a pdb
-        if len(new_aa) == 1:
-            new = new_aa
+        if len(self.single) == 1:
+            new = self.single
         else:
-            new = self._invert_aa[new_aa]
-        if self.turn:
+            new = self._invert_aa[self.single]
+        if self.turn or self.multiple_pdbs:
             output = Path(f"{self.input.stem}_{aa_name}{self.position+1}{new}.pdb")
         else:
             output = Path(f"{aa_name}{self.position+1}{new}.pdb")
@@ -379,7 +386,7 @@ class Mutagenesis:
         if connect:
             for x in connect:
                 x = x.replace("CONECT", "")
-                x.strip("\n")
+                x = x.strip("\n")
                 num = len(x) / 5
                 if num.is_integer():
                     new_x = [int(x[i * 5:(i * 5) + 5]) for i in range(int(num))] # I get the atom indices of the CONECT
@@ -408,14 +415,15 @@ class Mutagenesis:
         return atom_indices
 
 
-def generate_single_mutations(input_, position, single, hydrogens=True, pdb_dir="pdb_files", turn=None, wild=None):
+def generate_single_mutations(input_, position, single, hydrogens=True, pdb_dir="pdb_files", turn=None, wild=None,
+                              multiple_inputs=False):
     """
-        To generate up to single mutations per pdb
+        To generate different single mutations on a single pdb or the same single mutation to different pdbs
 
         Parameters
         ___________
-        input_: str
-            Input pdb to be used to generate the mutations
+        input_: list[str]
+            Input pdbs to be used to generate the mutations
         position: list[str]
             [chain ID:position] of the residue, for example [A:139,..]
         hydrogens: bool, optional
@@ -426,6 +434,10 @@ def generate_single_mutations(input_, position, single, hydrogens=True, pdb_dir=
             The new residue to mutate the positions to, in 3 letter or 1 letter code
         turn: int, optional
             The round of plurizymer generation
+        consec: bool, optional
+            If to keep the name of the input pdb
+        multiple_inputs: bool, optional
+            If the goal is to mutate several pdbs for the single mutagenesis and want to place them in a single folder
 
         Returns
         ________
@@ -433,17 +445,27 @@ def generate_single_mutations(input_, position, single, hydrogens=True, pdb_dir=
             The list of all generated pdbs' path
         """
     pdbs = []
-    for mutation in position:
-        # If the single_mutagenesis flag is used, execute this
-        run = Mutagenesis(input_, mutation, pdb_dir, single=single, turn=turn, wild=wild)
-        single = single.upper()
-        mutant = run.single_mutagenesis(single, hydrogens)
-        pdbs.append(mutant)
+    if not multiple_inputs:
+        for mutation in position:
+            # If the single_mutagenesis flag is used, execute this
+            run = Mutagenesis(input_[0], mutation, pdb_dir, single=single, turn=turn, wild_simulation=wild,
+                              multiple_input=multiple_inputs)
+            single = single.upper()
+            mutant = run.single_mutagenesis(hydrogens)
+            pdbs.append(mutant)
 
-    if not wild:
-        ori = run.folder/"original.pdb"
-        run.insert_atomtype(ori)
-        pdbs.append(run.folder/"original.pdb")
+        if not wild:
+            ori = run.folder/"original.pdb"
+            run.insert_atomtype(ori)
+            run.insert_conect_lines(ori)
+            pdbs.append(run.folder/"original.pdb")
+    else:
+        for pdb in input_:
+            run = Mutagenesis(pdb, position[0], pdb_dir, single=single, turn=turn, wild_simulation=wild,
+                              multiple_input=multiple_inputs)
+            single = single.upper()
+            mutant = run.single_mutagenesis(hydrogens)
+            pdbs.append(mutant)
 
     return pdbs
 
@@ -455,7 +477,7 @@ def generate_saturated_mutations(input_, position, hydrogens=True, multiple=Fals
 
     Parameters
     ___________
-    input_: str
+    input_: list[str]
         Input pdb to be used to generate the mutations
     position: list[str]
         [chain ID:position] of the residue, for example [A:139,..]
@@ -482,10 +504,10 @@ def generate_saturated_mutations(input_, position, hydrogens=True, multiple=Fals
     count = 0
     for mutation in position:
         if multiple and count == 1:
-            run = Mutagenesis(input_, mutation, pdb_dir, consec, mut=mut, conservative=conservative, multiple=multiple,
-                              wild=wild)
+            run = Mutagenesis(input_[0], mutation, pdb_dir, consec, mut=mut, conservative=conservative, multiple=multiple,
+                              wild_simulation=wild)
         else:
-            run = Mutagenesis(input_, mutation, pdb_dir, consec, mut=mut, conservative=conservative, wild=wild)
+            run = Mutagenesis(input_[0], mutation, pdb_dir, consec, mut=mut, conservative=conservative, wild_simulation=wild)
         # run saturated mutagenesis
         final_pdbs = run.saturated_mutagenesis(hydrogens=hydrogens)
         pdbs.extend(final_pdbs)
@@ -507,12 +529,12 @@ def generate_saturated_mutations(input_, position, hydrogens=True, multiple=Fals
 
 
 def generate_mutations(input_, position, hydrogen=True, multiple=False, pdb_dir="pdb_files", consec=False, single=None,
-                       turn=None, mut=None, conservative=None, wild=None):
+                       turn=None, mut=None, conservative=None, wild=None, multiple_inputs=False):
     """
     A function that combines both previous functions
     """
     if single:
-        pdbs = generate_single_mutations(input_, position, single, hydrogen, pdb_dir, turn, wild)
+        pdbs = generate_single_mutations(input_, position, single, hydrogen, pdb_dir, turn, wild, multiple_inputs)
     else:
         pdbs = generate_saturated_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, mut, conservative,
                                             wild)
@@ -520,9 +542,10 @@ def generate_mutations(input_, position, hydrogen=True, multiple=False, pdb_dir=
 
 
 def main():
-    input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut, conservative, wild = parse_args()
+    input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut, conservative, wild,\
+    multiple_inputs= parse_args()
     output = generate_mutations(input_, position, hydrogen, multiple, pdb_dir, consec, single_mutagenesis, turn, mut,
-                                conservative, wild)
+                                conservative, wild, multiple_inputs)
 
     return output
 
