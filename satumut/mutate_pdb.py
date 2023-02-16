@@ -2,7 +2,7 @@
 This script used pmx to mutate the residues within proteins
 """
 
-from pmx import Model
+from pmx import Model # change pmx to modeller https://salilab.org/modeller/wiki/Mutate_model
 from pmx.rotamer import load_bbdep
 import argparse
 from .helper import map_atom_string, Log
@@ -424,14 +424,14 @@ def generate_single_mutations(input_, position, single, hydrogens=True, pdb_dir=
         ___________
         input_: list[str]
             Input pdbs to be used to generate the mutations
-        position: list[str]
+        position: list[str] -> if multiple_input provided then each position should match the input
             [chain ID:position] of the residue, for example [A:139,..]
         hydrogens: bool, optional
             Leave it true since it removes hydrogens (mostly unnecessary) but creates an error for CYS
         pdb_dir: str, optional
             The name of the folder where the mutated PDB files will be stored
         single: str
-            The new residue to mutate the positions to, in 3 letter or 1 letter code
+            The new residue to mutate the positions to, in 3 letter or 1-letter code
         turn: int, optional
             The round of plurizymer generation
         consec: bool, optional
@@ -448,9 +448,9 @@ def generate_single_mutations(input_, position, single, hydrogens=True, pdb_dir=
     if not multiple_inputs:
         for mutation in position:
             # If the single_mutagenesis flag is used, execute this
+            single = single.upper()
             run = Mutagenesis(input_[0], mutation, pdb_dir, single=single, turn=turn, wild_simulation=wild,
                               multiple_input=multiple_inputs)
-            single = single.upper()
             mutant = run.single_mutagenesis(hydrogens)
             pdbs.append(mutant)
 
@@ -460,10 +460,10 @@ def generate_single_mutations(input_, position, single, hydrogens=True, pdb_dir=
             run.insert_conect_lines(ori)
             pdbs.append(run.folder/"original.pdb")
     else:
-        for pdb in input_:
-            run = Mutagenesis(pdb, position[0], pdb_dir, single=single, turn=turn, wild_simulation=wild,
-                              multiple_input=multiple_inputs)
+        for num, pdb in enumerate(input_):
             single = single.upper()
+            run = Mutagenesis(pdb, position[num], pdb_dir, single=single, turn=turn, wild_simulation=wild,
+                              multiple_input=multiple_inputs)
             mutant = run.single_mutagenesis(hydrogens)
             pdbs.append(mutant)
 
